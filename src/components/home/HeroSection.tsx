@@ -40,10 +40,10 @@ export default function HeroSection() {
           className="mb-8"
         >
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900 mb-6">
-            Build your component
+            하나와영
             <br />
-            <span className="bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 bg-clip-text text-transparent">
-              library
+            <span className="text-base sm:text-lg lg:text-xl bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 bg-clip-text text-transparent">
+              고려대학교 전기전자공학부 소프트웨어 학회
             </span>
           </h1>
           
