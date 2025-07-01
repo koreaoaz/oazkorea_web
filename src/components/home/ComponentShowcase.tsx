@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import React, { useState } from "react";
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Mail, Bell, Star, Heart, MessageCircle } from "lucide-react";
+import { Calendar, Mail, Bell, Star, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function ComponentShowcase() {
@@ -65,7 +66,7 @@ export default function ComponentShowcase() {
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Over 50+ beautiful components built with Radix UI and Tailwind CSS. 
-            Copy, paste, and customize to your heart's content.
+            Copy, paste, and customize to your heart&apos;s content.
           </p>
         </motion.div>
 
