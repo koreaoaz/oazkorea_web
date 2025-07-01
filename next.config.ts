@@ -6,10 +6,10 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// export default nextConfig;
 
 // const nextConfig = {
   
 // };
 
-// module.exports = nextConfig;
+module.exports = nextConfig;
