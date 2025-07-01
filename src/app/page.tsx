@@ -1,22 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { 
-  ArrowRight, 
-  Copy, 
-  Palette, 
-  Accessibility, 
-  Zap,
-  Code2,
-  Sparkles,
-  Github,
-  Twitter,
-  ExternalLink
-} from "lucide-react";
-import { motion } from "framer-motion";
+// import { Button } from "@/components/ui/button";
+// import { Badge } from "@/components/ui/badge";
+// import { Card, CardContent } from "@/components/ui/card";
+// import { 
+//   ArrowRight, 
+//   Copy, 
+//   Palette, 
+//   Accessibility, 
+//   Zap,
+//   Code2,
+//   Sparkles,
+//   Github,
+//   Twitter,
+//   ExternalLink
+// } from "lucide-react";
+// import { motion } from "framer-motion";
 
 import Navigation from "@/components/home/Navigation";
 import HeroSection from "@/components/home/HeroSection";

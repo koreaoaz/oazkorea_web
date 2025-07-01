@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Mail, Bell, Star, Heart, MessageCircle } from "lucide-react";
+import { Calendar, Mail, Bell, Star, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function ComponentShowcase() {
