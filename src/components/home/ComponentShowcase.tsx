@@ -65,7 +65,7 @@ export default function ComponentShowcase() {
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Over 50+ beautiful components built with Radix UI and Tailwind CSS. 
-            Copy, paste, and customize to your heart's content.
+            Copy, paste, and customize to your heart&apos;s content.
           </p>
         </motion.div>
 
