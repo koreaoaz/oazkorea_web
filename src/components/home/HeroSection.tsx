@@ -39,13 +39,21 @@ export default function HeroSection() {
           transition={{ duration: 0.8, delay: 0.1 }}
           className="mb-8"
         >
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900 mb-6">
-            하나와영
-            <br />
-            <span className="text-base sm:text-lg lg:text-xl bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 bg-clip-text text-transparent">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="mb-8"
+          >
+            <img
+              src="/oaz.png"
+              alt="하나와영 로고"
+              className="mx-auto w-[360px] sm:w-[480px] lg:w-[600px]"
+            />
+            <p className="text-base sm:text-lg lg:text-xl mt-4 bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 bg-clip-text text-transparent">
               고려대학교 전기전자공학부 소프트웨어 학회
-            </span>
-          </h1>
+            </p>
+          </motion.div>
           
           <p className="text-xl sm:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed font-light">
             Beautifully designed components that you can copy and paste into your apps. 
