@@ -1,0 +1,27 @@
+name: Forwarding-push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  self_repush:
+    if: github.actor != 'yumin'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.PUSH_TOKEN }}
+
+    - name: Add meaningless newline
+      run: |
+        echo "" >> Forwarding_patch.txt
+        git config user.name "yumin"
+        git config user.email "yung.ym.lee@gmail.com"
+        git pull --rebase
+        git add Forwarding_patch.txt
+        git commit -m "[Forwarding push]"
+        git push https://ymn-lee:${{ secrets.PUSH_TOKEN }}@github.com/ymn-lee/web-implementation.git HEAD:main
