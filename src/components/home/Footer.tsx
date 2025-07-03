@@ -42,7 +42,7 @@ export default function Footer() {
               <div className="w-8 h-8 bg-black rounded-md flex items-center justify-center">
                 <div className="w-4 h-4 bg-white rounded-sm" />
               </div>
-              <span className="text-xl font-bold">shadcn/ui</span>
+              <span className="text-xl font-bold">OaZ</span>
             </div>
             <p className="text-gray-600 text-sm leading-relaxed mb-6">
               Beautifully designed components that you can copy and paste into your apps. 
@@ -95,11 +95,11 @@ export default function Footer() {
           <p className="text-gray-600 text-sm flex items-center">
             Built with <Heart className="w-4 h-4 text-red-500 mx-1" /> by{" "}
             <a href="#" className="font-medium text-gray-900 ml-1 hover:underline">
-              shadcn
+              OaZ
             </a>
           </p>
           <p className="text-gray-600 text-sm mt-4 sm:mt-0">
-            © 2024 shadcn/ui. All rights reserved.
+            © 2024 OaZ. All rights reserved.
           </p>
         </motion.div>
       </div>
