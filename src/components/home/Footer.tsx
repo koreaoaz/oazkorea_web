@@ -92,15 +92,21 @@ export default function Footer() {
           viewport={{ once: true }}
           className="border-t border-gray-200 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center"
         >
-          <p className="text-gray-600 text-sm flex items-center">
-            Built with <Heart className="w-4 h-4 text-red-500 mx-1" /> by{" "}
-            <a href="#" className="font-medium text-gray-900 ml-1 hover:underline">
-              OaZ
-            </a>
-          </p>
-          <p className="text-gray-600 text-sm mt-4 sm:mt-0">
-            © 2024 OaZ. All rights reserved.
-          </p>
+          <div className="text-gray-600 text-sm">
+            <p  className="text-gray-600 text-sm flex items-center">
+              Built with <Heart className="w-4 h-4 text-red-500 mx-1" /> by{" "}
+              <a href="#" className="font-medium text-gray-900 ml-1 hover:underline">
+                OaZ
+              </a>
+            </p>
+            <p>2025 Ver. Created by 이유민, 정호연, 신석민</p><p>&nbsp;</p>
+            <p>서울특별시 성북구 지봉로21길 16, 고려대학교 신공학관 106B</p>
+            <p>koreaoaz@gmail.com</p>
+          </div>
+          <div>
+            <p className="text-gray-950 text-base font-bold mt-4 sm:mt-0">회장</p>
+            <p className="text-gray-600 text-sm mt-4 sm:mt-0">박지우 010-2863-0604</p><p>&nbsp;</p>
+          </div>
         </motion.div>
       </div>
     </footer>
