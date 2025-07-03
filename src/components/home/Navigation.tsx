@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Github, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
 export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -45,45 +46,45 @@ export default function Navigation() {
   const navItems = [
     { 
       name: "About", 
-      href: "about/who-we-are", 
+      href: "/about/who-we-are", 
       subItems: [
-        { name : "Who We Are", href: "about/who-we-are"},
-        { name : "Notice", href: "about/notice" }, 
-        { name : "Executive Team", href: "about/executive-team"}
+        { name : "Who We Are", href: "/about/who-we-are"},
+        { name : "Notice", href: "/about/notice" }, 
+        { name : "Executive Team", href: "/about/executive-team"}
       ]
     },
     { name: "Studies", 
-      href: "studies/overview", 
+      href: "/studies/overview", 
       subItems: [
-        { name: "Overview", href: "studies/overview" },
-        { name: "Study Records", href: "studies/records" },
-        { name: "Schedule", href: "studies/schedule" },
+        { name: "Overview", href: "/studies/overview" },
+        { name: "Study Records", href: "/studies/records" },
+        { name: "Schedule", href: "/studies/schedule" },
       ]
     },
     { name: "Projects", 
-      href: "projects/overview", 
+      href: "/projects/overview", 
       subItems: [
-        { name: "Overview", href: "projects/overview" },
-        { name: "Project Archives", href: "projects/archives" },
+        { name: "Overview", href: "/projects/overview" },
+        { name: "Project Archives", href: "/projects/archives" },
       ]
     },
     { name: "Events", 
-      href: "events/archive",
+      href: "/events/archive",
       subItems: [
-        {name: "Event Archive", href: "events/archive"}
+        {name: "Event Archive", href: "/events/archive"}
       ]
      },
     { name: "Blog", 
-      href: "blog/members-tech-blog", 
+      href: "/blog/members-tech-blog", 
       subItems: [
-        { name: "Members' Tech Blog", href: "blog/members-tech-blog" },
-        { name: "OAZ Band", href: "blog/band"}
+        { name: "Members' Tech Blog", href: "/blog/members-tech-blog" },
+        { name: "OAZ Band", href: "/blog/band"}
       ]
     },
     { name: "Recruit", 
-      href: "recuit/recruitment", 
+      href: "/recuit/recruitment", 
       subItems: [
-        { name: "Recruitment", href: "recruit/recruitment" },
+        { name: "Recruitment", href: "/recruit/recruitment" },
       ]
     },
     { name: "Alumni", 
@@ -116,10 +117,12 @@ export default function Navigation() {
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
           >
-            <div className="w-8 h-8 bg-black rounded-md flex items-center justify-center">
-              <div className="w-4 h-4 bg-white rounded-sm" />
-            </div>
-            <span className="text-xl font-bold tracking-tight">shadcn/ui</span>
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-black rounded-md flex items-center justify-center">
+                <div className="w-4 h-4 bg-white rounded-sm" />
+              </div>
+              <span className="text-xl font-bold tracking-tight text-gray-900">OaZ</span>
+            </Link>
           </motion.div>
 
           {/* Desktop Navigation */}
@@ -131,33 +134,33 @@ export default function Navigation() {
                 onMouseEnter={() => handleMouseEnter(item.name)}
                 onMouseLeave={handleMouseLeave}
               >
-                <motion.a
-                  href={item.href}
-                  className="text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200 relative"
-                  whileHover={{ y: -1 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 + 0.3 }}
-                >
-                  {item.name}
+                <Link href={item.href} className="text-gray-600 hover:text-gray-900 font-medium transition-colors duration-200 relative">
                   <motion.div
-                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gray-900 origin-left"
-                    initial={{ scaleX: 0 }}
-                    whileHover={{ scaleX: 1 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </motion.a>
+                    whileHover={{ y: -1 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 + 0.3 }}
+                  >
+                    {item.name}
+                    <motion.div
+                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gray-900 origin-left"
+                      initial={{ scaleX: 0 }}
+                      whileHover={{ scaleX: 1 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </motion.div>
+                </Link>
                 {/* 조건부 렌더링*/}
                 {item.subItems && hoveredMenu === item.name && (
                   <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                     {item.subItems.map((subItem) => (
-                      <a
+                      <Link
                         key={subItem.name}
                         href={subItem.href}
                         className="block px-4 py-2 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                       >
                         {subItem.name}
-                      </a>
+                      </Link>
                     ))}
                   </div>
                 )}
@@ -217,13 +220,13 @@ export default function Navigation() {
                           className="overflow-hidden ml-4 mt-1 space-y-2"
                         >
                           {item.subItems.map((subItem) => (
-                            <a
+                            <Link
                               key={subItem.name}
                               href={subItem.href}
                               className="block text-gray-500 hover:text-gray-800 text-sm"
                             >
                               {subItem.name}
-                            </a>
+                            </Link>
                           ))}
                         </motion.div>
                       )}
