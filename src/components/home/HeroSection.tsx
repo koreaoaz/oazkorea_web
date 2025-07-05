@@ -51,7 +51,7 @@ export default function HeroSection() {
               className="mx-auto w-[360px] sm:w-[480px] lg:w-[600px]"
             />
             <p className="text-base sm:text-lg lg:text-xl mt-4 bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 bg-clip-text text-transparent font-bold">
-              고려대학교 전기전자공학부 소프트웨어 학회
+              - Korea University E.E. Software Society -
             </p>
           </motion.div>
           
