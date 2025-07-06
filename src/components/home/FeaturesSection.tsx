@@ -1,18 +1,13 @@
 "use client";
 
+import Timetable from "@/components/home/Timetable";
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Palette, Accessibility, Zap, Code2, Copy, Sparkles } from "lucide-react";
+import { Palette, Accessibility, Zap, Code2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function FeaturesSection() {
   const features = [
-    {
-      icon: Copy,
-      title: "Copy & Paste",
-      description: "Copy and paste components into your apps. Customize to your heart's content.",
-      gradient: "from-blue-500 to-cyan-500"
-    },
     {
       icon: Accessibility,
       title: "Accessible",
@@ -65,6 +60,26 @@ export default function FeaturesSection() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            whileHover={{ y: -5 }}
+            className="group"
+          >
+            <Card className="h-full border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-lg bg-white/50 backdrop-blur-sm">
+              <CardContent className="p-6 md:p-8">
+                <img
+                  src="/study-timetable-title.png"
+                  alt="Study Timetable"
+                  className="w-80 mx-auto mb-6"
+                />
+                <Timetable />
+              </CardContent>
+            </Card>
+          </motion.div>
+
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}
