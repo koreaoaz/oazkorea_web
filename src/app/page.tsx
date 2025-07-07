@@ -6,6 +6,7 @@ import ComponentShowcase from "@/components/home/ComponentShowcase";
 
 export default function Home() {
   return (
+    
     <>
       <HeroSection />
       <FeaturesSection />
