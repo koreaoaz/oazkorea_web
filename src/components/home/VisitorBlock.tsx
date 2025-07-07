@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 export default function VisitorBlock() {
-  const [count, setCount] = useState<number>(0);
+  const [count, setCount] = useState<number | null>(null);
   const [today, setToday] = useState("");
 
   useEffect(() => {
@@ -11,17 +11,31 @@ export default function VisitorBlock() {
     setToday(todayStr);
 
     const lastVisited = localStorage.getItem("lastVisitDate");
-    const totalStr = localStorage.getItem("visitCount");
-
-    let total = totalStr ? parseInt(totalStr) : 0;
 
     if (lastVisited !== todayStr) {
-      total += 1;
-      localStorage.setItem("lastVisitDate", todayStr);
-      localStorage.setItem("visitCount", total.toString());
+      fetch("/api/visitor", { method: "POST" })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("✅ POST 응답:", data);
+          setCount(data.count);
+          localStorage.setItem("lastVisitDate", todayStr);
+        })
+        .catch((err) => {
+          console.error("❌ POST 실패", err);
+          setCount(-1);
+        });
+    } else {
+      fetch("/api/visitor")
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("📦 GET 응답:", data);
+          setCount(data.count);
+        })
+        .catch((err) => {
+          console.error("❌ GET 실패", err);
+          setCount(-1);
+        });
     }
-
-    setCount(total);
   }, []);
 
   return (
@@ -30,8 +44,10 @@ export default function VisitorBlock() {
         src="/block title/daily-visitors-title.png"
         alt="오늘 방문자 수"
         className="mb-2 mx-auto"
-    />
-      <p className="text-5xl font-bold text-blue-600 mb-2">{count}</p>
+      />
+      <p className="text-5xl font-bold text-blue-600 mb-2">
+        {typeof count === "number" ? count : "..."}
+      </p>
       <p className="text-sm text-gray-500">{today}</p>
     </div>
   );
