@@ -71,7 +71,7 @@ export default function FeaturesSection() {
             <Card className="h-full border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-lg bg-white/50 backdrop-blur-sm">
               <CardContent className="p-6 md:p-8">
                 <img
-                  src="/study-timetable-title.png"
+                  src="/block title/study-timetable-title.png"
                   alt="Study Timetable"
                   className="w-80 mx-auto mb-6"
                 />
