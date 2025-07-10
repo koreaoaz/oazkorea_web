@@ -7,7 +7,7 @@ import Footer from "@/components/home/Footer";
 
 
 export const metadata = {
-  title: "My App",
+  title: "OaZ",
   description: "This is my awesome app",
 };
 

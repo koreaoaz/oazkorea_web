@@ -100,7 +100,7 @@ export default function Footer() {
               </a>
             </p>
             <p>2025 Ver. Created by 이유민, 정호연, 신석민</p><p>&nbsp;</p>
-            <p>서울특별시 성북구 지봉로21길 16, 고려대학교 신공학관 106B</p>
+            <p>서울특별시 성북구 안암로 145, 고려대학교 신공학관 106B</p>
             <p>koreaoaz@gmail.com</p>
           </div>
           <div>
