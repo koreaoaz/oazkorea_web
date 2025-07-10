@@ -142,12 +142,6 @@ export default function Navigation() {
                     transition={{ delay: index * 0.1 + 0.3 }}
                   >
                     {item.name}
-                    <motion.div
-                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-gray-900 origin-left"
-                      initial={{ scaleX: 0 }}
-                      whileHover={{ scaleX: 1 }}
-                      transition={{ duration: 0.3 }}
-                    />
                   </motion.div>
                 </Link>
                 {/* 조건부 렌더링*/}
@@ -171,11 +165,14 @@ export default function Navigation() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="hover:bg-gray-100">
-              <Github className="w-5 h-5" />
-            </Button>
+            <Link href="/register">
+              <Button variant="ghost" className="flex items-center hover:bg-gray-100 text-black px-3 py-2 rounded-md">
+                <Github className="w-5 h-5" />
+                <span>Sign in</span>
+              </Button>
+            </Link>
             <Button className="bg-black hover:bg-gray-800 text-white">
-              Get Started
+              Log in
             </Button>
           </div>
 
