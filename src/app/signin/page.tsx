@@ -124,7 +124,7 @@ export default function RegistrationForm() {
           name="phonenumber"
           type="text"
           placeholder="연락처 ex) 010-xxxx-xxxx"
-          value={form.phonenumber}
+          value={form.phone_number}
           onChange={handleChange}
           className="w-full p-2 border rounded-md"
           required
