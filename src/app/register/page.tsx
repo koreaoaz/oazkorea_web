@@ -38,7 +38,7 @@ export default function RegistrationForm() {
     await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: 'http://www.oazkorea.co.kr/oauth_callback',
+        redirectTo: 'https://www.oazkorea.co.kr/oauth_callback',
       },
     });
   };
