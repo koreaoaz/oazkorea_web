@@ -13,22 +13,42 @@ export default function RegistrationForm() {
     email: ''
   });
 
-  const [isAllowed, setIsAllowed] = useState<boolean | null>(null);
+  const [isAllowed, setIsAllowed] = useState<'allowed' | 'denied' | null>(null);
+  const [isRegistered, setIsRegistered] = useState<'registered' | 'unregistered' | null>(null);
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const updatedForm = { ...form, [name]: value };
     setForm(updatedForm);
-
-    // 이메일 입력 시 허용 여부 확인
+    
     if (name === 'email') {
-      const { data, error } = await supabase
+      // check if email is already registered
+      const { data: registered } = await supabase
+        .from('registered_member')
+        .select('email')
+        .eq('email', value)
+        .maybeSingle();
+
+      if (registered) {
+        setIsRegistered('registered');
+        setIsAllowed(null);
+        return;
+      }else{
+        setIsRegistered('unregistered');        
+      }
+
+      // check if email is allowed
+      const { data: allowed } = await supabase
         .from('allowed_user')
         .select('email')
         .eq('email', value)
-        .single();
+        .maybeSingle();
 
-      setIsAllowed(!!data && !error);
+      if (allowed) {
+        setIsAllowed('allowed');
+      } else {
+        setIsAllowed('denied');
+      }
     }
   };
 
@@ -61,9 +81,13 @@ export default function RegistrationForm() {
           required
         />
 
-        {isAllowed === false && (
+        {isAllowed === 'denied' && (
           <p className="text-sm text-red-500">❌ 허용되지 않은 이메일입니다.</p>
         )}
+        {isRegistered === 'registered' && (
+          <p className="text-sm text-red-500">❌ 이미 가입된 이메일입니다.</p>
+        )}
+        
 
         <input
           name="name"
@@ -108,9 +132,9 @@ export default function RegistrationForm() {
         <button
           type="button"
           onClick={handleGithubLogin}
-          disabled={!isAllowed}
+          disabled={isAllowed !== 'allowed' || isRegistered === 'registered'}
           className={`w-full flex justify-center items-center py-2 rounded-md space-x-2 ${
-            isAllowed
+            isAllowed === 'allowed' || isRegistered === 'unregistered'
               ? 'bg-black text-white hover:bg-gray-800'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
