@@ -145,7 +145,7 @@ export default function RegistrationForm() {
           onClick={handleGithubLogin}
           disabled={isAllowed !== 'allowed' || isRegistered === 'registered'}
           className={`w-full flex justify-center items-center py-2 rounded-md space-x-2 ${
-            isAllowed === 'allowed' || isRegistered === 'unregistered'
+            isAllowed === 'allowed' && isRegistered === 'unregistered'
               ? 'bg-black text-white hover:bg-gray-800'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
