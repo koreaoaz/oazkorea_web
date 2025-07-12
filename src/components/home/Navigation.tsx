@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Github, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from '@/lib/supabaseClient';
 import Link from "next/link";
 
 export default function Navigation() {
@@ -12,6 +13,38 @@ export default function Navigation() {
   const [openMobileMenus, setOpenMobileMenus] = useState<{ [key: string]: boolean }>({});
   const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
   const hoverTimer = useRef<NodeJS.Timeout | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const handleGithubLogin = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: 'https://www.oazkorea.co.kr/login_callback',
+      },
+    });
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsLoggedIn(false);
+  };
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsLoggedIn(!!user);
+    };
+
+    checkUser();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsLoggedIn(!!session?.user);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -165,15 +198,22 @@ export default function Navigation() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
-            <Link href="/register">
+            <Link href="/signin">
               <Button variant="ghost" className="flex items-center hover:bg-gray-100 text-black px-3 py-2 rounded-md">
                 <Github className="w-5 h-5" />
                 <span>Sign in</span>
               </Button>
             </Link>
-            <Button className="bg-black hover:bg-gray-800 text-white">
-              Log in
-            </Button>
+            
+            {isLoggedIn ? (
+                <Button onClick={handleLogout} variant="ghost" className="bg-black hover:bg-gray-800 text-white">
+                  Log out
+                </Button>
+              ) : (
+                <Button onClick={handleGithubLogin} variant="ghost" className="bg-black hover:bg-gray-800 text-white">
+                  Log in
+                </Button>
+              )}
           </div>
 
           {/* Mobile Menu Button */}
