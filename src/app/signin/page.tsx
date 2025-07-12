@@ -10,7 +10,8 @@ export default function RegistrationForm() {
     department: '',
     studentId: '',
     generation: '',
-    email: ''
+    email: '',
+    phone_number: ''
   });
 
   const [isAllowed, setIsAllowed] = useState<'allowed' | 'denied' | null>(null);
@@ -120,9 +121,19 @@ export default function RegistrationForm() {
         />
 
         <input
+          name="phonenumber"
+          type="text"
+          placeholder="연락처 ex) 010-xxxx-xxxx"
+          value={form.phonenumber}
+          onChange={handleChange}
+          className="w-full p-2 border rounded-md"
+          required
+        />
+
+        <input
           name="generation"
           type="text"
-          placeholder="기수 ex) 34"
+          placeholder="기수 ex) 34, (2025년은 35기 입니다.)"
           value={form.generation}
           onChange={handleChange}
           className="w-full p-2 border rounded-md"
