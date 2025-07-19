@@ -70,58 +70,64 @@ export default function Navigation() {
   };
 
   const handleMouseEnter = (name: string) => {
-  if (hoverTimer.current) {
-    clearTimeout(hoverTimer.current);
-  }
-  setHoveredMenu(name);
-};
+    if (hoverTimer.current) {
+      clearTimeout(hoverTimer.current);
+    }
+    setHoveredMenu(name);
+  };
 
   const navItems = [
-    { 
-      name: "About", 
-      href: "/about/who-we-are", 
+    {
+      name: "About",
+      href: "/about/who-we-are",
       subItems: [
-        { name : "Who We Are", href: "/about/who-we-are"},
-        { name : "Notice", href: "/about/notice" }, 
-        { name : "Executive Team", href: "/about/executive-team"}
+        { name: "Who We Are", href: "/about/who-we-are" },
+        { name: "Notice", href: "/about/notice" },
+        { name: "Executive Team", href: "/about/executive-team" }
       ]
     },
-    { name: "Studies", 
-      href: "/studies/overview", 
+    {
+      name: "Studies",
+      href: "/studies/overview",
       subItems: [
         { name: "Overview", href: "/studies/overview" },
         { name: "Study Records", href: "/studies/records" },
         { name: "Schedule", href: "/studies/schedule" },
       ]
     },
-    { name: "Projects", 
-      href: "/projects/overview", 
+    {
+      name: "Projects",
+      href: "/projects/overview",
       subItems: [
         { name: "Overview", href: "/projects/overview" },
         { name: "Project Archives", href: "/projects/archives" },
       ]
     },
-    { name: "Events", 
+    {
+      name: "Events",
       href: "/events/archive",
       subItems: [
-        {name: "Event Archive", href: "/events/archive"}
-      ]
-     },
-    { name: "Blog", 
-      href: "/blog/members-tech-blog", 
-      subItems: [
-        { name: "Members' Tech Blog", href: "/blog/members-tech-blog" },
-        { name: "OAZ Band", href: "/blog/band"}
+        { name: "Event Archive", href: "/events/archive" }
       ]
     },
-    { name: "Recruit", 
-      href: "/recuit/recruitment", 
+    {
+      name: "Blog",
+      href: "/blog/members-tech-blog",
+      subItems: [
+        { name: "Members' Tech Blog", href: "/blog/members-tech-blog" },
+        { name: "OAZ Band", href: "/blog/band" }
+      ]
+    },
+    {
+      name: "Recruit",
+      href: "/recruit/recruitment",
       subItems: [
         { name: "Recruitment", href: "/recruit/recruitment" },
       ]
     },
-    { name: "Alumni", 
-      href: "/alumni/welcome", 
+    {
+      name: "Alumni",
+      href: "/alumni/welcome",
       subItems: [
         { name: "Welcome Message", href: "/alumni/welcome" },
         { name: "Alumni News", href: "/alumni/news" },
@@ -132,12 +138,11 @@ export default function Navigation() {
   ];
 
   return (
-    <motion.header 
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-white/80 backdrop-blur-xl border-b border-gray-200/50' 
+    <motion.header
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled
+          ? 'bg-white/80 backdrop-blur-xl border-b border-gray-200/50'
           : 'bg-transparent'
-      }`}
+        }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
@@ -145,7 +150,7 @@ export default function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <motion.div 
+          <motion.div
             className="flex items-center space-x-2"
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
@@ -204,16 +209,16 @@ export default function Navigation() {
                 <span>Sign in</span>
               </Button>
             </Link>
-            
+
             {isLoggedIn ? (
-                <Button onClick={handleLogout} variant="ghost" className="bg-black hover:bg-gray-800 text-white">
-                  Log out
-                </Button>
-              ) : (
-                <Button onClick={handleGithubLogin} variant="ghost" className="bg-black hover:bg-gray-800 text-white">
-                  Log in
-                </Button>
-              )}
+              <Button onClick={handleLogout} variant="ghost" className="bg-black hover:bg-gray-800 text-white">
+                Log out
+              </Button>
+            ) : (
+              <Button onClick={handleGithubLogin} variant="ghost" className="bg-black hover:bg-gray-800 text-white">
+                Log in
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
