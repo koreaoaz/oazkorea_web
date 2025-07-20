@@ -37,14 +37,22 @@ export default function FeaturesSection() {
         </motion.div>
     
         {/* 카드 영역 (grid) */}
-        <div className="columns-1 md:columns-2 lg:columns-4 gap-8 space-y-8">
-
+        <div className="columns-1 lg:columns-2 gap-8 space-y-8">
+          <div className="columns-1 lg:columns-2 gap-8 space-y-8">
             <FeatureCard  className="break-inside-avoid mb-8" contentClassName="p-0">
               {/* 상단 헤더 */}
               <div>
                 <h3 className="text-base font-bold text-black bg-gray-100 px-4 py-2 rounded-t-xl shadow-sm">Notification</h3>
               </div>
               <Notification />
+            </FeatureCard>
+
+            <FeatureCard contentClassName="p-0" className="break-inside-avoid mb-8">
+              {/* 상단 헤더 */}
+              <div>
+                <h3 className="text-base font-bold text-black bg-gray-100 px-4 py-2 rounded-t-xl">Project Gallery</h3>
+              </div>
+              <ProjectList />
             </FeatureCard>
 
             <FeatureCard className="break-inside-avoid mb-8" contentClassName="py-6">
@@ -55,7 +63,9 @@ export default function FeaturesSection() {
               />
               <Timetable />
             </FeatureCard>
+          </div>
 
+          <div className="columns-1 lg:columns-2 gap-8 space-y-8">
             <FeatureCard className="break-inside-avoid mb-8" contentClassName="py-6">
               <div className="flex flex-col items-center">
                 <Calendar01 />
@@ -72,21 +82,15 @@ export default function FeaturesSection() {
               </div>
             </FeatureCard>
 
-            <FeatureCard contentClassName="p-0" className="break-inside-avoid mb-8">
-              {/* 상단 헤더 */}
-              <div>
-                <h3 className="text-base font-bold text-black bg-gray-100 px-4 py-2 rounded-t-xl">Project Gallery</h3>
-              </div>
-              <ProjectList />
-            </FeatureCard>
-
-            <FeatureCard className="break-inside-avoid mb-8 mt-8 [column-span:all]" contentClassName="py-12">
+            <FeatureCard className="break-inside-avoid mb-8 [column-span:all]" contentClassName="py-12">
               <div className="text-center">
                 <h2 className="text-2xl font-bold text-gray-900">누적회원수</h2>
                 <p className="text-4xl font-bold text-blue-600 mt-4">12,345</p>
                 <p className="text-gray-600 mt-2">총 가입자 수</p>
               </div>
             </FeatureCard>
+        
+          </div>
         </div>
       </div>
     </section>
