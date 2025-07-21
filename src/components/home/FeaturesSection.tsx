@@ -1,48 +1,25 @@
 "use client";
 
-import Timetable from "@/components/home/Timetable";
+import Timetable from "@/components/home/features/Timetable";
+import Calendar01 from "@/components/home/features/Calender01";
+import FeatureCard from "@/components/home/features/FeatureCard";
+import Notification from "@/components/home/features/Notification";
+import PersonalTimeTable from "@/components/home/features/PersonalTimeTable";
+import ProjectList from "@/components/home/features/ProjectList";
+
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Palette, Accessibility, Zap, Code2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function FeaturesSection() {
-  const features = [
-    {
-      icon: Accessibility,
-      title: "Accessible",
-      description: "Components are built with accessibility in mind. Tested with screen readers.",
-      gradient: "from-purple-500 to-pink-500"
-    },
-    {
-      icon: Palette,
-      title: "Customizable",
-      description: "Built with Tailwind CSS. Customize colors, spacing, typography and more.",
-      gradient: "from-orange-500 to-red-500"
-    },
-    {
-      icon: Code2,
-      title: "Developer Experience",
-      description: "Built by developers for developers. Simple, clean, and easy to use.",
-      gradient: "from-green-500 to-emerald-500"
-    },
-    {
-      icon: Zap,
-      title: "Modern Stack",
-      description: "Built with the latest technologies. React, TypeScript, Tailwind CSS.",
-      gradient: "from-yellow-500 to-orange-500"
-    },
-    {
-      icon: Sparkles,
-      title: "Beautiful Design",
-      description: "Beautifully designed components with attention to every detail.",
-      gradient: "from-indigo-500 to-purple-500"
-    }
-  ];
 
+export default function FeaturesSection() {
+  
+ /* 전체 JSX 구조 */
   return (
     <section className="py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
+        {/* 상단 설명 영역 */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -58,55 +35,62 @@ export default function FeaturesSection() {
             accessible, and customizable user interfaces.
           </p>
         </motion.div>
+    
+        {/* 카드 영역 (grid) */}
+        <div className="columns-1 lg:columns-2 gap-8 space-y-8">
+          <div className="columns-1 lg:columns-2 gap-8 space-y-8">
+            <FeatureCard  className="break-inside-avoid mb-8" contentClassName="p-0">
+              {/* 상단 헤더 */}
+              <div>
+                <h3 className="text-base font-bold text-black bg-gray-100 px-4 py-2 rounded-t-xl shadow-sm">Notification</h3>
+              </div>
+              <Notification />
+            </FeatureCard>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            whileHover={{ y: -5 }}
-            className="group"
-          >
-            <Card className="h-full border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-lg bg-white/50 backdrop-blur-sm">
-              <CardContent className="p-6 md:p-8">
-                <img
-                  src="/block title/study-timetable-title.png"
-                  alt="Study Timetable"
-                  className="w-80 mx-auto mb-6"
-                />
-                <Timetable />
-              </CardContent>
-            </Card>
-          </motion.div>
+            <FeatureCard contentClassName="p-0" className="break-inside-avoid mb-8">
+              {/* 상단 헤더 */}
+              <div>
+                <h3 className="text-base font-bold text-black bg-gray-100 px-4 py-2 rounded-t-xl">Project Gallery</h3>
+              </div>
+              <ProjectList />
+            </FeatureCard>
 
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -5 }}
-              className="group"
-            >
-              <Card className="h-full border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-lg bg-white/50 backdrop-blur-sm">
-                <CardContent className="p-8">
-                  <div className="mb-6">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${feature.gradient} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                      <feature.icon className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600 leading-relaxed">
-                    {feature.description}
-                  </p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+            <FeatureCard className="break-inside-avoid mb-8" contentClassName="py-6">
+              <img
+                src="/block title/study-timetable-title.png"
+                alt="Study Timetable"
+                className="w-80 mx-auto mb-6"
+              />
+              <Timetable />
+            </FeatureCard>
+          </div>
+
+          <div className="columns-1 lg:columns-2 gap-8 space-y-8">
+            <FeatureCard className="break-inside-avoid mb-8" contentClassName="py-6">
+              <div className="flex flex-col items-center">
+                <Calendar01 />
+              </div>
+            </FeatureCard>
+
+            <FeatureCard className="break-inside-avoid mb-8" contentClassName="p-0">
+              <div className="rounded-t-xl overflow-hidden border-t-1 border-gray-150">
+                <PersonalTimeTable/>
+              </div>
+              {/* 하단 헤더 */}
+              <div>
+                <h3 className="text-base font-bold text-black bg-gray-100 px-4 py-2 rounded-b-xl text-center">겹강-자기 시간표 등록</h3>
+              </div>
+            </FeatureCard>
+
+            <FeatureCard className="break-inside-avoid mb-8 [column-span:all]" contentClassName="py-12">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-gray-900">누적회원수</h2>
+                <p className="text-4xl font-bold text-blue-600 mt-4">12,345</p>
+                <p className="text-gray-600 mt-2">총 가입자 수</p>
+              </div>
+            </FeatureCard>
+        
+          </div>
         </div>
       </div>
     </section>
