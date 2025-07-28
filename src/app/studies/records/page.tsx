@@ -2,6 +2,7 @@
 "use client";
 
 import StudyArchiveGrid from "@/components/home/features/StudyArchiveGrid"; // StudyArchiveGrid 불러오기
+import ComponentShowcase from "@/components/home/ComponentShowcase";
 
 export default function StudyRecordsPage() {
   return (
@@ -12,6 +13,7 @@ export default function StudyRecordsPage() {
       </p>
 
       <StudyArchiveGrid />
+      <ComponentShowcase />
     </div>
   );
 }
