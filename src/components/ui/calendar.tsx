@@ -190,7 +190,7 @@ function CalendarDayButton({
       ref={ref}
       variant="ghost"
       size="icon"
-      data-day={day.date.toLocaleDateString()}
+      data-day={day.date.toISOString().split("T")[0]} // "2025-06-01"
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&
