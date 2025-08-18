@@ -45,10 +45,12 @@ export default function HeroSection() {
             transition={{ duration: 0.8, delay: 0.1 }}
             className="mb-8"
           >
-            <img
-              src="/oaz.png"
-              alt="하나와영 로고"
-              className="mx-auto w-[360px] sm:w-[480px] lg:w-[600px]"
+            <video
+              src="/oaz.webm"
+              autoPlay
+              muted
+              playsInline
+              className="mx-auto w-[360px] sm:w-[480px] lg:w-[640px]"
             />
             <p className="text-base sm:text-lg lg:text-xl mt-4 bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 bg-clip-text text-transparent font-bold">
               - Korea University E.E. Software Society -
