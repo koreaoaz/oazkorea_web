@@ -106,6 +106,7 @@ export default function Footer() {
           <div>
             <p className="text-gray-950 text-base font-bold mt-4 sm:mt-0">회장</p>
             <p className="text-gray-600 text-sm mt-4 sm:mt-0">박지우 010-2863-0604</p>
+            <p className="text-gray-950 text-base font-bold mt-4 sm:mt-0">부회장</p>
             <p className="text-gray-600 text-sm mt-4 sm:mt-0">김령환 010-7741-0719</p><p>&nbsp;</p>
           </div>
         </motion.div>
