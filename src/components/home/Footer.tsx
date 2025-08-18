@@ -99,13 +99,14 @@ export default function Footer() {
                 OaZ
               </a>
             </p>
-            <p>2025 Ver. Created by 이유민, 정호연, 신석민</p><p>&nbsp;</p>
+            <p>2025 Ver. Created by 이유민, 정호연, 신석민, 박유림</p><p>&nbsp;</p>
             <p>서울특별시 성북구 안암로 145, 고려대학교 신공학관 106B</p>
             <p>koreaoaz@gmail.com</p>
           </div>
           <div>
             <p className="text-gray-950 text-base font-bold mt-4 sm:mt-0">회장</p>
-            <p className="text-gray-600 text-sm mt-4 sm:mt-0">박지우 010-2863-0604</p><p>&nbsp;</p>
+            <p className="text-gray-600 text-sm mt-4 sm:mt-0">박지우 010-2863-0604</p>
+            <p className="text-gray-600 text-sm mt-4 sm:mt-0">김령환 010-7741-0719</p><p>&nbsp;</p>
           </div>
         </motion.div>
       </div>
