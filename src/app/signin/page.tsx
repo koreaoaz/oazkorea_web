@@ -16,11 +16,20 @@ export default function RegistrationForm() {
 
   const [isAllowed, setIsAllowed] = useState<'allowed' | 'denied' | null>(null);
   const [isRegistered, setIsRegistered] = useState<'registered' | 'unregistered' | null>(null);
+  const isFormFilled =
+      form.name.trim() !== '' &&
+      form.department.trim() !== '' &&
+      form.studentId.trim() !== '' &&
+      form.generation.trim() !== '' &&
+      form.email.trim() !== '' &&
+      form.phone_number.trim() !== '';
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const updatedForm = { ...form, [name]: value };
     setForm(updatedForm);
+
+    
     
     if (name === 'email') {
       // check if email is already registered
@@ -82,13 +91,15 @@ export default function RegistrationForm() {
           required
         />
 
+        {isAllowed === 'allowed' && (
+          <p className="text-sm text-red-500">⭕ 나머지 정보를 기입 부탁드립니다.</p>
+        )}
         {isAllowed === 'denied' && (
           <p className="text-sm text-red-500">❌ 허용되지 않은 이메일입니다.</p>
         )}
         {isRegistered === 'registered' && (
           <p className="text-sm text-red-500">❌ 이미 가입된 이메일입니다.</p>
         )}
-        
 
         <input
           name="name"
@@ -121,7 +132,7 @@ export default function RegistrationForm() {
         />
 
         <input
-          name="phonenumber"
+          name="phone_number"
           type="text"
           placeholder="연락처 ex) 010-xxxx-xxxx"
           value={form.phone_number}
@@ -143,9 +154,9 @@ export default function RegistrationForm() {
         <button
           type="button"
           onClick={handleGithubLogin}
-          disabled={isAllowed !== 'allowed' || isRegistered === 'registered'}
+          disabled={isAllowed !== 'allowed' || isRegistered === 'registered' || !isFormFilled}
           className={`w-full flex justify-center items-center py-2 rounded-md space-x-2 ${
-            isAllowed === 'allowed' && isRegistered === 'unregistered'
+            isAllowed === 'allowed' && isRegistered === 'unregistered' && isFormFilled
               ? 'bg-black text-white hover:bg-gray-800'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
