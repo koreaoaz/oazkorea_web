@@ -54,8 +54,8 @@ export default function Projects() {
       created_at: p.created_at,
       tech_stack: [],                                
       achievements: [],                              
-      image_url: p.image_url || "",                  
-      github_url: p.github_url || "",                
+      image_url: "",                  
+      github_url: "",                
     })) ?? [];
 
     setProjects(mapped);
