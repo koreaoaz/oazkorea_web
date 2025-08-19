@@ -32,7 +32,7 @@ export default function Projects() {
     // 필요한 컬럼만 선택
     const { data, error } = await supabase
       .from("editor_1_projects")
-      .select("id, text, category, duration, team_size, members, description, created_at, semester, detailed_description")
+      .select("id, text, category, duration, team_size, members, description, created_at, semester, detailed_description, tech_stack")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -41,7 +41,7 @@ export default function Projects() {
       return;
     }
 
-    const mapped: Project[] = data?.map((p) => ({
+    const mapped: Project[] = data?.map((p: any) => ({
       id: p.id,
       title: p.text,                                 // DB의 text → title
       description: p.description || p.text,          // description 없으면 text 재사용
@@ -52,7 +52,7 @@ export default function Projects() {
       semester: p.semester || "",                        
       detailed_description: p.detailed_description || "",
       created_at: p.created_at,
-      tech_stack: [],                                
+      tech_stack: Array.isArray(p.tech_stack?.stack) ? p.tech_stack.stack : [],                             
       achievements: [],                              
       image_url: "",                  
       github_url: "",                
