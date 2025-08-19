@@ -47,7 +47,7 @@ export default function ProjectModal({ project, onClose } : ProjectModalProps) {
         <div className="space-y-6 mt-6">
           {/* Project Image */}
           {project.image_url && (
-            <div className="aspect-video rounded-xl overflow-hidden bg-slate-100">
+            <div className="aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-white to-slate-100">
               <img 
                 src={project.image_url} 
                 alt={project.title}

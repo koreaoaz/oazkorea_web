@@ -21,7 +21,7 @@ export default function Projects() {
   const [Projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const baseUrl = process.env.NEXT_PUBLIC_PROJECT_STORAGE_URL;
+  const proj_baseUrl = process.env.NEXT_PUBLIC_PROJECT_STORAGE_URL;
 
   useEffect(() => {
     loadProjects();
@@ -54,8 +54,8 @@ export default function Projects() {
       detailed_description: p.detailed_description || "",
       created_at: p.created_at,
       tech_stack: Array.isArray(p.tech_stack?.stack) ? p.tech_stack.stack : [],                             
-      achievements: Array.isArray(p.achievements?.achieve) ? p.achievements.achieve : [],                                                  
-      image_url: p.image_url ? `${baseUrl}${p.image_url}` : "",               
+      achievements: Array.isArray(p.achievements?.achieve) ? p.achievements.stack : [],                                                  
+      image_url: p.image_url ? `${proj_baseUrl}${p.image_url}` : "",               
       github_url: "",                
     })) ?? [];
 
@@ -110,7 +110,7 @@ export default function Projects() {
             </h1>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
               AI부터 하드웨어까지, 다양한 영역에서 진행한 혁신적인 프로젝트들을 
-              소개합니다. 각 프로젝트는 실제 문제 해결을 위한 창의적인 솔루션입니다.
+              소개합니다. 각 프로젝트의 세부적인 내용은 성과 발표회를 통해 접할 수 있습니다.
             </p>
           </div>
         </div>
