@@ -1,164 +1,171 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from "react";
+// import { Project } from "./Project";
+import ProjectGrid from "../../../components/projects/ProjectGrid";
+// import ProjectFilters from "../components/projects/ProjectFilters";
+// import ProjectModal from "../components/projects/ProjectModal";
+// import ProjectStats from "../components/projects/ProjectStats";
+import { Search } from "lucide-react";
 import { supabase } from '@/lib/supabaseClient';
+// import { Input } from "@/components/ui/input";
 
-export default function ProjectsPage() {
-  const [session, setSession] = useState<any>(null);
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
-  const [message, setMessage] = useState<string | null>(null);
-  const [projects, setProjects] = useState<any[]>([]);
+
+
+export default function Projects() {
+  // const [projects, setProjects] = useState([]);
+  const [Projects, setProjects] = useState<any[]>([]);
+  const [filteredProjects, setFilteredProjects] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("전체");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const init = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
-      await fetchProjects();
-    };
-
-    init();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-    });
-
-    return () => subscription.unsubscribe();
+    loadProjects();
   }, []);
 
-  const fetchProjects = async () => {
+   const loadProjects = async () => {
+    setIsLoading(true);
+
+    // 필요한 컬럼만 선택
     const { data, error } = await supabase
-      .from('Projects')
-      .select('id, title, body, created_at')
-      .order('created_at', { ascending: false })
-      .limit(10);
+      .from("editor_1_projects")
+      .select("text, category, duration, team_size, members, description")
+      .order("created_at", { ascending: false });
 
-    if (!error && data) {
-      setProjects(data);
-    }
-  };
-
-  const handleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: process.env.NEXT_PUBLIC_ORIGIN_URL,
-      },
-    });
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setSession(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMessage(null);
-
-    if (!title || !body) {
-      setMessage('제목과 내용을 모두 입력하세요.');
+    if (error) {
+      console.error("프로젝트 로딩 실패:", error.message);
+      setIsLoading(false);
       return;
     }
 
-    const { error } = await supabase.from('Projects').insert({
-      user_id: session.user.id,
-      title,
-      body,
-    });
+    const mapped = data?.map((p) => ({
+      title: p.text,
+      description: p.description || p.text,
+      category: p.category || "기타",
+      duration: p.duration || "",
+      team_size: p.team_size || 0,
+      members: p.members || "",
+      tech_stack: [],
+      achievements: [],
+      // image_url: p.image_url || "",
+      // github_url: p.github_url || "",
+    })) ?? [];
 
-    if (error) {
-      setMessage(`❌ 등록 실패: ${error.message}`);
-    } else {
-      setMessage('✅ 게시글이 등록되었습니다!');
-      setTitle('');
-      setBody('');
-      fetchProjects();
-    }
+    setProjects(mapped);
+    setIsLoading(false);
   };
+  // useEffect(() => {
+  //   filterProjects();
+  // }, [projects, selectedCategory, searchTerm]);
+
+  // const loadProjects = async () => {
+  //   try {
+  //     const data = await Project.list("-created_date");
+  //     setProjects(data);
+  //   } catch (error) {
+  //     console.error("프로젝트 로딩 실패:", error);
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  // const filterProjects = () => {
+  //   let filtered = projects;
+
+  //   // 카테고리 필터
+  //   if (selectedCategory !== "전체") {
+  //     filtered = filtered.filter(project => project.category === selectedCategory);
+  //   }
+
+  //   // 검색 필터
+  //   // if (searchTerm) {
+  //   //   filtered = filtered.filter(project => 
+  //   //     project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //   //     project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //   //     project.tech_stack?.some(tech => 
+  //   //       tech.toLowerCase().includes(searchTerm.toLowerCase())
+  //   //     )
+  //   //   );
+  //   // }
+
+  //   setFilteredProjects(filtered);
+  // };
 
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4">
-      <h1 className="text-2xl font-bold mb-6">📝 프로젝트 게시판</h1>
-
-      {/* 게시글 리스트는 로그인 여부 관계없이 항상 표시 */}
-      <div className="mb-10">
-        <h2 className="text-xl font-semibold mb-4">📚 최근 프로젝트</h2>
-        {projects.length > 0 ? (
-          <ul className="space-y-4">
-            {projects.map((proj) => (
-              <li key={proj.id} className="border p-4 rounded shadow">
-                <h3 className="text-lg font-bold">{proj.title}</h3>
-                <p className="text-gray-700 mt-2 whitespace-pre-wrap">{proj.body}</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  작성일: {new Date(proj.created_at).toLocaleString()}
-                </p>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>등록된 프로젝트가 없습니다.</p>
-        )}
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center">
+            <h1 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
+              프로젝트 포트폴리오
+            </h1>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
+              AI부터 하드웨어까지, 다양한 영역에서 진행한 혁신적인 프로젝트들을 
+              소개합니다. 각 프로젝트는 실제 문제 해결을 위한 창의적인 솔루션입니다.
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* 로그인한 사람만 글 작성 가능 */}
-      {session ? (
-        <div className="space-y-6">
-          <p className="text-green-600">🔐 로그인됨: {session.user.email}</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Stats */}
+        {/* <ProjectStats projects={projects} /> */}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block mb-1 font-semibold">제목</label>
-              <input
+        {/* Filters and Search */}
+        {/* <div className="mb-12">
+          <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
+            <ProjectFilters 
+              selectedCategory={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              projects={projects}
+            />
+            
+            <div className="relative w-full lg:w-80">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
                 type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                placeholder="제목을 입력하세요"
+                placeholder="프로젝트나 기술 스택 검색..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 border-slate-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
+          </div> */}
+        {/* </div> */}
 
-            <div>
-              <label className="block mb-1 font-semibold">내용</label>
-              <textarea
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2"
-                rows={5}
-                placeholder="내용을 입력하세요"
-              />
-            </div>
+        {/* Projects Grid */}
+        {/* <ProjectGrid 
+          projects={filteredProjects}
+          isLoading={isLoading}
+          onProjectClick={setSelectedProject}
+        /> */}
+        <ProjectGrid 
+          projects={Projects}
+          isLoading={isLoading}
+          // onProjectClick={setSelectedProject}
+        />
 
-            <button
-              type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded"
-            >
-              게시글 등록
-            </button>
-          </form>
+        {/* Results Info */}
+        {/* {!isLoading && (
+          <div className="mt-12 text-center">
+            <p className="text-slate-600">
+              {searchTerm || selectedCategory !== "전체" 
+                ? `${filteredProjects.length}개의 프로젝트를 찾았습니다`
+                : `총 ${projects.length}개의 프로젝트`
+              }
+            </p>
+          </div>
+        )} */}
+      </div>
 
-          {message && <p className="mt-2 text-sm">{message}</p>}
-
-          <button
-            onClick={handleLogout}
-            className="mt-4 text-sm text-red-500 underline"
-          >
-            로그아웃
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <p className="text-gray-700">✏️ 게시글을 작성하려면 로그인하세요.</p>
-          <button
-            onClick={handleLogin}
-            className="px-4 py-2 bg-blue-600 text-white rounded"
-          >
-            GitHub로 로그인
-          </button>
-        </div>
-      )}
+      {/* Project Detail Modal
+      <ProjectModal 
+        project={selectedProject}
+        onClose={() => setSelectedProject(null)}
+      /> */}
     </div>
   );
-}
+};

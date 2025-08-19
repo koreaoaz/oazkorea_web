@@ -35,7 +35,6 @@ export default function Navigation() {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setIsLoggedIn(!!user);
-      console.log("Supabase user.id:", user?.id)
 
 
     if (user) {
@@ -45,8 +44,6 @@ export default function Navigation() {
         .select("uuid")
         .eq("uuid", user.id)
         .maybeSingle();
-
-        console.log("supervisor_id query result:", data, error)
 
       setIsSupervisor(!!data);
     } else {
