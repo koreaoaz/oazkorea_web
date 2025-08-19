@@ -32,7 +32,7 @@ export default function ProjectModal({ project, onClose } : ProjectModalProps) {
 
   return (
     <Dialog open={!!project} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <DialogTitle className="text-2xl font-bold text-slate-900">
@@ -51,7 +51,7 @@ export default function ProjectModal({ project, onClose } : ProjectModalProps) {
               <img 
                 src={project.image_url} 
                 alt={project.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
           )}

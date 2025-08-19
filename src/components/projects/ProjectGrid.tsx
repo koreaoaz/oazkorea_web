@@ -81,12 +81,12 @@ export default function ProjectGrid({ Projects, isLoading, onProjectClick } : Pr
           >
             <Card className="overflow-hidden border border-slate-200 hover:border-slate-300 hover:shadow-xl transition-all duration-300 h-full">
               {/* Project Image */}
-              <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 relative overflow-hidden">
+              <div className="aspect-video bg-gradient-to-br from-white to-slate-100 relative overflow-hidden">
                 {project.image_url ? (
                   <img 
                     src={project.image_url} 
                     alt={project.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
