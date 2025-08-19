@@ -4,21 +4,22 @@ import React, { useState, useEffect } from "react";
 // import { Project } from "./Project";
 import ProjectGrid from "../../../components/projects/ProjectGrid";
 // import ProjectFilters from "../components/projects/ProjectFilters";
-// import ProjectModal from "../components/projects/ProjectModal";
+import ProjectModal from "../../../components/projects/ProjectModal";
 // import ProjectStats from "../components/projects/ProjectStats";
 import { Search } from "lucide-react";
 import { supabase } from '@/lib/supabaseClient';
 // import { Input } from "@/components/ui/input";
+import { Project } from "@/types/project";
 
 
 
 export default function Projects() {
   // const [projects, setProjects] = useState([]);
-  const [Projects, setProjects] = useState<any[]>([]);
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("전체");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedProject, setSelectedProject] = useState(null);
+  const [Projects, setProjects] = useState<Project[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -31,7 +32,7 @@ export default function Projects() {
     // 필요한 컬럼만 선택
     const { data, error } = await supabase
       .from("editor_1_projects")
-      .select("text, category, duration, team_size, members, description")
+      .select("id, text, category, duration, team_size, members, description, created_at, semester, detailed_description")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -40,17 +41,21 @@ export default function Projects() {
       return;
     }
 
-    const mapped = data?.map((p) => ({
-      title: p.text,
-      description: p.description || p.text,
+    const mapped: Project[] = data?.map((p) => ({
+      id: p.id,
+      title: p.text,                                 // DB의 text → title
+      description: p.description || p.text,          // description 없으면 text 재사용
       category: p.category || "기타",
       duration: p.duration || "",
       team_size: p.team_size || 0,
       members: p.members || "",
-      tech_stack: [],
-      achievements: [],
-      // image_url: p.image_url || "",
-      // github_url: p.github_url || "",
+      semester: p.semester || "",                        
+      detailed_description: p.detailed_description || "",
+      created_at: p.created_at,
+      tech_stack: [],                                
+      achievements: [],                              
+      image_url: p.image_url || "",                  
+      github_url: p.github_url || "",                
     })) ?? [];
 
     setProjects(mapped);
@@ -143,9 +148,9 @@ export default function Projects() {
           onProjectClick={setSelectedProject}
         /> */}
         <ProjectGrid 
-          projects={Projects}
+          Projects={Projects}
           isLoading={isLoading}
-          // onProjectClick={setSelectedProject}
+          onProjectClick={setSelectedProject}
         />
 
         {/* Results Info */}
@@ -161,11 +166,11 @@ export default function Projects() {
         )} */}
       </div>
 
-      {/* Project Detail Modal
+      {/* Project Detail Modal */}
       <ProjectModal 
         project={selectedProject}
         onClose={() => setSelectedProject(null)}
-      /> */}
+      />
     </div>
   );
 };

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, ExternalLink, Github, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Project } from "@/types/project";
 
 const categoryColors: Record<string, string> = {
   "AI/ML": "bg-blue-100 text-blue-800 border-blue-200",
@@ -16,29 +17,15 @@ const categoryColors: Record<string, string> = {
   "BigData": "bg-pink-100 text-pink-800 border-pink-200",
 };
 
-interface Project {
-  id: number;
-  title: string;
-  description: string;
-  category: string;
-  duration?: string;
-  team_size?: number;
-  members?: string;
-  created_at?: string;
-  tech_stack?: string[];
-  achievements?: string[];
-  image_url?: string;
-  github_url?: string;
-}
 
 interface ProjectGridProps {
-  projects: Project[];
+  Projects: Project[];
   isLoading: boolean;
   onProjectClick: (project: Project) => void;
 }
 
-// export default function ProjectGrid({ projects, isLoading, onProjectClick } : ProjectGridProps) {
-export default function ProjectGrid({ projects, isLoading} : ProjectGridProps) {
+export default function ProjectGrid({ Projects, isLoading, onProjectClick } : ProjectGridProps) {
+// export default function ProjectGrid({ projects, isLoading} : ProjectGridProps) {
   if (isLoading) {
     return (
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
@@ -63,7 +50,7 @@ export default function ProjectGrid({ projects, isLoading} : ProjectGridProps) {
     );
   }
 
-  if (projects.length === 0) {
+  if (Projects.length === 0) {
     return (
       <div className="text-center py-16">
         <div className="w-24 h-24 mx-auto mb-6 bg-slate-100 rounded-full flex items-center justify-center">
@@ -82,7 +69,7 @@ export default function ProjectGrid({ projects, isLoading} : ProjectGridProps) {
   return (
     <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
       <AnimatePresence>
-        {projects.map((project, index) => (
+        {Projects.map((project, index) => (
           <motion.div
             key={project.id}
             initial={{ opacity: 0, y: 20 }}
@@ -90,7 +77,7 @@ export default function ProjectGrid({ projects, isLoading} : ProjectGridProps) {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.4, delay: index * 0.1 }}
             className="group cursor-pointer"
-            // onClick={() => onProjectClick(project)}
+            onClick={() => onProjectClick(project)}
           >
             <Card className="overflow-hidden border border-slate-200 hover:border-slate-300 hover:shadow-xl transition-all duration-300 h-full">
               {/* Project Image */}
@@ -176,10 +163,10 @@ export default function ProjectGrid({ projects, isLoading} : ProjectGridProps) {
                     variant="outline" 
                     size="sm" 
                     className="flex-1 border-slate-300 hover:bg-slate-50"
-                    // onClick={(e) => {
-                    //   e.stopPropagation();
-                    //   onProjectClick(project);
-                    // }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onProjectClick(project);
+                    }}
                   >
                     자세히 보기
                     <ChevronRight className="w-4 h-4 ml-1" />
@@ -190,10 +177,10 @@ export default function ProjectGrid({ projects, isLoading} : ProjectGridProps) {
                       variant="outline" 
                       size="sm"
                       className="px-3"
-                      // onClick={(e) => {
-                      //   e.stopPropagation();
-                      //   window.open(project.github_url, '_blank');
-                      // }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(project.github_url, '_blank');
+                      }}
                     >
                       <Github className="w-4 h-4" />
                     </Button>
