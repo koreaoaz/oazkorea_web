@@ -1,5 +1,7 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
+import type React from "react"
+
 import Image from "next/image"
 import { supabase } from "@/lib/supabaseClient"
 
@@ -9,12 +11,14 @@ const SIGNED_URL_TTL = 60 * 10 // 서명 URL 유효시간(초): 10분
 const CARD_COUNT = 6 // 그리드 한 페이지 카드 수
 
 type StudyItem = {
+  id?: number
   name: string
   path: string
   signedUrl: string
   created_at?: string | null
   studyName: string
   studyDescription: string
+  studyLeader: string
 }
 
 export default function StudyArchiveGrid() {
@@ -26,11 +30,11 @@ export default function StudyArchiveGrid() {
   // 업로드/목록
   const [uploading, setUploading] = useState(false)
   const [files, setFiles] = useState<StudyItem[]>([])
-
-  const [studyName, setStudyName] = useState("")
-  const [studyDescription, setStudyDescription] = useState("")
   const [showUploadForm, setShowUploadForm] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null)
+  const [studyName, setStudyName] = useState("")
+  const [studyDescription, setStudyDescription] = useState("")
+  const [studyLeader, setStudyLeader] = useState("")
 
   // Supabase 연결 오류
   const [supabaseError, setSupabaseError] = useState<string | null>(null)
@@ -79,23 +83,38 @@ export default function StudyArchiveGrid() {
     }
 
     try {
-      console.log("[v0] Fetching file list...")
-      const { data, error } = await supabase.storage
-        .from(BUCKET)
-        .list("", { limit: 1000, sortBy: { column: "created_at", order: "desc" } })
+      console.log("[v0] Fetching file list from database...")
 
-      if (error) {
-        console.error("list error:", error.message)
-        if (error.message.includes("not found") || error.message.includes("does not exist")) {
-          setSupabaseError(`버킷 '${BUCKET}'이 존재하지 않습니다. Supabase 대시보드에서 버킷을 생성해주세요.`)
-        } else {
-          setSupabaseError(`목록을 불러오는 중 오류가 발생했습니다: ${error.message}`)
-        }
+      // Get metadata from database
+      const { data: studyData, error: dbError } = await supabase
+        .from("editor_2_studies")
+        .select("*")
+        .order("created_at", { ascending: false })
+
+      if (dbError) {
+        console.error("Database query error:", dbError.message)
+        setSupabaseError(`데이터베이스 조회 중 오류가 발생했습니다: ${dbError.message}`)
         return
       }
 
-      const fileObjs = (data ?? []).filter((f) => f.name && !f.name.endsWith("/") && !f.name.endsWith(".json"))
-      console.log("[v0] Found image files:", fileObjs.length)
+      console.log("[v0] Found database records:", studyData?.length || 0)
+      if (studyData && studyData.length > 0) {
+        console.log("[v0] Available columns in database:", Object.keys(studyData[0]))
+      }
+
+      // Get storage files
+      const { data: storageData, error: storageError } = await supabase.storage
+        .from(BUCKET)
+        .list("", { limit: 1000, sortBy: { column: "created_at", order: "desc" } })
+
+      if (storageError) {
+        console.error("Storage list error:", storageError.message)
+        setSupabaseError(`스토리지 목록을 불러오는 중 오류가 발생했습니다: ${storageError.message}`)
+        return
+      }
+
+      const fileObjs = (storageData ?? []).filter((f) => f.name && !f.name.endsWith("/") && !f.name.endsWith(".json"))
+      console.log("[v0] Found storage files:", fileObjs.length)
 
       const signedItems: StudyItem[] = []
 
@@ -104,6 +123,7 @@ export default function StudyArchiveGrid() {
       const isPublic = bucket?.public || false
       console.log("[v0] Bucket is public:", isPublic)
 
+      // Match storage files with database records
       for (const f of fileObjs) {
         const path = f.name
         let finalUrl: string
@@ -119,65 +139,44 @@ export default function StudyArchiveGrid() {
           finalUrl = signed.signedUrl
         }
 
+        // Find matching database record
+        const dbRecord = studyData?.find(
+          (record) => record.filename === f.name || record.file_name === f.name || record.image_url === f.name,
+        )
+
         let studyName = "스터디"
         let studyDescription = "설명이 없습니다."
+        let studyLeader = "미정"
+        let recordId: number | undefined
 
-        const jsonFileName = f.name.replace(/\.[^.]+$/, ".json")
-        console.log("[v0] Looking for metadata file:", jsonFileName)
-
-        try {
-          const { data: jsonData, error: jsonError } = await supabase.storage.from(BUCKET).download(jsonFileName)
-
-          if (!jsonError && jsonData) {
-            const text = await jsonData.text()
-            console.log("[v0] Found metadata for", f.name, ":", text.substring(0, 100))
-            const metadata = JSON.parse(text)
-            studyName = metadata.studyName || "스터디"
-            studyDescription = metadata.studyDescription || "설명이 없습니다."
-            console.log("[v0] Parsed metadata - Name:", studyName, "Description length:", studyDescription.length)
-          } else {
-            console.log("[v0] No metadata file found for", f.name, "- using filename fallback")
-            // Fallback to filename parsing
-            const parts = f.name.split("_")
-            if (parts.length >= 3) {
-              try {
-                studyName = decodeURIComponent(parts[2].split(".")[0]) || "스터디"
-              } catch (e) {
-                console.log("[v0] Filename parsing failed for", f.name)
-              }
-            }
-          }
-        } catch (e) {
-          console.log("[v0] Error loading metadata for", f.name, ":", e)
-          // Fallback to filename parsing
-          const parts = f.name.split("_")
-          if (parts.length >= 3) {
-            try {
-              studyName = decodeURIComponent(parts[2].split(".")[0]) || "스터디"
-            } catch (e) {
-              console.log("[v0] Filename parsing failed for", f.name)
-            }
-          }
+        if (dbRecord) {
+          studyName = dbRecord.study_name || dbRecord.name || dbRecord.title || "스터디"
+          studyDescription =
+            dbRecord.outline ||
+            dbRecord.study_description ||
+            dbRecord.description ||
+            dbRecord.content ||
+            "설명이 없습니다."
+          studyLeader = dbRecord.leader || "미정"
+          recordId = dbRecord.id
+          console.log("[v0] Found database record for", f.name, ":", studyName)
+        } else {
+          console.log("[v0] No database record found for", f.name, "- using defaults")
         }
 
         signedItems.push({
+          id: recordId,
           name: f.name,
           path,
           signedUrl: finalUrl,
           created_at: (f as any)?.created_at ?? null,
           studyName,
           studyDescription,
+          studyLeader,
         })
       }
 
-      console.log(
-        "[v0] Final items with metadata:",
-        signedItems.map((item) => ({
-          name: item.name,
-          studyName: item.studyName,
-          descLength: item.studyDescription.length,
-        })),
-      )
+      console.log("[v0] Final items with database metadata:", signedItems.length)
       setFiles(signedItems)
       setCurrentPage((p) => Math.min(p, Math.max(0, Math.ceil(signedItems.length / CARD_COUNT) - 1)))
     } catch (err) {
@@ -186,130 +185,128 @@ export default function StudyArchiveGrid() {
     }
   }
 
-  // ===== 업로드 =====
-  async function handleUpload() {
-    if (!selectedFiles || selectedFiles.length === 0) return
-    if (!studyName.trim()) {
-      alert("스터디 이름을 입력해주세요.")
+  // ===== 업로드 기능 =====
+  const handleUpload = async () => {
+    if (!selectedFiles || selectedFiles.length === 0 || !studyName.trim() || !studyLeader.trim()) {
+      alert("파일, 스터디 이름, 스터디장 이름을 모두 입력해주세요.")
       return
     }
 
     if (!supabase) {
-      alert("Supabase가 설정되지 않았습니다. 환경변수를 확인해주세요.")
+      alert("Supabase 연결이 필요합니다.")
       return
     }
 
     setUploading(true)
-    try {
-      console.log("[v0] Starting upload process...")
-      const bucketReady = await ensureBucketExists()
-      console.log("[v0] Bucket ready:", bucketReady)
+    console.log("[v0] Starting upload process...")
 
-      if (!bucketReady) {
+    try {
+      const canAccess = await ensureBucketExists()
+      if (!canAccess) {
+        console.log("[v0] Upload error: 버킷에 접근할 수 없습니다.")
         throw new Error("버킷에 접근할 수 없습니다.")
       }
 
-      for (const file of Array.from(selectedFiles)) {
-        console.log("[v0] Uploading file:", file.name)
-        const ext = (() => {
-          const m = file.name.match(/\.([a-zA-Z0-9]+)$/)
-          return m ? m[1].toLowerCase() : "bin"
-        })()
-
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i]
         const timestamp = Date.now()
-        const shortId = crypto.randomUUID().split("-")[0]
-        const safeName = `${timestamp}_${shortId}.${ext}`
+        const shortId = Math.random().toString(36).substring(2, 10)
+        const extension = file.name.split(".").pop() || "png"
+        const filename = `${timestamp}_${shortId}.${extension}`
 
-        console.log("[v0] Safe filename:", safeName)
+        console.log("[v0] Uploading file:", filename)
 
-        const { error } = await supabase.storage.from(BUCKET).upload(safeName, file, {
-          cacheControl: "3600",
-          upsert: false,
-        })
+        // Upload image to storage
+        const { data: uploadData, error: uploadError } = await supabase.storage.from(BUCKET).upload(filename, file)
 
-        if (error) {
-          console.error("[v0] Upload error:", error)
-          throw new Error(`업로드 실패: ${error.message}`)
+        if (uploadError) {
+          console.error("[v0] Upload error:", uploadError.message)
+          throw new Error(`업로드 실패: ${uploadError.message}`)
         }
 
-        const jsonFileName = safeName.replace(/\.[^.]+$/, ".json")
-        const metadata = {
-          studyName: studyName.trim(),
-          studyDescription: studyDescription.trim() || "설명없음",
-          originalFileName: file.name,
-          uploadedAt: new Date().toISOString(),
+        console.log("[v0] File uploaded successfully:", uploadData.path)
+
+        // Save metadata to database
+        const insertData = {
+          filename: filename,
+          study_name: studyName.trim(),
+          outline: studyDescription.trim() || "설명이 없습니다.",
+          leader: studyLeader.trim(),
         }
 
-        const jsonBlob = new Blob([JSON.stringify(metadata, null, 2)], { type: "application/json" })
+        const { error: dbError } = await supabase.from("editor_2_studies").insert(insertData)
 
-        const { error: jsonError } = await supabase.storage.from(BUCKET).upload(jsonFileName, jsonBlob, {
-          cacheControl: "3600",
-          upsert: false,
-        })
-
-        if (jsonError) {
-          console.warn("[v0] JSON metadata upload failed:", jsonError)
-          // Don't fail the entire upload if JSON fails
+        if (dbError) {
+          console.error("[v0] Database insert error:", dbError.message)
+          console.warn("[v0] Database insert failed, but file upload succeeded. File:", filename)
+        } else {
+          console.log("[v0] Metadata saved to database successfully")
         }
-
-        console.log("[v0] File uploaded successfully:", safeName)
       }
 
-      console.log("[v0] All files uploaded, refreshing list...")
-      await fetchList()
-
+      // Reset form and refresh list
+      setSelectedFiles(null)
       setStudyName("")
       setStudyDescription("")
-      setSelectedFiles(null)
+      setStudyLeader("")
       setShowUploadForm(false)
-    } catch (err: any) {
-      console.error("[v0] Upload process error:", err)
-      const errorMessage = err.message || "업로드 중 오류가 발생했습니다."
-      alert(errorMessage)
-      setSupabaseError(errorMessage)
+      await fetchList()
+
+      console.log("[v0] Upload completed successfully")
+    } catch (error: any) {
+      console.error("[v0] Upload process error:", error.message)
+      alert(`업로드 중 오류가 발생했습니다: ${error.message}`)
     } finally {
       setUploading(false)
     }
   }
 
-  // ===== 삭제 =====
-  async function handleDelete(item: StudyItem) {
-    if (!supabase) {
-      alert("Supabase가 설정되지 않았습니다.")
-      return
-    }
-
+  // ===== 삭제 기능 =====
+  const handleDelete = async (item: StudyItem) => {
     if (!confirm(`"${item.studyName}" 스터디를 삭제하시겠습니까?`)) {
       return
     }
 
+    if (!supabase) {
+      alert("Supabase 연결이 필요합니다.")
+      return
+    }
+
     try {
-      console.log("[v0] Deleting file:", item.name)
+      console.log("[v0] Deleting item:", item.name)
 
-      // Delete the image file
-      const { error: imageError } = await supabase.storage.from(BUCKET).remove([item.path])
-      if (imageError) {
-        console.error("[v0] Error deleting image:", imageError)
-        throw new Error(`이미지 삭제 실패: ${imageError.message}`)
+      // Delete from database
+      if (item.id) {
+        const { error: dbError } = await supabase.from("editor_2_studies").delete().eq("id", item.id)
+
+        if (dbError) {
+          console.error("[v0] Database delete error:", dbError.message)
+          throw new Error(`데이터베이스 삭제 실패: ${dbError.message}`)
+        }
       }
 
-      // Delete the metadata JSON file
-      const jsonFileName = item.name.replace(/\.[^.]+$/, ".json")
-      const { error: jsonError } = await supabase.storage.from(BUCKET).remove([jsonFileName])
-      if (jsonError) {
-        console.warn("[v0] Error deleting metadata (continuing):", jsonError)
+      // Delete from storage
+      const { error: storageError } = await supabase.storage.from(BUCKET).remove([item.name])
+
+      if (storageError) {
+        console.error("[v0] Storage delete error:", storageError.message)
+        throw new Error(`스토리지 삭제 실패: ${storageError.message}`)
       }
 
-      console.log("[v0] File deleted successfully, refreshing list...")
+      console.log("[v0] Item deleted successfully")
       await fetchList()
+    } catch (error: any) {
+      console.error("[v0] Delete error:", error.message)
+      alert(`삭제 중 오류가 발생했습니다: ${error.message}`)
+    }
+  }
 
-      // Reset expanded state if the deleted item was expanded
-      if (expandedIndex !== null && files[expandedIndex]?.name === item.name) {
-        setExpandedIndex(null)
-      }
-    } catch (err: any) {
-      console.error("[v0] Delete error:", err)
-      alert(err.message || "삭제 중 오류가 발생했습니다.")
+  // ===== 파일 선택 핸들러 =====
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files && files.length > 0) {
+      setSelectedFiles(files)
+      setShowUploadForm(true)
     }
   }
 
@@ -346,81 +343,91 @@ export default function StudyArchiveGrid() {
 
   return (
     <div className="w-full px-10 py-8">
-      {/* 제목 + 업로드 */}
-      <div className="mb-6 flex items-center justify-between gap-4">
+      {/* 제목 */}
+      <div className="mb-6 flex items-center justify-between">
         <h2 className="text-3xl font-bold">2025-2 스터디 목록</h2>
-
-        <label className="inline-flex items-center gap-3 rounded-md bg-black text-white px-4 py-2 text-sm cursor-pointer hover:bg-black/80 transition">
-          스터디 추가
+        {/* ===== 업로드 버튼 ===== */}
+        <div className="flex items-center gap-4">
           <input
             type="file"
             accept="image/*"
             multiple
+            onChange={handleFileSelect}
             className="hidden"
-            onChange={(e) => {
-              setSelectedFiles(e.target.files)
-              if (e.target.files && e.target.files.length > 0) {
-                setShowUploadForm(true)
-              }
-            }}
-            disabled={uploading || !supabase}
+            id="file-upload"
           />
-        </label>
+          <label
+            htmlFor="file-upload"
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 cursor-pointer transition-colors"
+          >
+            스터디 추가
+          </label>
+        </div>
       </div>
 
+      {/* ===== 업로드 폼 ===== */}
       {showUploadForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">스터디 정보 입력</h3>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">스터디 이름 *</label>
-                <input
-                  type="text"
-                  value={studyName}
-                  onChange={(e) => setStudyName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black"
-                  placeholder="예: React 스터디"
-                  maxLength={30}
-                />
-                <div className="text-xs text-gray-500 mt-1">{studyName.length}/30자</div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">스터디 설명</label>
-                <textarea
-                  value={studyDescription}
-                  onChange={(e) => setStudyDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black h-32 resize-none"
-                  placeholder="스터디에 대한 자세한 설명을 입력하세요..."
-                  maxLength={2000}
-                />
-                <div className="text-xs text-gray-500 mt-1">{studyDescription.length}/2000자</div>
-              </div>
-
-              <div className="text-sm text-gray-500">선택된 파일: {selectedFiles?.length}개</div>
+        <div className="mb-6 p-6 bg-gray-50 rounded-lg">
+          <h3 className="text-lg font-semibold mb-4">스터디 정보 입력</h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                스터디 이름 <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={studyName}
+                onChange={(e) => setStudyName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="스터디 이름을 입력하세요"
+                maxLength={100}
+              />
+              <div className="text-xs text-gray-500 mt-1">{studyName.length}/100</div>
             </div>
-
-            <div className="flex gap-3 mt-6">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                스터디장 이름 <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={studyLeader}
+                onChange={(e) => setStudyLeader(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="스터디장 이름을 입력하세요"
+                maxLength={50}
+              />
+              <div className="text-xs text-gray-500 mt-1">{studyLeader.length}/50</div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">스터디 설명</label>
+              <textarea
+                value={studyDescription}
+                onChange={(e) => setStudyDescription(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 h-32 resize-none"
+                placeholder="스터디에 대한 자세한 설명을 입력하세요"
+                maxLength={2000}
+              />
+              <div className="text-xs text-gray-500 mt-1">{studyDescription.length}/2000</div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleUpload}
+                disabled={uploading || !studyName.trim() || !studyLeader.trim()}
+                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              >
+                {uploading ? "업로드 중..." : "업로드"}
+              </button>
               <button
                 onClick={() => {
                   setShowUploadForm(false)
                   setSelectedFiles(null)
                   setStudyName("")
                   setStudyDescription("")
+                  setStudyLeader("")
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition"
-                disabled={uploading}
+                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
               >
                 취소
-              </button>
-              <button
-                onClick={handleUpload}
-                className="flex-1 px-4 py-2 bg-black text-white rounded-md hover:bg-black/80 transition"
-                disabled={uploading || !studyName.trim()}
-              >
-                {uploading ? "업로드 중..." : "업로드"}
               </button>
             </div>
           </div>
@@ -434,28 +441,16 @@ export default function StudyArchiveGrid() {
             <h3 className="text-xl font-semibold mb-2 text-red-500">Supabase 연결 오류</h3>
             <p className="text-muted-foreground mb-4">{supabaseError}</p>
             <div className="bg-gray-100 p-4 rounded-md text-sm text-left max-w-lg">
-              <p className="font-semibold mb-2">RLS 정책 해결 방법:</p>
+              <p className="font-semibold mb-2">해결 방법:</p>
               <ol className="list-decimal list-inside space-y-2">
-                <li>Supabase 대시보드 → Storage → {BUCKET} 버킷 클릭</li>
-                <li>Configuration → RLS policies</li>
-                <li className="font-semibold">옵션 1: RLS 비활성화 (간단함)</li>
-                <li className="ml-4">- "Enable RLS" 체크 해제</li>
-                <li className="font-semibold">옵션 2: 업로드 정책 추가</li>
-                <li className="ml-4">- "New Policy" → "For full customization"</li>
-                <li className="ml-4">- Policy name: "Allow uploads"</li>
-                <li className="ml-4">- Operation: INSERT</li>
-                <li className="ml-4">
-                  - Policy definition: <code className="bg-gray-200 px-1">true</code>
-                </li>
+                <li>Supabase 대시보드에서 {BUCKET} 버킷 생성</li>
+                <li>editor_2_studies 테이블 생성 (SQL 스크립트 실행)</li>
+                <li>환경변수 설정 확인</li>
               </ol>
             </div>
           </div>
         ) : files.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="text-6xl mb-4">📚</div>
-            <h3 className="text-xl font-semibold mb-2">아직 등록된 스터디가 없습니다</h3>
-            <p className="text-muted-foreground">위의 "스터디 추가" 버튼을 클릭해서 첫 번째 스터디를 등록해보세요!</p>
-          </div>
+          <div></div>
         ) : (
           <>
             <div className="grid grid-cols-3 gap-6" style={{ minHeight: "600px" }}>
@@ -470,19 +465,19 @@ export default function StudyArchiveGrid() {
                 return (
                   <div
                     key={item.path}
-                    className={`relative rounded-lg shadow-md bg-white overflow-hidden transition-all duration-300 ${
+                    className={`relative rounded-lg shadow-md bg-white overflow-hidden transition-all duration-300 group ${
                       expandedIndex !== null && isInExpandedRows ? "opacity-0" : "opacity-100"
                     }`}
                     onMouseEnter={() => handleMouseEnter(globalIdx)}
                     style={{ height: "300px" }}
                   >
+                    {/* ===== 삭제 버튼 ===== */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
                         handleDelete(item)
                       }}
-                      className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white rounded text-xs opacity-0 hover:opacity-100 transition-opacity duration-200 z-10 hover:bg-red-600"
-                      title="삭제"
+                      className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity z-10 hover:bg-red-600"
                     >
                       삭제
                     </button>
@@ -515,7 +510,6 @@ export default function StudyArchiveGrid() {
                   top: (() => {
                     const cardRow = Math.floor((expandedIndex - start) / 3)
                     const totalRows = Math.ceil(visibleItems.length / 3)
-                    // If it's the bottom row and there are multiple rows, position to cover both rows
                     if (cardRow === totalRows - 1 && totalRows > 1) {
                       return `${(cardRow - 1) * 324}px`
                     }
@@ -527,10 +521,13 @@ export default function StudyArchiveGrid() {
                 }}
                 onMouseLeave={handleMouseLeave}
               >
+                {/* ===== 확장 카드에서 삭제 버튼 ===== */}
                 <button
-                  onClick={() => handleDelete(files[expandedIndex])}
-                  className="absolute top-4 right-4 px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors duration-200 text-sm font-medium z-30"
-                  title="삭제"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDelete(files[expandedIndex])
+                  }}
+                  className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 z-30"
                 >
                   삭제
                 </button>
@@ -551,6 +548,10 @@ export default function StudyArchiveGrid() {
                   </div>
                   <div className="w-1/2 p-8 flex flex-col justify-center">
                     <h2 className="text-2xl font-bold mb-6">{files[expandedIndex].studyName}</h2>
+                    <div className="mb-4">
+                      <span className="text-lg font-semibold text-gray-700">스터디장: </span>
+                      <span className="text-lg text-gray-600">{files[expandedIndex].studyLeader}</span>
+                    </div>
                     <div className="text-gray-600 leading-relaxed overflow-y-auto max-h-[400px]">
                       {files[expandedIndex].studyDescription.split("\n").map((line, i) => (
                         <p key={i} className="mb-2">
