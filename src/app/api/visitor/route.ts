@@ -23,7 +23,7 @@ export async function GET() {
   if (lastDate !== today) {
     const { data: resetData, error: resetError } = await supabase
       .from("today_visitor")
-      .update({ visit: 0, updated_at: new Date().toISOString() })
+      .update({ visitor: 0, updated_at: new Date().toISOString() })
       .eq("id", ROW_ID)
       .select()
       .single();
@@ -33,7 +33,7 @@ export async function GET() {
       return NextResponse.json({ error: resetError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ count: resetData.visit });
+    return NextResponse.json({ count: resetData.visitor });
   }
 
   return NextResponse.json({ count: data.visitor });
