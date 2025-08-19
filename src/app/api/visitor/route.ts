@@ -1,33 +1,52 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { supabase } from "@/lib/supabaseClient";
 
-const filePath = path.join(process.cwd(), "src", "data", "visitors.json");
+const ROW_ID = 1;
 
-function readVisitorData() {
-  try {
-    const data = fs.readFileSync(filePath, "utf-8");
-    return JSON.parse(data);
-  } catch {
-    return {};
-  }
-}
-
-function writeVisitorData(data: any) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
-}
-
+// ✅ GET: 현재 방문자 수 (자정 체크 후 리셋)
 export async function GET() {
+  const { data, error } = await supabase
+    .from("today_visitor")
+    .select("visitor, updated_at")
+    .eq("id", ROW_ID)
+    .single();
+
+  if (error) {
+    console.error("❌ GET error", error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
   const today = new Date().toISOString().slice(0, 10);
-  const data = readVisitorData();
-  const count = data[today] ?? 0;
-  return NextResponse.json({ date: today, count });
+  const lastDate = data.updated_at?.slice(0, 10);
+
+  // 자정 지났으면 0으로 초기화
+  if (lastDate !== today) {
+    const { data: resetData, error: resetError } = await supabase
+      .from("today_visitor")
+      .update({ visit: 0, updated_at: new Date().toISOString() })
+      .eq("id", ROW_ID)
+      .select()
+      .single();
+
+    if (resetError) {
+      console.error("❌ Reset error", resetError.message);
+      return NextResponse.json({ error: resetError.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ count: resetData.visit });
+  }
+
+  return NextResponse.json({ count: data.visitor });
 }
 
+// ✅ POST: 방문자 수 +1 증가
 export async function POST() {
-  const today = new Date().toISOString().slice(0, 10);
-  const data = readVisitorData();
-  data[today] = (data[today] ?? 0) + 1;
-  writeVisitorData(data);
-  return NextResponse.json({ date: today, count: data[today] });
+  const { data, error } = await supabase.rpc("increment_visit", { row_id: ROW_ID });
+
+  if (error) {
+    console.error("❌ POST error", error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ count: data });
 }

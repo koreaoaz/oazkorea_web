@@ -13,28 +13,18 @@ export default function VisitorBlock() {
     const lastVisited = localStorage.getItem("lastVisitDate");
 
     if (lastVisited !== todayStr) {
+      // 오늘 첫 방문 → POST
       fetch("/api/visitor", { method: "POST" })
         .then((res) => res.json())
         .then((data) => {
-          console.log("✅ POST 응답:", data);
           setCount(data.count);
           localStorage.setItem("lastVisitDate", todayStr);
-        })
-        .catch((err) => {
-          console.error("❌ POST 실패", err);
-          setCount(-1);
         });
     } else {
+      // 오늘 이미 방문 기록 있음 → GET
       fetch("/api/visitor")
         .then((res) => res.json())
-        .then((data) => {
-          console.log("📦 GET 응답:", data);
-          setCount(data.count);
-        })
-        .catch((err) => {
-          console.error("❌ GET 실패", err);
-          setCount(-1);
-        });
+        .then((data) => setCount(data.count));
     }
   }, []);
 
