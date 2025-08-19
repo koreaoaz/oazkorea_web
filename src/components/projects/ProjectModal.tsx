@@ -22,23 +22,6 @@ const categoryColors: Record<string, string> = {
   "BigData": "bg-pink-100 text-pink-800 border-pink-200",
 };
 
-// interface Project {
-//   id: number;
-//   title: string;
-//   description: string;
-//   category: string;
-//   duration?: string;
-//   team_size?: number;
-//   members?: string;
-//   semester?: string;
-//   detailed_description?: string;
-//   created_at?: string;
-//   tech_stack?: string[];
-//   achievements?: string[];
-//   image_url?: string;
-//   github_url?: string;
-// }
-
 interface ProjectModalProps {
   project: Project | null;   // 선택된 프로젝트, 없을 수도 있으니 null 허용
   onClose: () => void;       // 닫기 이벤트
@@ -153,6 +136,7 @@ export default function ProjectModal({ project, onClose } : ProjectModalProps) {
                 ))}
               </div>
             </div>
+            
           )}
 
           <Separator />

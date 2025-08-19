@@ -21,6 +21,7 @@ export default function Projects() {
   const [Projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const baseUrl = process.env.NEXT_PUBLIC_PROJECT_STORAGE_URL;
 
   useEffect(() => {
     loadProjects();
@@ -32,7 +33,7 @@ export default function Projects() {
     // 필요한 컬럼만 선택
     const { data, error } = await supabase
       .from("editor_1_projects")
-      .select("id, text, category, duration, team_size, members, description, created_at, semester, detailed_description, tech_stack")
+      .select("id, text, category, duration, team_size, members, description, created_at, semester, detailed_description, tech_stack, image_url")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -53,8 +54,8 @@ export default function Projects() {
       detailed_description: p.detailed_description || "",
       created_at: p.created_at,
       tech_stack: Array.isArray(p.tech_stack?.stack) ? p.tech_stack.stack : [],                             
-      achievements: [],                              
-      image_url: "",                  
+      achievements: Array.isArray(p.achievements?.achieve) ? p.achievements.achieve : [],                                                  
+      image_url: p.image_url ? `${baseUrl}${p.image_url}` : "",               
       github_url: "",                
     })) ?? [];
 
