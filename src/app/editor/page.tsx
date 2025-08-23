@@ -216,11 +216,65 @@ const handleDeletePost = async (post: any, board: BoardType, setPosts: any) => {
   const table = getTableName(board as BoardType)
   if (!table) return
 
-  const { error } = await supabase.from(table).delete().eq("id", post.id)
-  if (error) {
-    console.error("Error deleting post:", error)
-  } else {
-    fetchPosts(board as BoardType, setPosts)
+  try {
+    if (post.filename) {
+      let bucketName = ""
+
+      if (board === "프로젝트") {
+        bucketName = "project_img"
+      } else if (board === "스터디") {
+        bucketName = "study-images"
+      }
+
+      if (bucketName) {
+        console.log("[v0] Attempting to delete image from bucket:", bucketName, "file:", post.filename)
+
+        // First check if the file exists
+        const { data: fileExists, error: listError } = await supabase.storage
+          .from(bucketName)
+          .list("", { search: post.filename })
+
+        if (listError) {
+          console.log("[v0] Error checking file existence:", listError)
+        } else {
+          console.log("[v0] File existence check result:", fileExists)
+        }
+
+        // Attempt to delete the file
+        const { data: deleteData, error: storageError } = await supabase.storage
+          .from(bucketName)
+          .remove([post.filename])
+
+        console.log("[v0] Delete operation result:", { data: deleteData, error: storageError })
+
+        if (storageError) {
+          console.error("[v0] Error deleting image from storage:", storageError)
+          console.error("[v0] Storage error details:", {
+            message: storageError.message,
+            bucket: bucketName,
+            filename: post.filename,
+          })
+          // Continue with post deletion even if image deletion fails
+        } else {
+          console.log("[v0] Successfully deleted image from storage")
+          console.log("[v0] Deleted files:", deleteData)
+        }
+      }
+    } else {
+      console.log("[v0] No filename found for post, skipping image deletion")
+    }
+
+    // Delete post from database table
+    console.log("[v0] Deleting post from table:", table, "with ID:", post.id)
+    const { error } = await supabase.from(table).delete().eq("id", post.id)
+    if (error) {
+      console.error("[v0] Error deleting post from database:", error)
+    } else {
+      console.log("[v0] Successfully deleted post from database")
+      fetchPosts(board as BoardType, setPosts)
+    }
+  } catch (error) {
+    console.error("[v0] Unexpected error during post deletion:", error)
   }
 }
 
@@ -239,6 +293,14 @@ const timeOptions = [
   "20:00",
 ]
 const dayOptions = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+
+const getBucketName = (type: "study" | "project"): string => {
+  if (type === "study") {
+    return "study-images" // This works based on debug logs
+  } else {
+    return "project_img" // Try the original name user mentioned
+  }
+}
 
 export default function AdminBoardPage() {
   const [session, setSession] = useState<any>(null)
@@ -291,14 +353,6 @@ export default function AdminBoardPage() {
     }
   }
 
-  const getBucketName = (type: "study" | "project"): string => {
-    if (type === "study") {
-      return "study-images" // This works based on debug logs
-    } else {
-      return "project_img" // Try the original name user mentioned
-    }
-  }
-
   const resetForm = () => {
     setTitle("")
     setBody("")
@@ -333,7 +387,7 @@ export default function AdminBoardPage() {
 
       if (board === "프로젝트" && projectImage.image) {
         const fileName = sanitizeFileName(projectImage.image.name)
-        const bucketName = getBucketName("project")
+        const bucketName = "project_img"
         console.log("[v0] Using project bucket:", bucketName)
         console.log("[v0] Sanitized project file name:", fileName)
 
@@ -353,7 +407,7 @@ export default function AdminBoardPage() {
 
       if (board === "스터디" && studyImage.image) {
         const fileName = sanitizeFileName(studyImage.image.name)
-        const bucketName = getBucketName("study")
+        const bucketName = "study-images"
         console.log("[v0] Using study bucket:", bucketName)
         console.log("[v0] Sanitized study file name:", fileName)
 
@@ -382,8 +436,9 @@ export default function AdminBoardPage() {
       if (board === "공지") {
         payload = { text: body }
       } else if (board === "프로젝트") {
-        const { count } = await supabase.from(table).select("*", { count: "exact", head: true })
-        const nextId = (count || 0) + 1
+        const { data: maxIdData } = await supabase.from(table).select("id").order("id", { ascending: false }).limit(1)
+
+        const nextId = maxIdData && maxIdData.length > 0 ? maxIdData[0].id + 1 : 1
 
         payload = {
           id: nextId,
@@ -400,8 +455,9 @@ export default function AdminBoardPage() {
           filename: imageUrl,
         }
       } else if (board === "스터디") {
-        const { count } = await supabase.from(table).select("*", { count: "exact", head: true })
-        const nextId = (count || 0) + 1
+        const { data: maxIdData } = await supabase.from(table).select("id").order("id", { ascending: false }).limit(1)
+
+        const nextId = maxIdData && maxIdData.length > 0 ? maxIdData[0].id + 1 : 1
 
         payload = {
           id: nextId,
@@ -412,9 +468,9 @@ export default function AdminBoardPage() {
           filename: imageUrl,
         }
       } else if (board === "학회실 사용 시간표") {
-        const { count } = await supabase.from(table).select("*", { count: "exact", head: true })
+        const { data: maxIdData } = await supabase.from(table).select("id").order("id", { ascending: false }).limit(1)
 
-        const nextId = (count || 0) + 1
+        const nextId = maxIdData && maxIdData.length > 0 ? maxIdData[0].id + 1 : 1
 
         payload = {
           id: nextId,
@@ -849,7 +905,7 @@ export default function AdminBoardPage() {
                                 <div className="flex items-start gap-4">
                                   {post.filename && (
                                     <img
-                                      src={`${supabase.storage.from(getBucketName("project")).getPublicUrl(post.filename).data.publicUrl}`}
+                                      src={`${supabase.storage.from("project_img").getPublicUrl(post.filename).data.publicUrl}`}
                                       alt={post.project_name}
                                       className="w-20 h-20 object-cover rounded-md border flex-shrink-0"
                                     />
@@ -903,7 +959,7 @@ export default function AdminBoardPage() {
                               <div className="flex items-start gap-4">
                                 {post.filename && (
                                   <img
-                                    src={`${supabase.storage.from(getBucketName("study")).getPublicUrl(post.filename).data.publicUrl}`}
+                                    src={`${supabase.storage.from("study-images").getPublicUrl(post.filename).data.publicUrl}`}
                                     alt={post.study_name}
                                     className="w-20 h-20 object-cover rounded-md border flex-shrink-0"
                                   />
