@@ -14,6 +14,8 @@ export default function Navigation() {
   const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
   const hoverTimer = useRef<NodeJS.Timeout | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isSupervisor, setIsSupervisor] = useState(false);
+  
 
   const handleGithubLogin = async () => {
     await supabase.auth.signInWithOAuth({
@@ -33,12 +35,38 @@ export default function Navigation() {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setIsLoggedIn(!!user);
+
+
+    if (user) {
+      // supervisor_id 테이블 확인
+      const { data, error} = await supabase
+        .from("supervisor_id")
+        .select("uuid")
+        .eq("uuid", user.id)
+        .maybeSingle();
+
+      setIsSupervisor(!!data);
+    } else {
+      setIsSupervisor(false);
+    }
+
     };
 
     checkUser();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setIsLoggedIn(!!session?.user);
+
+      if (session?.user) {
+        supabase
+          .from("supervisor_id")
+          .select("uuid")
+          .eq("uuid", session.user.id)
+          .maybeSingle()
+          .then(({ data }) => setIsSupervisor(!!data));
+      } else {
+        setIsSupervisor(false);
+      }
     });
 
     return () => {
@@ -218,6 +246,14 @@ export default function Navigation() {
               <Button onClick={handleGithubLogin} variant="ghost" className="bg-black hover:bg-gray-800 text-white">
                 Log in
               </Button>
+            )}
+
+            {isSupervisor && (
+              <Link href="/editor">
+                <Button variant="ghost" className="bg-black hover:bg-gray-800 text-white">
+                  Editor
+                </Button>
+              </Link>
             )}
           </div>
 
