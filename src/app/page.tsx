@@ -11,7 +11,7 @@ export default function Home() {
       <FeaturesSection />
     <div className="text-center mb-20">
       <h1 className="text-2xl font-bold mt-10"></h1>
-      <VisitorBlock />
+      {/* <VisitorBlock /> */}
     </div>  
     </>
     

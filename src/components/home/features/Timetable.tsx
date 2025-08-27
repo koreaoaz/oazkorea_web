@@ -17,7 +17,7 @@ interface Study {
 }
 
 // Supabase client setup
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_KEY!)
 
 // Utility functions
 const timeToSlot = (time: string): number => {
@@ -118,35 +118,43 @@ export const TimetableDemo = () => {
     }
   }
 
+  // const generateTimeSlots = () => {
+  //   const slots = []
+  //   const occupiedHours = new Set<number>()
+
+  //   studies.forEach((study) => {
+  //     for (let slot = study.startSlot; slot < study.endSlot; slot++) {
+  //       occupiedHours.add(Math.floor(slot / 2))
+  //     }
+  //   })
+
+  //   const sortedHours = Array.from(occupiedHours).sort((a, b) => a - b)
+
+  //   if (sortedHours.length === 0) {
+  //     for (let hour = 0; hour <= 7; hour++) {
+  //       slots.push({ type: "hour", hour: hour + 9 })
+  //     }
+  //   } else {
+  //     for (let i = 0; i < sortedHours.length; i++) {
+  //       const currentHour = sortedHours[i]
+  //       const prevHour = i > 0 ? sortedHours[i - 1] : null
+
+  //       if (prevHour !== null && currentHour - prevHour > 1) {
+  //         slots.push({ type: "gap" })
+  //       }
+
+  //       slots.push({ type: "hour", hour: currentHour + 9 })
+  //     }
+  //   }
+
+  //   return slots
+  // }
+
   const generateTimeSlots = () => {
     const slots = []
-    const occupiedHours = new Set<number>()
-
-    studies.forEach((study) => {
-      for (let slot = study.startSlot; slot < study.endSlot; slot++) {
-        occupiedHours.add(Math.floor(slot / 2))
-      }
-    })
-
-    const sortedHours = Array.from(occupiedHours).sort((a, b) => a - b)
-
-    if (sortedHours.length === 0) {
-      for (let hour = 0; hour <= 7; hour++) {
-        slots.push({ type: "hour", hour: hour + 9 })
-      }
-    } else {
-      for (let i = 0; i < sortedHours.length; i++) {
-        const currentHour = sortedHours[i]
-        const prevHour = i > 0 ? sortedHours[i - 1] : null
-
-        if (prevHour !== null && currentHour - prevHour > 1) {
-          slots.push({ type: "gap" })
-        }
-
-        slots.push({ type: "hour", hour: currentHour + 9 })
-      }
+    for (let hour = 9; hour <= 20; hour++) {
+      slots.push({ type: "hour", hour })
     }
-
     return slots
   }
 
@@ -184,10 +192,10 @@ export const TimetableDemo = () => {
             <div className="overflow-x-auto">
               <div className="w-full min-w-[320px]">
                 {/* Header */}
-                <div className="grid grid-cols-6 border-b bg-muted/50">
-                  <div className="p-2 text-center font-medium text-xs sm:text-sm">Time</div>
-                  {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => (
-                    <div key={day} className="p-2 text-center font-medium text-xs sm:text-sm border-l">
+                <div className="grid grid-cols-[0.4fr_repeat(5,1fr)] border-b bg-white">
+                  <div className="p-2 text-center font-medium text-xs sm:text-sm"></div>
+                  {["월", "화", "수", "목", "금"].map((day) => (
+                    <div key={day} className="p-0.5 text-center font-medium text-xs sm:text-sm border-l">
                       {day}
                     </div>
                   ))}
@@ -212,11 +220,11 @@ export const TimetableDemo = () => {
                   return (
                     <div
                       key={`hour-${hour}`}
-                      className="grid grid-cols-6 border-b relative"
-                      style={{ minHeight: "50px" }}
+                      className="grid grid-cols-[0.4fr_repeat(5,1fr)] border-b relative "
+                      style={{ minHeight: "40px" }}
                     >
-                      <div className="p-2 text-center text-xs sm:text-sm font-medium bg-muted/30">
-                        {hour.toString().padStart(2, "0")}:00
+                      <div className="px-0.5 py-0.2 text-right text-xs sm:text-sm font-medium bg-white">
+                        {hour % 12 === 0 ? 12 : hour % 12}
                       </div>
 
                       {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => {
