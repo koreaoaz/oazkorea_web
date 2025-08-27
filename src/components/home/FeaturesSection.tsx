@@ -11,6 +11,7 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Palette, Accessibility, Zap, Code2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 
 export default function FeaturesSection() {
@@ -29,7 +30,7 @@ export default function FeaturesSection() {
               <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }}>
                 <h3 className="text-base font-bold mb-2" style={{ fontFamily: "Inter, sans-serif", fontSize: "20px" }} >스터디 시간표</h3>
               </motion.div>
-              <FeatureCard className="break-inside-avoid mb-8" contentClassName="p-0">
+              <FeatureCard className="break-inside-avoid mb-4" contentClassName="p-0">
                 <Timetable />
               </FeatureCard>
             </div>
@@ -38,17 +39,28 @@ export default function FeaturesSection() {
               <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }}>
                 <h3 className="text-base font-bold mb-2" style={{ fontFamily: "Inter, sans-serif", fontSize: "20px" }} >공지</h3>
               </motion.div>
-              <FeatureCard  className="break-inside-avoid mb-8" contentClassName="p-0">
+              <FeatureCard  className="break-inside-avoid mb-4" contentClassName="p-0">
                 <Notification />
               </FeatureCard>
-              
+              <FeatureCard className="break-inside-avoid mb-4" contentClassName="p-0 overflow-hidden rounded-xl">
+                <div className="relative w-full aspect-[800/380]">
+                  <Image
+                    src="/106b.jpg" alt="106b" fill className="object-cover" priority
+                  />
+                </div>
+              </FeatureCard>
             </div>
           </div>
 
           
            {/* 오른쪽 column */}
-          <div className="grid grid-cols-1 lg:grid-cols-2">
+          <div className="grid grid-cols-1 lg:grid-cols-2 py-10">
             <FeatureCard className="break-inside-avoid mb-8 lg:col-span-2" contentClassName="p-0">
+                <div className="flex flex-col items-center">
+                  <Calendar01 />
+                </div>
+              </FeatureCard>
+              <FeatureCard className="break-inside-avoid mb-8 lg:col-span-2" contentClassName="p-0">
                 <div className="flex flex-col items-center">
                   <Calendar01 />
                 </div>
