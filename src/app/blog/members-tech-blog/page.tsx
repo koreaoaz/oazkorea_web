@@ -1,5 +1,4 @@
-// app/feed/page.tsx
-"use client";
+'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -113,8 +112,19 @@ function SkeletonCard() {
 }
 
 function FeedCard({ item }: { item: FeedItem }) {
-  const text = useMemo(() => stripHtml(item.description ?? ""), [item.description]);
+  const decodeHtmlOnClient = (s = "") => {
+    if (!s) return "";
+    const el = document.createElement("textarea");
+    el.innerHTML = s;
+    return el.value;
+  };
+
+  const text = useMemo(() => {
+    const decoded = decodeHtmlOnClient(item.description ?? "");
+    return stripHtml(decoded);
+  }, [item.description]);
   const time = useMemo(() => fmtRelative(item.date), [item.date]);
+  const imgUrl = item.image?.startsWith("//") ? `https:${item.image}` : item.image ?? null;
 
   return (
     <Link
