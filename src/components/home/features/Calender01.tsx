@@ -10,7 +10,7 @@ export default function Calendar01() {
   )
 
   return (
-    <div className="w-full h-auto flex justify-center items-center overflow-hidden">
+    <div className="w-full h-auto flex justify-start items-center overflow-hidden px-2 py-2">
       <Calendar
         mode="single"
         defaultMonth={date}
