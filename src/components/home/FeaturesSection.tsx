@@ -22,9 +22,9 @@ export default function FeaturesSection() {
       <div className="max-w-7xl mx-auto">
 
         {/* 카드 영역 (grid) */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-x-4">
         {/* 왼쪽 column */}
-          <div className="grid grid-cols-[1fr_1.25fr] gap-4">
+          <div className="grid grid-cols-[1fr_1.25fr] gap-x-4">
           {/* 왼쪽 column_0 */}
             <div className="flex flex-col">
               <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }}>
@@ -39,10 +39,10 @@ export default function FeaturesSection() {
               <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }}>
                 <h3 className="text-base font-bold mb-2" style={{ fontFamily: "Inter, sans-serif", fontSize: "20px" }} >공지</h3>
               </motion.div>
-              <FeatureCard  className="break-inside-avoid mb-4" contentClassName="p-0">
+              <FeatureCard  className="break-inside-avoid mb-2" contentClassName="p-0">
                 <Notification />
               </FeatureCard>
-              <FeatureCard className="break-inside-avoid mb-4" contentClassName="p-0 overflow-hidden rounded-xl">
+              <FeatureCard className="break-inside-avoid mb-2" contentClassName="p-0 overflow-hidden rounded-xl">
                 <div className="relative w-full aspect-[800/380]">
                   <Image
                     src="/106b.jpg" alt="106b" fill className="object-cover" priority
@@ -54,26 +54,26 @@ export default function FeaturesSection() {
 
           
            {/* 오른쪽 column */}
-          <div className="grid grid-cols-2 py-10  gap-4">
-            <FeatureCard className="break-inside-avoid mb-8 col-span-2 min-w-[640px]" contentClassName="p-0">
+          <div className="grid grid-cols-2 py-10  gap-x-4">
+            <FeatureCard className="break-inside-avoid mb-2 col-span-2 min-w-[640px]" contentClassName="p-0">
                 <div className="flex flex-col items-center">
                   <Calendar01 />
                 </div>
               </FeatureCard>
-              <FeatureCard className="break-inside-avoid mb-8 col-span-2  min-w-[640px]" contentClassName="p-0">
+              <FeatureCard className="break-inside-avoid mb-2 col-span-2  min-w-[640px]" contentClassName="p-0">
                 <div className="flex flex-col items-center">
                   <Calendar01 />
                 </div>
               </FeatureCard>
             {/* 오른쪽 column_0 */}
             <div className="flex flex-col">
-              <FeatureCard className="break-inside-avoid mb-4" contentClassName="p-0 overflow-hidden rounded-xl">
+              <FeatureCard className="break-inside-avoid mb-2" contentClassName="p-0 overflow-hidden rounded-xl">
                 text
               </FeatureCard>
             </div>
             {/* 오른쪽 column_1 */}
             <div className="flex flex-col">
-              <FeatureCard className="break-inside-avoid mb-4" contentClassName="p-0 overflow-hidden rounded-xl">
+              <FeatureCard className="break-inside-avoid mb-2" contentClassName="p-0 overflow-hidden rounded-xl">
                 text
               </FeatureCard>
             </div>
