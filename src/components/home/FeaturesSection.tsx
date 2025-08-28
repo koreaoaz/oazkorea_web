@@ -24,7 +24,7 @@ export default function FeaturesSection() {
         {/* 카드 영역 (grid) */}
         <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-4">
         {/* 왼쪽 column */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.25fr] gap-4">
+          <div className="grid grid-cols-[1fr_1.25fr] gap-4">
           {/* 왼쪽 column_0 */}
             <div className="flex flex-col">
               <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }}>
@@ -54,23 +54,29 @@ export default function FeaturesSection() {
 
           
            {/* 오른쪽 column */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 py-10">
-            <FeatureCard className="break-inside-avoid mb-8 lg:col-span-2" contentClassName="p-0">
+          <div className="grid grid-cols-2 py-10  gap-4">
+            <FeatureCard className="break-inside-avoid mb-8 col-span-2 min-w-[640px]" contentClassName="p-0">
                 <div className="flex flex-col items-center">
                   <Calendar01 />
                 </div>
               </FeatureCard>
-              <FeatureCard className="break-inside-avoid mb-8 lg:col-span-2" contentClassName="p-0">
+              <FeatureCard className="break-inside-avoid mb-8 col-span-2  min-w-[640px]" contentClassName="p-0">
                 <div className="flex flex-col items-center">
                   <Calendar01 />
                 </div>
               </FeatureCard>
             {/* 오른쪽 column_0 */}
-            {/* <div className="flex flex-col gap-8">
-            </div> */}
+            <div className="flex flex-col">
+              <FeatureCard className="break-inside-avoid mb-4" contentClassName="p-0 overflow-hidden rounded-xl">
+                text
+              </FeatureCard>
+            </div>
             {/* 오른쪽 column_1 */}
-            {/* <div className="flex flex-col gap-8">
-            </div> */}
+            <div className="flex flex-col">
+              <FeatureCard className="break-inside-avoid mb-4" contentClassName="p-0 overflow-hidden rounded-xl">
+                text
+              </FeatureCard>
+            </div>
 
             
             {/* <FeatureCard className="break-inside-avoid mb-8 [column-span:all] lg:col-span-2" contentClassName="py-12">

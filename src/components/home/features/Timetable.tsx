@@ -190,12 +190,12 @@ export const TimetableDemo = () => {
         <div className="w-full">
           <div className="bg-card rounded-lg border overflow-hidden">
             <div className="overflow-x-auto">
-              <div className="w-full min-w-[240px]">
+              <div className="w-full min-w-[300px]">
                 {/* Header */}
-                <div className="grid grid-cols-[0.4fr_repeat(5,1fr)] border-b bg-white">
+                <div className="grid grid-cols-[0.3fr_repeat(5,1fr)] border-b bg-white">
                   <div className="p-2 text-center font-medium text-xs sm:text-sm"></div>
                   {["월", "화", "수", "목", "금"].map((day) => (
-                    <div key={day} className="p-0.5 text-center font-medium text-xs sm:text-sm border-l">
+                    <div key={day} className="p-0.3 text-center font-medium text-[10px] border-l">
                       {day}
                     </div>
                   ))}
@@ -220,10 +220,10 @@ export const TimetableDemo = () => {
                   return (
                     <div
                       key={`hour-${hour}`}
-                      className="grid grid-cols-[0.4fr_repeat(5,1fr)] border-b relative "
+                      className="grid grid-cols-[0.3fr_repeat(5,1fr)] border-b relative "
                       style={{ minHeight: "45px" }}
                     >
-                      <div className="px-0.5 py-0.2 text-right text-xs sm:text-sm font-medium bg-white">
+                      <div className="px-0.5 py-0.2 text-right text-[9px] font-medium bg-white">
                         {hour % 12 === 0 ? 12 : hour % 12}
                       </div>
 
