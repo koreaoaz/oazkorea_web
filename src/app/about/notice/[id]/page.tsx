@@ -1,17 +1,20 @@
-// src/app/about/notice/[id]/page.tsx
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
-type Params = { params: { id: string } };
+export const revalidate = 60;
 
-export const revalidate = 60; // ISR
+export default async function NoticeDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;              // ← Promise 해제
+  const noticeId = Number.isNaN(Number(id)) ? id : Number(id); // id가 숫자면 숫자로
 
-export default async function NoticeDetailPage({ params }: Params) {
-  const id = params.id;
   const { data, error } = await supabase
     .from("editor_0_noti")
     .select("id, text, description, created_at")
-    .eq("id", id)
+    .eq("id", noticeId)
     .maybeSingle();
 
   if (error) {
@@ -25,17 +28,23 @@ export default async function NoticeDetailPage({ params }: Params) {
       <p className="text-sm text-muted-foreground">
         {new Date(data.created_at as string).toLocaleString()}
       </p>
-      {/* description이 plain text라면 그대로, HTML이라면 dangerouslySetInnerHTML */}
       <div className="mt-4 whitespace-pre-wrap">{data.description}</div>
     </article>
   );
 }
 
-export async function generateMetadata({ params }: Params) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;              // ← Promise 해제
+  const noticeId = Number.isNaN(Number(id)) ? id : Number(id);
+
   const { data } = await supabase
     .from("editor_0_noti")
     .select("text")
-    .eq("id", params.id)
+    .eq("id", noticeId)
     .maybeSingle();
 
   return { title: data?.text ?? "공지사항" };
