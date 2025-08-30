@@ -2,7 +2,9 @@
 
 import Timetable from "@/components/home/features/Timetable";
 import Calendar01 from "@/components/home/features/Calender01";
+import Donators from "@/components/home/features/Donators";
 import FeatureCard from "@/components/home/features/FeatureCard";
+import FeatureCard_blank from "@/components/home/features/FeatureCard_blank";
 import Notification from "@/components/home/features/Notification";
 import PersonalTimeTable from "@/components/home/features/PersonalTimeTable";
 import ProjectList from "@/components/home/features/ProjectList";
@@ -60,23 +62,24 @@ export default function FeaturesSection() {
                   <Calendar01 />
                 </div>
               </FeatureCard>
-              <FeatureCard className="break-inside-avoid mb-2 col-span-2  min-w-[640px]" contentClassName="p-0">
-                <div className="flex flex-col items-center">
-                  <Calendar01 />
-                </div>
-              </FeatureCard>
+              {/* <FeatureCard className="break-inside-avoid mb-2 col-span-2  min-w-[640px]" contentClassName="p-0"> */}
+                <FeatureCard_blank className="flex flex-col items-center col-span-2 min-w-[640px]">
+                  <Donators />
+                </FeatureCard_blank>
+
+              {/* </FeatureCard> */}
             {/* 오른쪽 column_0 */}
-            <div className="flex flex-col">
-              <FeatureCard className="break-inside-avoid mb-2" contentClassName="p-0 overflow-hidden rounded-xl">
-                text
-              </FeatureCard>
-            </div>
+            {/* <div className="flex flex-col"> */}
+              {/* <FeatureCard className="break-inside-avoid mb-2" contentClassName="p-0 overflow-hidden rounded-xl"> */}
+                {/* text */}
+              {/* </FeatureCard> */}
+            {/* </div> */}
             {/* 오른쪽 column_1 */}
-            <div className="flex flex-col">
-              <FeatureCard className="break-inside-avoid mb-2" contentClassName="p-0 overflow-hidden rounded-xl">
-                text
-              </FeatureCard>
-            </div>
+            {/* <div className="flex flex-col"> */}
+              {/* <FeatureCard className="break-inside-avoid mb-2" contentClassName="p-0 overflow-hidden rounded-xl"> */}
+                {/* text */}
+              {/* </FeatureCard> */}
+            {/* </div> */}
 
             
             {/* <FeatureCard className="break-inside-avoid mb-8 [column-span:all] lg:col-span-2" contentClassName="py-12">
@@ -86,8 +89,8 @@ export default function FeaturesSection() {
                 <p className="text-gray-600 mt-2">총 가입자 수</p>
               </div>
             </FeatureCard> */}
-        
           </div>
+          
         </div>
       </div>
     </section>
