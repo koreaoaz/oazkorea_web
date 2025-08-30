@@ -176,22 +176,15 @@ function CalendarDayButton({
   className,
   day,
   modifiers,
-  ...props
+  children, // ⬅️ 날짜 숫자
 }: React.ComponentProps<typeof DayButton>) {
   const defaultClassNames = getDefaultClassNames()
 
-  const ref = React.useRef<HTMLButtonElement>(null)
-  React.useEffect(() => {
-    if (modifiers.focused) ref.current?.focus()
-  }, [modifiers.focused])
-
   return (
-    <Button
-      ref={ref}
-      variant="ghost"
-      size="icon"
+    <div
+      role="presentation"
+      tabIndex={-1}
       data-day={day.date.toISOString().split("T")[0]}
-      // 기존 선택 관련 data-attrs
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&
@@ -201,22 +194,18 @@ function CalendarDayButton({
       data-range-start={modifiers.range_start}
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
-      // ⬇️⬇️⬇️ 추가: Supabase 이벤트용 custom modifiers
       data-ev-start={modifiers.evStart}
       data-ev-middle={modifiers.evMiddle}
       data-ev-end={modifiers.evEnd}
       className={cn(
-        // --- 여기서 이벤트 블록 스타일을 range와 동일한 룩으로 부여 ---
-        // 시작/중간/끝에 따라 배경색과 라운딩을 다르게
         "relative",
+        "h-full w-full flex items-center justify-center",
         "data-[ev-start=true]:bg-primary data-[ev-start=true]:text-primary-foreground data-[ev-start=true]:rounded-l-md",
         "data-[ev-middle=true]:bg-accent data-[ev-middle=true]:text-accent-foreground data-[ev-middle=true]:rounded-none",
         "data-[ev-end=true]:bg-primary data-[ev-end=true]:text-primary-foreground data-[ev-end=true]:rounded-r-md",
-        // 하루짜리(시작=끝)도 자연스럽게 둥근 사각형 1칸이 되도록
-        // (시작과 끝이 동시에 true일 수 있으므로 라운딩이 겹쳐도 문제 없음)
-        // 나머지 기존 클래스들
-        "flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 leading-none font-normal",
-        "group-data-[focused=true]/day:relative group-data-[focused=true]/day:z-10 group-data-[focused=true]/day:ring-[3px]",
+        // 기존 config
+        "aspect-square size-auto w-full min-w-(--cell-size) leading-none font-normal",
+        "pointer-events-none select-none",
         "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground",
         "data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground",
         "data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground",
@@ -225,8 +214,9 @@ function CalendarDayButton({
         defaultClassNames.day,
         className
       )}
-      {...props}
-    />
+    >
+      {children} 
+    </div>
   )
 }
 
