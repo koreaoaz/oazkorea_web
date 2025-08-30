@@ -42,14 +42,12 @@ export default function Donators({ listBg = "transparent" }: Props) {
             { id: -1, name: "Loading..." },
             { id: -2, name: "Loading..." },
             { id: -3, name: "Loading..." },
-            { id: -4, name: "Loading..." },
-            { id: -5, name: "Loading..." },
           ],
     [donators]
   )
 
-  const VISIBLE_COUNT = 5
-  const ITEM_HEIGHT_PX = 28
+  const VISIBLE_COUNT = 3
+  const ITEM_HEIGHT_PX = 40
   const VIEWPORT_HEIGHT = VISIBLE_COUNT * ITEM_HEIGHT_PX
 
   const doubled = React.useMemo(

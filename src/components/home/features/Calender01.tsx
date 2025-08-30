@@ -137,7 +137,7 @@ export default function Calendar01() {
         onMonthChange={setCurrentMonth} // 네비 숨겼다면 사실상 고정, 그래도 유지해두면 확장 용이
         // 이벤트 도장
         modifiers={{ evStart, evMiddle, evEnd }}
-        className="max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg"
+        className="max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg [--cell-size:28px]"
       />
 
       <div className="w-full max-w-md">
