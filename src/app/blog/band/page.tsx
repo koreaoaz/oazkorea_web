@@ -45,13 +45,13 @@ export default function Page() {
   const socialLinks: SocialItem[] = [
     {
       title: "하나와영 밴드 링크",
-      href: "https://band.us/n/a7a7b4a2E62dd", // 실제 밴드 링크로 교체
+      href: "https://www.band.us/band/98494837",
       imgSrc: "/band.png",
       imgAlt: "BAND 아이콘",
     },
     {
       title: "하나와영 인스타그램",
-      href: "https://www.instagram.com/ku_oaz", // 실제 인스타그램 링크로 교체
+      href: "https://www.instagram.com/ku_oaz",
       imgSrc: "/instagram.png",
       imgAlt: "Instagram 아이콘",
     },
