@@ -213,7 +213,8 @@ export default function Navigation() {
                 {/* 조건부 렌더링*/}
                 {item.subItems && hoveredMenu === item.name && (
                   <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                    {item.subItems.map((subItem) => (
+                    {item.subItems.map((subItem) => 
+                     subItem.name === "Overview" ? null :(
                       <Link
                         key={subItem.name}
                         href={subItem.href}
@@ -297,7 +298,8 @@ export default function Navigation() {
                           transition={{ duration: 0.3 }}
                           className="overflow-hidden ml-4 mt-1 space-y-2"
                         >
-                          {item.subItems.map((subItem) => (
+                          {item.subItems.map((subItem) =>
+                           subItem.name === "Overview" ? null : (
                             <Link
                               key={subItem.name}
                               href={subItem.href}
