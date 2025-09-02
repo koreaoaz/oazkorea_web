@@ -116,7 +116,7 @@ export default function Navigation() {
     },
     {
       name: "Studies",
-      href: "/studies/overview",
+      href: "/studies/records",
       subItems: [
         { name: "Overview", href: "/studies/overview" },
         { name: "Study Records", href: "/studies/records" },
@@ -125,7 +125,7 @@ export default function Navigation() {
     },
     {
       name: "Projects",
-      href: "/projects/overview",
+      href: "/projects/archives",
       subItems: [
         { name: "Overview", href: "/projects/overview" },
         { name: "Project Archives", href: "/projects/archives" },
