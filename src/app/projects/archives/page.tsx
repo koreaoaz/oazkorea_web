@@ -71,7 +71,7 @@ export default function Projects() {
       created_at: p.created_at,
       tech_stack: Array.isArray(p.tech_stack?.stack) ? p.tech_stack.stack : [],                             
       achievements: Array.isArray(p.achievements?.achieve) ? p.achievements.award : [],                                                  
-      image_url: p.image_url ? `${proj_baseUrl}${p.image_url}` : "",               
+      image_url: supabase.storage.from(BUCKET).getPublicUrl(p.image_url || p.filename).data.publicUrl,          
       github_url: p.github_url || "",                
     })) ?? [];
 
