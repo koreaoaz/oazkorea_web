@@ -58,6 +58,8 @@ export default function Projects() {
       return;
     }
 
+    const BUCKET = "project_img";
+
     const mapped: Project[] = data?.map((p: any) => ({
       id: p.id,
       title: p.project_name,                                 // DB의 text → title
