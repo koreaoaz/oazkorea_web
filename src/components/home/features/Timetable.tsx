@@ -239,11 +239,11 @@ export const TimetableDemo = () => {
                               const startHour = Math.floor(study.startSlot / 2) + 9
 
                               if (startHour === hour) {
-                                const height = (study.endSlot - study.startSlot) * 25
+                                const height = (study.endSlot - study.startSlot) * 22
                                 return (
                                   <div
                                     key={study.id}
-                                    className="absolute inset-x-0 p-1 text-xs text-white rounded-sm m-0.5 overflow-hidden shadow-sm z-10"
+                                    className="absolute inset-x-0 p-1 text-xs text-white rounded-sm overflow-hidden shadow-sm z-10"
                                     style={{
                                       backgroundColor: study.color,
                                       height: `${height}px`,
