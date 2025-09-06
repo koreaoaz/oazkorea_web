@@ -8,10 +8,10 @@ import Footer from "@/components/home/Footer";
 
 export const metadata = {
   title: "OaZ",
-  description: "This is my awesome app",
+  description: "OaZ의 소식과 프로젝트를 확인할 수 있는 공식 페이지입니다.",
   openGraph: {
     title: "OaZ",
-    description: "This is my awesome app",
+    description: "OaZ의 소식과 프로젝트를 확인할 수 있는 공식 페이지입니다.",
     url: "https://www.oazkorea.co.kr",
     images: [
       {
