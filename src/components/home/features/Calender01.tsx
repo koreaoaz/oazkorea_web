@@ -127,59 +127,57 @@ export default function Calendar01() {
   }
 
   return (
-    <div className="w-full h-auto flex flex-col md:flex-row gap-6 px-2 py-2">
-      <Calendar
-        // 출력용: 클릭/선택 없이, 현재 월만 보여줌
-        mode="single"
-        numberOfMonths={1}
-        // 고정 월 (원하면 props로 다른 달을 넣어도 됨)
-        month={currentMonth}
-        onMonthChange={setCurrentMonth} // 네비 숨겼다면 사실상 고정, 그래도 유지해두면 확장 용이
-        // 이벤트 도장
-        modifiers={{ evStart, evMiddle, evEnd }}
-        className="max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg [--cell-size:28px]"
-      />
+    // ✅ 공통 래퍼로 감싸기 (좌/우 2칼럼)
+    <div className="w-full h-auto grid grid-cols-1 md:grid-cols-[1fr_1.4fr] gap-6 px-2 py-2">
+      {/* 왼쪽: 달력 */}
+      <div className="min-w-0 flex justify-center items-center">
+        <Calendar
+          mode="single"
+          numberOfMonths={1}
+          month={currentMonth}
+          onMonthChange={setCurrentMonth}
+          modifiers={{ evStart, evMiddle, evEnd }}
+          className="w-full max-w-full md:max-w-md lg:max-w-lg [--cell-size:28px]"
+        />
+      </div>
 
-      <div className="w-full max-w-md">
-
-        {/* {loading && <p className="text-gray-500">불러오는 중…</p>}
-        {error && <p className="text-red-500">오류: {error}</p>} */}
-
-        {!loading && !error && eventsForMonth.length > 0 && (
-          <ul className="space-y-1">
-            {eventsForMonth.map((ev) => {
-              const sameDay = ev.start_date === ev.end_date
-
-              return (
-                <li
-                  key={ev.id}
-                  className="p-3 rounded-xl"
-                >
-                  <div className="flex items-center gap-4">
-                    {/* 왼쪽: 날짜(같은 날이면 하나, 다르면 둘 다) */}
-                    <div className="flex items-center gap-2 shrink-0">
-                      {sameDay ? (
-                        <DateBadge date={ev.start_date} />
-                      ) : (
-                        <>
-                          <DateBadge date={ev.start_date} />
-                          <span className="text-muted-foreground" aria-hidden>~</span>
-                          <DateBadge date={ev.end_date} />
-                        </>
-                      )}
-                    </div>
-
-                    {/* 오른쪽: 행사명 */}
-                    <div className="flex-1">
-                      <p className="font-semibold">{ev.description}</p>
-                    </div>
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
-        )}
-        
+      {/* 오른쪽: 투명 박스 + 세로 중앙 정렬 */}
+      <div className="min-w-0 flex justify-center items-center">
+        <div className="w-full h-full bg-transparent rounded-xl flex items-center justify-center">
+          <div className="w-full max-w-full">
+            {!loading && !error && eventsForMonth.length > 0 && (
+              <ul className="space-y-1">
+                {eventsForMonth.map((ev) => {
+                  const sameDay = ev.start_date === ev.end_date
+                  return (
+                    <li key={ev.id} className="flex items-center p-1 rounded-xl">
+                      <div className="flex items-center gap-4 w-full">
+                        {/* 왼쪽: 날짜 */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          {sameDay ? (
+                            <DateBadge date={ev.start_date} />
+                          ) : (
+                            <>
+                              <DateBadge date={ev.start_date} />
+                              <span className="text-muted-foreground" aria-hidden>
+                                ~
+                              </span>
+                              <DateBadge date={ev.end_date} />
+                            </>
+                          )}
+                        </div>
+                        {/* 오른쪽: 행사명 */}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold truncate">{ev.description}</p>
+                        </div>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

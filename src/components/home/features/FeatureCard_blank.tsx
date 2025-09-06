@@ -23,7 +23,7 @@ export default function FeatureCard_blank({
       transition={{ duration: 0.6 }}
       viewport={{ once: true }}
       whileHover={hoverLift ? { y: -5 } : undefined}
-      className={cn("group min-w-0", className)}
+      className={cn("group min-w-0 p-0", className)}
     >
       {children}
     </motion.div>

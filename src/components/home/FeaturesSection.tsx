@@ -60,22 +60,21 @@ export default function FeaturesSection() {
           
            {/* 오른쪽 column */}
           <div className="grid grid-cols-2 py-10 gap-x-4 gap-y-2 content-start items-start self-start h-auto">
-            <FeatureCard className="break-inside-avoid col-span-2 min-w-[640px]" contentClassName="p-0">
+            <FeatureCard className="break-inside-avoid col-span-2 min-w-[240px]" contentClassName="p-0">
                 <div className="flex flex-col items-center min-h-[285px]">
                   <Calendar01 />
                 </div>
               </FeatureCard>
-              <FeatureCard_blank className="flex flex-col items-center col-span-2 min-w-[640px]">
-                <Donators />
-              </FeatureCard_blank>
 
               {/* </FeatureCard> */}
             {/* 오른쪽 column_0 */}
-            {/* <div className="flex flex-col"> */}
-              {/* <FeatureCard className="break-inside-avoid mb-2" contentClassName="p-0 overflow-hidden rounded-xl"> */}
-                {/* text */}
-              {/* </FeatureCard> */}
-            {/* </div> */}
+            <div className="flex flex-col">
+              <FeatureCard_blank className="flex flex-col items-center col-span-2">
+                <div className="w-full p-0 overflow-hidden rounded-xl">
+                  <Donators />
+                </div>
+              </FeatureCard_blank>
+            </div>
             {/* 오른쪽 column_1 */}
             {/* <div className="flex flex-col"> */}
               {/* <FeatureCard className="break-inside-avoid mb-2" contentClassName="p-0 overflow-hidden rounded-xl"> */}
