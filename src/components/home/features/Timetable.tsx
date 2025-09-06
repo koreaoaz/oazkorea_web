@@ -152,7 +152,7 @@ export const TimetableDemo = () => {
 
   const generateTimeSlots = () => {
     const slots = []
-    for (let hour = 9; hour <= 20; hour++) {
+    for (let hour = 11; hour <= 22; hour++) {
       slots.push({ type: "hour", hour })
     }
     return slots

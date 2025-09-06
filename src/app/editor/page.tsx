@@ -292,7 +292,7 @@ const generateTimeOptions = (startHour: number, endHour: number) => {
   return times
 }
 
-const timeOptions = generateTimeOptions(9, 20)
+const timeOptions = generateTimeOptions(11, 22)
 
 const dayOptions = ["월요일", "화요일", "수요일", "목요일", "금요일"]
 
