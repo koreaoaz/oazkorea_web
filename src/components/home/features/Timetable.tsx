@@ -38,11 +38,11 @@ export const TimetableDemo = () => {
     setIsLoading(true)
     setError(null)
     try {
-      console.log("[v0] Loading studies from time_table...")
+      // console.log("[v0] Loading studies from time_table...")
 
       const { data, error } = await supabase.from("editor_3_study_timetable").select("*").order("start_time")
 
-      console.log("[v0] Database query result:", { data, error })
+      // console.log("[v0] Database query result:", { data, error })
 
       if (error) {
         console.error("[v0] Database error:", error)
@@ -52,13 +52,13 @@ export const TimetableDemo = () => {
       }
 
       if (data && data.length > 0) {
-        console.log("[v0] Raw data from database:", data)
+        // console.log("[v0] Raw data from database:", data)
 
         const validStudies: Study[] = []
         const seenStudies = new Set<string>()
 
         data.forEach((item: any, index: number) => {
-          console.log("[v0] Processing item:", item)
+          // console.log("[v0] Processing item:", item)
 
           // Check for required fields
           if (!item.start_time || !item.end_time || !item.study_name) {
@@ -98,15 +98,15 @@ export const TimetableDemo = () => {
             endSlot: timeToSlot(endTime),
           }
 
-          console.log("[v0] Converted study:", converted)
+          // console.log("[v0] Converted study:", converted)
           validStudies.push(converted)
         })
 
-        console.log("[v0] Final converted studies:", validStudies)
+        // console.log("[v0] Final converted studies:", validStudies)
         setStudies(validStudies)
         setError(null)
       } else {
-        console.log("[v0] No data in database")
+        // console.log("[v0] No data in database")
         setStudies([])
       }
     } catch (error) {
