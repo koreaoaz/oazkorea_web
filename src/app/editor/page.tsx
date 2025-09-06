@@ -283,20 +283,19 @@ const handleDeletePost = async (post: any, board: BoardType, setPosts: any) => {
   }
 }
 
-const timeOptions = [
-  "09:00",
-  "10:00",
-  "11:00",
-  "12:00",
-  "13:00",
-  "14:00",
-  "15:00",
-  "16:00",
-  "17:00",
-  "18:00",
-  "19:00",
-  "20:00",
-]
+const generateTimeOptions = (startHour: number, endHour: number) => {
+  const times: string[] = []
+  for (let hour = startHour; hour <= endHour; hour++) {
+    times.push(`${hour.toString().padStart(2, "0")}:00`)
+    if (hour !== endHour) {
+      times.push(`${hour.toString().padStart(2, "0")}:30`)
+    }
+  }
+  return times
+}
+
+const timeOptions = generateTimeOptions(9, 20)
+
 const dayOptions = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
 
 const getBucketName = (type: "study" | "project"): string => {
