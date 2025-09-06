@@ -196,9 +196,7 @@ const useImageUpload = () => {
   }
 }
 
-const validateTimetableForm = () => {
-  return true
-}
+
 
 const fetchPosts = async (board: BoardType, setPosts: any) => {
   const table = getTableName(board)
@@ -296,7 +294,7 @@ const generateTimeOptions = (startHour: number, endHour: number) => {
 
 const timeOptions = generateTimeOptions(9, 20)
 
-const dayOptions = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+const dayOptions = ["월요일", "화요일", "수요일", "목요일", "금요일"]
 
 const getBucketName = (type: "study" | "project"): string => {
   if (type === "study") {
@@ -372,6 +370,19 @@ export default function AdminBoardPage() {
 
   const projectImage = useImageUpload()
   const studyImage = useImageUpload()
+
+  const validateTimetableForm = () => {
+    if (!dayOfWeek || !startTime || !endTime || !studyName || !studyLeader) return false;
+
+    // "HH:MM" -> 분 단위로 변환
+    const toMin = (t: string) => {
+      const [h, m] = t.split(":").map(Number);
+      return h * 60 + m;
+    };
+
+    if (toMin(endTime) <= toMin(startTime)) return false; // 종료가 시작보다 커야 함
+    return true;
+  }
 
   const discoverBuckets = async () => {
     try {
@@ -1014,6 +1025,7 @@ export default function AdminBoardPage() {
                     className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   >
+                    <option value="" disabled>요일 선택</option>
                     {dayOptions.map((day) => (
                       <option key={day} value={day}>
                         {day}
@@ -1027,6 +1039,7 @@ export default function AdminBoardPage() {
                       className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     >
+                      <option value="" disabled>시작 시간</option>
                       {timeOptions.map((time) => (
                         <option key={time} value={time}>
                           {time}
@@ -1039,6 +1052,7 @@ export default function AdminBoardPage() {
                       className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     >
+                      <option value="" disabled>종료 시간</option>
                       {timeOptions.map((time) => (
                         <option key={time} value={time}>
                           {time}
