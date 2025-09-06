@@ -9,7 +9,19 @@ import Footer from "@/components/home/Footer";
 export const metadata = {
   title: "OaZ",
   description: "This is my awesome app",
-};
+  openGraph: {
+    title: "OaZ",
+    description: "This is my awesome app",
+    url: "https://web-implementation-tau.vercel.app/",
+    images: [
+      {
+        url: "https://web-implementation-tau.vercel.app/oaz_w_bg.png",
+        width: 1200,
+        height: 630,
+        alt: "OaZ 대표 이미지",
+      },
+    ],
+  }};
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
