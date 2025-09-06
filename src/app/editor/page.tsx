@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useEffect, useState } from "react"
+import { useRef } from "react";
 import { supabase } from "@/lib/supabaseClient"
 import Image from "next/image"
 
@@ -25,6 +26,75 @@ const getTableName = (board: BoardType): string | null => {
       return null
   }
 }
+
+function CategorySelect({ value, onChange, label = "카테고리 *" }: {
+  value: string;
+  onChange: (v: CategoryKey) => void;
+  label?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const selected = value as CategoryKey | "";
+
+  return (
+    <div ref={wrapRef} className="relative">
+      {/* 라벨 숨기기: 높이 영향 X, 접근성 O */}
+      {label && <span className="sr-only">{label}</span>}
+
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="w-full h-10 px-3 border border-gray-300 rounded-md text-left bg-white
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center relative"
+      >
+        <span className="truncate">{selected || "카테고리 선택"}</span>
+        <span className="absolute right-2">▾</span>
+      </button>
+
+      {open && (
+        <ul
+          role="listbox"
+          aria-label="프로젝트 카테고리"
+          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-white shadow-lg"
+        >
+          {CATEGORY_OPTIONS.map(opt => {
+            const isActive = selected === opt;
+            return (
+              <li key={opt}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={isActive}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => { onChange(opt); setOpen(false); }}
+                  className={`w-full px-3 py-2 text-left hover:bg-gray-50 ${isActive ? "bg-gray-100" : ""}`}
+                >
+                  {opt}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+const categoryColors: Record<string, string> = {
+  "AI/ML": "bg-blue-100 text-blue-800 border-blue-200",
+  "해커톤": "bg-purple-100 text-purple-800 border-purple-200",
+  "HW": "bg-green-100 text-green-800 border-green-200",
+  "Web/App": "bg-orange-100 text-orange-800 border-orange-200",
+  "BigData": "bg-pink-100 text-pink-800 border-pink-200",
+};
+
+type CategoryKey = keyof typeof categoryColors;
+const CATEGORY_OPTIONS: CategoryKey[] = ["AI/ML", "해커톤", "HW", "Web/App", "BigData"];
+
+// 유틸(선택)
+const cx = (...cls: (string | false | null | undefined)[]) => cls.filter(Boolean).join(" ");
 
 const sanitizeFileName = (fileName: string): string => {
   // Get file extension
@@ -849,13 +919,7 @@ export default function AdminBoardPage() {
                     onChange={(e) => setDuration(e.target.value)}
                     className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-                  <input
-                    type="text"
-                    placeholder="카테고리"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
+                  <CategorySelect value={category} onChange={(v) => setCategory(v)} label="" />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <input
