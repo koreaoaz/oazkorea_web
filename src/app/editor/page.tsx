@@ -640,8 +640,21 @@ export default function AdminBoardPage() {
                     required
                   />
                 </div>
+
+                {/* ✅ 내용(=description) 입력 추가 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">내용</label>
+                  <textarea
+                    value={body}
+                    onChange={(e) => setBody(e.target.value)}
+                    className="w-full min-h-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
+                    placeholder="공지 내용을 입력하세요"
+                    required
+                  />
+                </div>
               </div>
             )}
+
 
             {board === "명예의 전당" && (
               <div className="space-y-4">
@@ -1127,7 +1140,16 @@ export default function AdminBoardPage() {
                     </div>
                   )}
                   <div>
-                    {board === "공지" && <h3 className="text-lg font-medium text-gray-900">{post.text}</h3>}
+                    {board === "공지" && (
+                      <>
+                        <h3 className="text-lg font-medium text-gray-900">{post.text}</h3>
+                        {post.description && (
+                          <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                            {post.description}
+                          </p>
+                        )}
+                      </>
+                    )}
                     {board === "프로젝트" && (
                       <>
                         <h3 className="text-lg font-medium text-gray-900">{post.project_name}</h3>
