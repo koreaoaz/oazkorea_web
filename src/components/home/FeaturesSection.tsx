@@ -8,6 +8,7 @@ import FeatureCard_blank from "@/components/home/features/FeatureCard_blank";
 import Notification from "@/components/home/features/Notification";
 import PersonalTimeTable from "@/components/home/features/PersonalTimeTable";
 import ProjectList from "@/components/home/features/ProjectList";
+import Link from "next/link";
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,7 +43,9 @@ export default function FeaturesSection() {
                 <h3 className="text-base font-bold mb-2" style={{ fontFamily: "Inter, sans-serif", fontSize: "20px" }} >공지</h3>
               </motion.div>
               <FeatureCard  className="break-inside-avoid mb-2" contentClassName="p-0">
-                <Notification />
+                <Link href="/about/notice" className="block w-full h-full">
+                  <Notification />
+                </Link>
               </FeatureCard>
               <FeatureCard className="break-inside-avoid mb-2" contentClassName="p-0 overflow-hidden rounded-xl">
                 <div className="relative w-full aspect-[800/380]">
