@@ -227,7 +227,7 @@ export const TimetableDemo = () => {
                         {hour % 12 === 0 ? 12 : hour % 12}
                       </div>
 
-                      {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => {
+                      {["월요일","화요일","수요일","목요일","금요일"].map((day) => {
                         const dayStudies = studies.filter(
                           (study) =>
                             study.day === day && study.startSlot < (hour - 9 + 1) * 2 && study.endSlot > (hour - 9) * 2,
