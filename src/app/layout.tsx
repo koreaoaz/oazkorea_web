@@ -12,10 +12,10 @@ export const metadata = {
   openGraph: {
     title: "OaZ",
     description: "This is my awesome app",
-    url: "https://web-implementation-tau.vercel.app/",
+    url: "https://www.oazkorea.co.kr",
     images: [
       {
-        url: "https://web-implementation-tau.vercel.app/oaz_w_bg.png",
+        url: "https://www.oazkorea.co.kr/oaz_w_bg.png",
         width: 1200,
         height: 630,
         alt: "OaZ 대표 이미지",
