@@ -250,8 +250,12 @@ export const TimetableDemo = () => {
                                       top: `${(study.startSlot % 2) * 25}px`,
                                     }}
                                   >
-                                    <div className="font-medium truncate text-xs">{study.name}</div>
-                                    <div className="truncate opacity-90 text-xs">{study.leader}</div>
+                                    <div className="font-medium text-[11px] leading-tight break-words">
+                                      {study.name}
+                                    </div>
+                                    <div className="opacity-90 text-[10px] leading-tight break-words">
+                                      {study.leader}
+                                    </div>
                                   </div>
                                 )
                               }
