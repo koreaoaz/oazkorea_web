@@ -50,7 +50,7 @@ export default function Calendar01() {
       setLoading(true)
       setError(null)
       const { data, error } = await supabase
-        .from("month_schedule")
+        .from("editor_4_schedule")
         .select("id, description, start_date, end_date")
         .order("start_date", { ascending: true })
       if (error) setError(error.message)
