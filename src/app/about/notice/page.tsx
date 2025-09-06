@@ -8,6 +8,7 @@ type PageProps = {
   searchParams?: { [key: string]: string | string[] | undefined };
 };
 
+const ROW_H = "h-14";
 const PAGE_SIZE = 10;
 const PAGE_WINDOW = 5; // 페이지 버튼 최대 개수 (예: 1 2 3 4 5)
 
@@ -114,13 +115,13 @@ export default async function Page({ searchParams }: PageProps) {
             {/* 테이블 바디 */}
             <ul className="divide-y">
               {notices.map((n, idx) => {
-                // 전체에서의 NO (최신순 번호)
-                const globalIndex = from + idx; // 0-based
-                const no = total - globalIndex; // 큰 번호가 최신
-                const date = new Date(n.created_at as string).toLocaleDateString(
-                  "ko-KR",
-                  { year: "numeric", month: "2-digit", day: "2-digit" }
-                );
+                const globalIndex = from + idx;
+                const no = total - globalIndex;
+                const date = new Date(n.created_at as string).toLocaleDateString("ko-KR", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                });
 
                 return (
                   <li key={n.id} className="relative">
@@ -130,7 +131,12 @@ export default async function Page({ searchParams }: PageProps) {
                       className="absolute inset-0"
                       aria-label={`${n.text} 상세보기`}
                     />
-                    <div className="grid grid-cols-12 items-center px-4 py-4 transition-colors hover:bg-muted/40">
+                    <div
+                      className={[
+                        "grid grid-cols-12 items-center px-4 transition-colors hover:bg-muted/40",
+                        ROW_H, // ✅ py-4 대신 고정 높이
+                      ].join(" ")}
+                    >
                       <div className="col-span-2 sm:col-span-1 text-sm tabular-nums text-muted-foreground">
                         {no}
                       </div>
@@ -144,6 +150,24 @@ export default async function Page({ searchParams }: PageProps) {
                   </li>
                 );
               })}
+
+              {/* ✅ 빈 자리 채우기: 현재 페이지에 표시된 공지 수가 PAGE_SIZE보다 적으면, 남는 만큼 빈 행을 렌더 */}
+              {Array.from({ length: Math.max(0, PAGE_SIZE - notices.length) }).map(
+                (_, i) => (
+                  <li key={`placeholder-${i}`}>
+                    <div
+                      className={[
+                        "grid grid-cols-12 items-center px-4 text-transparent", // 텍스트 안 보이게
+                        ROW_H, // 고정 높이
+                      ].join(" ")}
+                    >
+                      <div className="col-span-2 sm:col-span-1">—</div>
+                      <div className="col-span-7 sm:col-span-8 pr-2">—</div>
+                      <div className="col-span-3 sm:col-span-3 text-right sm:text-left">—</div>
+                    </div>
+                  </li>
+                )
+              )}
             </ul>
           </div>
 
