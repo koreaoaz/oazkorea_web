@@ -60,22 +60,35 @@ export default function Projects() {
 
     const BUCKET = "project_img";
 
-    const mapped: Project[] = data?.map((p: any) => ({
-      id: p.id,
-      title: p.project_name,                                 // DB의 text → title
-      description: p.description || p.description,          // description 없으면 text 재사용
-      category: p.category || "기타",
-      duration: p.duration || "",
-      team_size: p.team_size || 0,
-      members: p.members || "",
-      semester: p.semester || "",                        
-      detailed_description: p.detailed_description || "",
-      created_at: p.created_at,
-      tech_stack: Array.isArray(p.tech_stack?.stack) ? p.tech_stack.stack : [],                             
-      achievements: Array.isArray(p.achievements?.achieve) ? p.achievements.award : [],                                                  
-      image_url: supabase.storage.from(BUCKET).getPublicUrl(p.image_url || p.filename).data.publicUrl,          
-      github_url: p.github_url || "",                
-    })) ?? [];
+    const mapped: Project[] = data?.map((p: any) => {
+  let techStack: string[] = [];
+
+    try {
+        const parsed = JSON.parse(p.tech_stack);
+        if (Array.isArray(parsed?.stack)) {
+          techStack = parsed.stack;
+        }
+      } catch (e) {
+        console.error("tech_stack 파싱 실패:", e);
+      }
+
+      return {
+        id: p.id,
+        title: p.project_name,
+        description: p.description || "",
+        category: p.category || "기타",
+        duration: p.duration || "",
+        team_size: p.team_size || 0,
+        members: p.members || "",
+        semester: p.semester || "",                        
+        detailed_description: p.detailed_description || "",
+        created_at: p.created_at,
+        tech_stack: techStack,
+        achievements: [], // 마찬가지로 achievements도 JSON이면 파싱 필요
+        image_url: supabase.storage.from(BUCKET).getPublicUrl(p.image_url || p.filename).data.publicUrl,          
+        github_url: p.github_url || "", 
+      };
+    }) ?? [];
 
     setProjects(mapped);
     setIsLoading(false);
