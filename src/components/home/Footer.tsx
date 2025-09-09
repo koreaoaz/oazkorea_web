@@ -111,7 +111,7 @@ export default function Footer() {
           {/* RIGHT */}
           <div className="w-full sm:w-auto">
             <p className="text-gray-950 text-base font-bold">회장</p>
-            <p className="text-gray-600 text-sm mt-2">박지우 010-2863-0604</p>
+            <p className="text-gray-600 text-sm mt-2">박지우 010-2864-0604</p>
 
             <p className="text-gray-950 text-base font-bold mt-4">부회장</p>
             <p className="text-gray-600 text-sm mt-2">김령환 010-7741-0719</p>
