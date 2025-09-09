@@ -15,7 +15,7 @@ export default function RecruitmentPage() {
       />
 
       {/* 모집글 요약 + '전문 보기' 토글 */}
-      <RecruitDetail formUrl="https://forms.gle/dAf1FgsShTdYByz677" />
+      <RecruitDetail formUrl="https://forms.gle/dk8WUjpeHwyGzeVJ6" />
     </div>
   );
 }
