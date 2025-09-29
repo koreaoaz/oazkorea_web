@@ -17,7 +17,7 @@ interface Study {
 }
 
 // Supabase client setup
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_KEY!)
 
 // Utility functions
 const timeToSlot = (time: string): number => {
@@ -38,11 +38,11 @@ export const TimetableDemo = () => {
     setIsLoading(true)
     setError(null)
     try {
-      console.log("[v0] Loading studies from time_table...")
+      // console.log("[v0] Loading studies from time_table...")
 
       const { data, error } = await supabase.from("editor_3_study_timetable").select("*").order("start_time")
 
-      console.log("[v0] Database query result:", { data, error })
+      // console.log("[v0] Database query result:", { data, error })
 
       if (error) {
         console.error("[v0] Database error:", error)
@@ -52,13 +52,13 @@ export const TimetableDemo = () => {
       }
 
       if (data && data.length > 0) {
-        console.log("[v0] Raw data from database:", data)
+        // console.log("[v0] Raw data from database:", data)
 
         const validStudies: Study[] = []
         const seenStudies = new Set<string>()
 
         data.forEach((item: any, index: number) => {
-          console.log("[v0] Processing item:", item)
+          // console.log("[v0] Processing item:", item)
 
           // Check for required fields
           if (!item.start_time || !item.end_time || !item.study_name) {
@@ -98,15 +98,15 @@ export const TimetableDemo = () => {
             endSlot: timeToSlot(endTime),
           }
 
-          console.log("[v0] Converted study:", converted)
+          // console.log("[v0] Converted study:", converted)
           validStudies.push(converted)
         })
 
-        console.log("[v0] Final converted studies:", validStudies)
+        // console.log("[v0] Final converted studies:", validStudies)
         setStudies(validStudies)
         setError(null)
       } else {
-        console.log("[v0] No data in database")
+        // console.log("[v0] No data in database")
         setStudies([])
       }
     } catch (error) {
@@ -118,35 +118,43 @@ export const TimetableDemo = () => {
     }
   }
 
+  // const generateTimeSlots = () => {
+  //   const slots = []
+  //   const occupiedHours = new Set<number>()
+
+  //   studies.forEach((study) => {
+  //     for (let slot = study.startSlot; slot < study.endSlot; slot++) {
+  //       occupiedHours.add(Math.floor(slot / 2))
+  //     }
+  //   })
+
+  //   const sortedHours = Array.from(occupiedHours).sort((a, b) => a - b)
+
+  //   if (sortedHours.length === 0) {
+  //     for (let hour = 0; hour <= 7; hour++) {
+  //       slots.push({ type: "hour", hour: hour + 9 })
+  //     }
+  //   } else {
+  //     for (let i = 0; i < sortedHours.length; i++) {
+  //       const currentHour = sortedHours[i]
+  //       const prevHour = i > 0 ? sortedHours[i - 1] : null
+
+  //       if (prevHour !== null && currentHour - prevHour > 1) {
+  //         slots.push({ type: "gap" })
+  //       }
+
+  //       slots.push({ type: "hour", hour: currentHour + 9 })
+  //     }
+  //   }
+
+  //   return slots
+  // }
+
   const generateTimeSlots = () => {
     const slots = []
-    const occupiedHours = new Set<number>()
-
-    studies.forEach((study) => {
-      for (let slot = study.startSlot; slot < study.endSlot; slot++) {
-        occupiedHours.add(Math.floor(slot / 2))
-      }
-    })
-
-    const sortedHours = Array.from(occupiedHours).sort((a, b) => a - b)
-
-    if (sortedHours.length === 0) {
-      for (let hour = 0; hour <= 7; hour++) {
-        slots.push({ type: "hour", hour: hour + 9 })
-      }
-    } else {
-      for (let i = 0; i < sortedHours.length; i++) {
-        const currentHour = sortedHours[i]
-        const prevHour = i > 0 ? sortedHours[i - 1] : null
-
-        if (prevHour !== null && currentHour - prevHour > 1) {
-          slots.push({ type: "gap" })
-        }
-
-        slots.push({ type: "hour", hour: currentHour + 9 })
-      }
+    for (let hour = 11; hour <= 22; hour++) {
+      slots.push({ type: "hour", hour })
     }
-
     return slots
   }
 
@@ -182,12 +190,12 @@ export const TimetableDemo = () => {
         <div className="w-full">
           <div className="bg-card rounded-lg border overflow-hidden">
             <div className="overflow-x-auto">
-              <div className="w-full min-w-[320px]">
+              <div className="w-full min-w-[300px]">
                 {/* Header */}
-                <div className="grid grid-cols-6 border-b bg-muted/50">
-                  <div className="p-2 text-center font-medium text-xs sm:text-sm">Time</div>
-                  {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => (
-                    <div key={day} className="p-2 text-center font-medium text-xs sm:text-sm border-l">
+                <div className="grid grid-cols-[0.3fr_repeat(5,1fr)] border-b bg-white">
+                  <div className="p-2 text-center font-medium text-xs sm:text-sm"></div>
+                  {["월", "화", "수", "목", "금"].map((day) => (
+                    <div key={day} className="p-0.3 text-center font-medium text-[10px] border-l">
                       {day}
                     </div>
                   ))}
@@ -212,14 +220,14 @@ export const TimetableDemo = () => {
                   return (
                     <div
                       key={`hour-${hour}`}
-                      className="grid grid-cols-6 border-b relative"
-                      style={{ minHeight: "50px" }}
+                      className="grid grid-cols-[0.3fr_repeat(5,1fr)] border-b relative "
+                      style={{ minHeight: "45px" }}
                     >
-                      <div className="p-2 text-center text-xs sm:text-sm font-medium bg-muted/30">
-                        {hour.toString().padStart(2, "0")}:00
+                      <div className="px-0.5 py-0.2 text-right text-[9px] font-medium bg-white">
+                        {hour % 12 === 0 ? 12 : hour % 12}
                       </div>
 
-                      {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day) => {
+                      {["월요일","화요일","수요일","목요일","금요일"].map((day) => {
                         const dayStudies = studies.filter(
                           (study) =>
                             study.day === day && study.startSlot < (hour - 9 + 1) * 2 && study.endSlot > (hour - 9) * 2,
@@ -231,19 +239,23 @@ export const TimetableDemo = () => {
                               const startHour = Math.floor(study.startSlot / 2) + 9
 
                               if (startHour === hour) {
-                                const height = (study.endSlot - study.startSlot) * 25
+                                const height = (study.endSlot - study.startSlot) * 22
                                 return (
                                   <div
                                     key={study.id}
-                                    className="absolute inset-x-0 p-1 text-xs text-white rounded-sm m-0.5 overflow-hidden shadow-sm z-10"
+                                    className="absolute inset-x-0 p-1 text-xs text-white rounded-sm overflow-hidden shadow-sm z-10"
                                     style={{
                                       backgroundColor: study.color,
                                       height: `${height}px`,
                                       top: `${(study.startSlot % 2) * 25}px`,
                                     }}
                                   >
-                                    <div className="font-medium truncate text-xs">{study.name}</div>
-                                    <div className="truncate opacity-90 text-xs">{study.leader}</div>
+                                    <div className="font-medium text-[11px] leading-tight break-words">
+                                      {study.name}
+                                    </div>
+                                    <div className="opacity-90 text-[10px] leading-tight break-words">
+                                      {study.leader}
+                                    </div>
                                   </div>
                                 )
                               }

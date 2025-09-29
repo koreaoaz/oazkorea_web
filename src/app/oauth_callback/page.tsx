@@ -33,6 +33,7 @@ export default function OAuthCallback() {
           generation: stored.generation,
           email: stored.email,
           uuid,
+          phone_number: stored.phone_number,
         });
 
         if (error) {

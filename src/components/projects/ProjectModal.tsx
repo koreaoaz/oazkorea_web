@@ -90,9 +90,17 @@ export default function ProjectModal({ project, onClose } : ProjectModalProps) {
 
           {/* Description */}
           <div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-3">프로젝트 개요</h3>
+            <h3 className="text-lg font-semibold text-slate-900 mb-3">프로젝트 설명</h3>
             <p className="text-slate-700 leading-relaxed">
               {project.detailed_description || project.description}
+            </p>
+          </div>
+
+          <Separator />
+          <div>
+            <h3 className="text-lg font-semibold text-slate-900 mb-3">팀원</h3>
+            <p className="text-slate-700 leading-relaxed">
+              {project.members}
             </p>
           </div>
 

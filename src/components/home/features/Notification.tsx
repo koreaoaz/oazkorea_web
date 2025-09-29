@@ -30,7 +30,7 @@ export default function Notification() {
   return (
     <div className="overflow-hidden">
       {/* 본문 영역 */}
-      <ul className="px-4 py-3 text-sm text-gray-800 list-disc list-inside space-y-2">
+      <ul className="px-4 py-25 text-sm text-gray-800 list-disc list-inside space-y-2">
         {Notifications.map((item, index) => (
           <li
             key={index}
