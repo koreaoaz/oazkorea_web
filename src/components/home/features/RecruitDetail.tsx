@@ -163,20 +163,6 @@ export default function RecruitDetail({ formUrl }: Props) {
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
-        <RightImageCard
-            href="/studies/overview"
-            src="/oaz_logo.png"
-            alt="지난 학기 스터디 활동 이미지"
-            label="&lt;지난 학기 스터디 보기&gt;"
-        />
-        <RightImageCard
-            href="/events/archive"
-            src="/oaz_homecomming.jpg"
-            alt="지난 학기 행사/활동 이미지"
-            label="&lt;지난 학기 활동 보기&gt;"
-        />
-        </div>
       </div>
     </section>
   );
