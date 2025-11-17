@@ -82,6 +82,7 @@ export default function WhoWeArePage() {
             </h2>
           </header>
 
+
           <div className="space-y-6 rounded-2xl border border-zinc-800/60 bg-[#2D2D2D] p-6 leading-relaxed text-zinc-300 sm:p-8">
             <p className="text-center text-sm text-zinc-400">1992년 창립</p>
             <p>하나와영은 단순한 스터디를 넘어, 자유롭고 진취적인 배움의 장을 지향합니다.</p>
@@ -94,6 +95,8 @@ export default function WhoWeArePage() {
           </div>
         </div>
       </section>
+
+
 
       {/* 학회의 활동 */}
       <section className="container mx-auto px-4 py-16">
