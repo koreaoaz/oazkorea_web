@@ -54,7 +54,7 @@ export default async function Page({ searchParams }: PageProps) {
     ? sp.page[0]
     : sp.page
 
-  const page = Math.max(1, Number(pageParam) || 1)z
+  const page = Math.max(1, Number(pageParam) || 1)
 
   // Supabase range 계산
   const from = (page - 1) * PAGE_SIZE;
