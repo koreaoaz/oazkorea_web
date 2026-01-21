@@ -23,7 +23,7 @@ export default function Donators({ listBg = "transparent" }: Props) {
       setLoading(true)
       setError(null)
       const { data, error } = await supabase
-        .from("editor_5_donator")
+        .from("editor_5_donators")
         .select("id, name")
         .order("id", { ascending: true })
 
