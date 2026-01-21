@@ -4,13 +4,14 @@ import { ImageFromStorage } from "./components/ImageFromStorage"
 import { getFirstImageFilename } from "./utils/parsing_first"
 
 export const revalidate = 60
+export const dynamic = "force-dynamic"
 
 const PAGE_SIZE = 10
 const PAGE_WINDOW = 5
 const ROW_H = "h-28"
 
 type PageProps = {
-  searchParams?: { [key: string]: string | string[] | undefined }
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 function ArrowButton({
@@ -49,9 +50,10 @@ function ArrowButton({
 
 export default async function EventsArchivePage({ searchParams }: PageProps) {
   /* 현재 페이지 */
-  const pageParam = Array.isArray(searchParams?.page)
-    ? searchParams?.page[0]
-    : searchParams?.page
+  const sp = await searchParams
+  const pageParam = Array.isArray(sp.page)
+    ? sp.page[0]
+    : sp.page
   const page = Math.max(1, Number(pageParam) || 1)
 
   const from = (page - 1) * PAGE_SIZE
