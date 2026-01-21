@@ -133,9 +133,9 @@ export default function Navigation() {
     },
     {
       name: "Events",
-      href: "/.",
+      href: "/events/archive",
       subItems: [
-        { name: "Event Archive" }
+        { name: "Event Archive", href: "/events/archive" }
       ]
     },
     {
