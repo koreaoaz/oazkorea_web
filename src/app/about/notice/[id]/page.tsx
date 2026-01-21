@@ -6,11 +6,11 @@ import { supabase } from "@/lib/supabaseClient";
 export const revalidate = 60;
 
 export default async function NoticeDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const { id } = params;
+      params,
+    }: {
+      params: { id: string };
+    }) {
+  const { id } = await params;
   const noticeId = Number.isNaN(Number(id)) ? id : Number(id);
 
   const { data, error } = await supabase
@@ -78,7 +78,7 @@ export async function generateMetadata({
 }: {
   params: { id: string };
 }) {
-  const { id } = params;
+  const { id } = await params;
   const noticeId = Number.isNaN(Number(id)) ? id : Number(id);
 
   const { data } = await supabase

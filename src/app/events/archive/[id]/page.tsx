@@ -8,15 +8,15 @@ type ImageItem = {
 }
 
 type PageProps = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function EventDetailPage({ params }: PageProps) {
-
+    const { id } = await params
   const { data: event, error } = await supabase
     .from("editor_6_events")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .single()
 
   if (error || !event) {
