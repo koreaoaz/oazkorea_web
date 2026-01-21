@@ -20,19 +20,17 @@ export default function WhoWeArePage() {
       <section className="relative isolate">
         {/* 배경 이미지 영역 (이미지 첨부) */}
         <div className="relative h-[44vh] min-h-[320px] w-full overflow-hidden">
-          {
-            <Image
-              src="/images/campus.png"
-              alt="Campus"
-              fill
-              className="object-cover"
-              priority
-            />
-          }
-
+          <Image
+            src="/campus.png"
+            alt="Campus"
+            fill
+            className="object-cover object-center"
+            priority
+          />
+          
           <div className="absolute inset-0 flex items-center justify-center bg-[#2D2D2D]/60">
             <span className="rounded-full border border-zinc-700/70 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-300 backdrop-blur">
-              이미지 첨부
+              {/* 이미지 첨부 */}
             </span>
           </div>
 
@@ -42,16 +40,6 @@ export default function WhoWeArePage() {
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#2D2D2D]/30 to-[#2D2D2D]"></div>
         </div>
 
-        <div className="container relative mx-auto -mt-20 px-4 pb-10 sm:-mt-24 sm:pb-14 lg:-mt-28">
-          <motion.h1
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mx-auto w-fit rounded-2xl border border-zinc-800/60 bg-[#2D2D2D] px-5 py-2 text-center text-sm font-medium tracking-wide text-zinc-200 shadow/50 backdrop-blur sm:text-base"
-          >
-            Who we are
-          </motion.h1>
-        </div>
       </section>
 
       {/* 인사말 */}
@@ -94,6 +82,7 @@ export default function WhoWeArePage() {
             </h2>
           </header>
 
+
           <div className="space-y-6 rounded-2xl border border-zinc-800/60 bg-[#2D2D2D] p-6 leading-relaxed text-zinc-300 sm:p-8">
             <p className="text-center text-sm text-zinc-400">1992년 창립</p>
             <p>하나와영은 단순한 스터디를 넘어, 자유롭고 진취적인 배움의 장을 지향합니다.</p>
@@ -103,25 +92,11 @@ export default function WhoWeArePage() {
               새로운 스터디를 직접 기획하고 이끌어갈 수 있습니다.
             </p>
             <p>책이나 강의 등 필요한 자원도 적극적으로 지원하고 있습니다.</p>
-
-            {/* 활동 사진 자리 (이미지 첨부) */}
-            <div className="mt-6">
-              <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl border border-zinc-800/60">
-                {/* 활동 사진을 여기에 첨부하세요 */}
-                <div className="absolute inset-0 grid place-items-center bg-[#2D2D2D]">
-                  <span className="rounded-full border border-zinc-700/70 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-300 backdrop-blur">
-                    이미지 첨부
-                  </span>
-                </div>
-                {/* <Image src="/images/hanawayoung-2025.jpg" alt="2025 하나와영 홈커밍데이" fill className="object-cover" /> */}
-              </div>
-              <p className="mt-2 text-center text-xs text-zinc-500">
-                (활동 사진을 첨부하면 자동으로 반응형으로 표시됩니다)
-              </p>
-            </div>
           </div>
         </div>
       </section>
+
+
 
       {/* 학회의 활동 */}
       <section className="container mx-auto px-4 py-16">
