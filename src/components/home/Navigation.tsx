@@ -254,7 +254,7 @@ export default function Navigation() {
             <Link href="/signin">
               <Button variant="ghost" className="flex items-center hover:bg-gray-100 text-black px-3 py-2 rounded-md">
                 <Github className="w-5 h-5" />
-                <span>Sign in</span>
+                <span>Sign up</span>
               </Button>
             </Link>
 
