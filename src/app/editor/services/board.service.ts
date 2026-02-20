@@ -28,3 +28,19 @@ export async function insertPost(table: string, payload: any) {
   if (error) throw error
   return data
 }
+
+export async function updatePost(
+  table: string,
+  id: number,
+  payload: any
+) {
+  const { data, error } = await supabase
+    .from(table)
+    .update(payload)
+    .eq("id", id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
