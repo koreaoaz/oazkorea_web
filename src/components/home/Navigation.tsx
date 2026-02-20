@@ -142,8 +142,8 @@ export default function Navigation() {
       name: "Blog",
       href: "/blog/band",
       subItems: [
-        { name: "Members' Tech Blog", href: "/blog/members-tech-blog" },
         { name: "OAZ Band", href: "/blog/band" }
+        { name: "Members' Tech Blog", href: "/blog/members-tech-blog" },
       ]
     },
     {
