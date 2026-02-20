@@ -24,7 +24,7 @@ export default function FeatureCard({
       whileHover={{ y: -5 }}
       className={cn("group min-w-0", className)} 
     >
-      <Card className=" border border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-lg bg-white/50 backdrop-blur-sm">
+      <Card className="overflow-hidden border border-gray-200 hover:border-gray-300 transition-all duration-300 hover:shadow-lg bg-white/50 backdrop-blur-sm">
         <CardContent className={cn(contentClassName)}>
           {children}
         </CardContent>

@@ -64,7 +64,7 @@ const BOARD_COLUMNS: Record<
     ],
     "승인email":[
       { label: "이름", field: "name" },
-      { label: "이메일", field: "emal" }
+      { label: "이메일", field: "email" }
     ],
     "관리자id":[
       { label: "이름", field: "name" },
