@@ -56,63 +56,51 @@ export default function StudyArchiveGrid() {
   }, [expandedIndex])
 
   async function fetchList() {
-    if (!supabase) {
-      setSupabaseError("Supabase 연결 오류: 환경변수를 확인해주세요.")
+  try {
+    const { data: studyData, error: dbError } = await supabase
+      .from("editor_2_studies")
+      .select("*")
+      .order("created_at", { ascending: false })
+
+    if (dbError) {
+      setSupabaseError(`데이터베이스 오류: ${dbError.message}`)
       return
     }
 
-    try {
-      // Get database records
-      const { data: studyData, error: dbError } = await supabase
-        .from("editor_2_studies")
-        .select("*")
-        .order("created_at", { ascending: false })
-
-      if (dbError) {
-        setSupabaseError(`데이터베이스 오류: ${dbError.message}`)
-        return
-      }
-
-      // Get storage files
-      const { data: storageData, error: storageError } = await supabase.storage
-        .from(BUCKET)
-        .list("", { limit: 1000, sortBy: { column: "created_at", order: "desc" } })
-
-      if (storageError) {
-        setSupabaseError(`스토리지 오류: ${storageError.message}`)
-        return
-      }
-
-      const fileObjs = (storageData ?? []).filter((f) => f.name && !f.name.endsWith("/"))
-      const signedItems: StudyItem[] = []
-
-      // Create signed URLs and match with database
-      for (const f of fileObjs) {
-        const { data: publicUrl } = supabase.storage.from(BUCKET).getPublicUrl(f.name)
-
-        const dbRecord = studyData?.find(
-          (record) => record.filename === f.name || record.file_name === f.name || record.image_url === f.name,
-        )
-
-        signedItems.push({
-          id: dbRecord?.id,
-          name: f.name,
-          path: f.name,
-          signedUrl: publicUrl.publicUrl,
-          created_at: (f as any)?.created_at ?? null,
-          studyName: dbRecord?.study_name || dbRecord?.name || dbRecord?.title || "스터디",
-          studyDescription:
-            dbRecord?.outline || dbRecord?.study_description || dbRecord?.description || "설명이 없습니다.",
-          studyLeader: dbRecord?.leader || "미정",
-        })
-      }
-
-      setFiles(signedItems)
-      setCurrentPage(0)
-    } catch (err) {
-      setSupabaseError("데이터 로딩 중 오류가 발생했습니다.")
+    if (!studyData) {
+      setFiles([])
+      return
     }
+
+    const items: StudyItem[] = studyData.map((record) => {
+      let imageUrl = "/placeholder.svg"
+
+      if (record.filename) {
+        const { data } = supabase.storage
+          .from(BUCKET)
+          .getPublicUrl(record.filename)
+
+        imageUrl = data.publicUrl
+      }
+
+      return {
+        id: record.id,
+        name: record.filename ?? "",
+        path: record.filename ?? "",
+        signedUrl: imageUrl,
+        created_at: record.created_at ?? null,
+        studyName: record.study_name ?? "스터디",
+        studyDescription: record.outline ?? "설명이 없습니다.",
+        studyLeader: record.leader ?? "미정",
+      }
+    })
+
+    setFiles(items)
+    setCurrentPage(0)
+  } catch (err) {
+    setSupabaseError("데이터 로딩 중 오류가 발생했습니다.")
   }
+}
 
   useEffect(() => {
     fetchList()

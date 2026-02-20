@@ -144,7 +144,7 @@ export default function RegistrationForm() {
         <input
           name="generation"
           type="text"
-          placeholder="기수 ex) 34, (2025년은 35기 입니다.)"
+          placeholder="기수 ex) 34, (2025년은 36기 입니다.)"
           value={form.generation}
           onChange={handleChange}
           className="w-full p-2 border rounded-md"

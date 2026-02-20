@@ -1,12 +1,13 @@
 // src/app/about/notice/page.tsx
 import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
+export const dynamic = "force-dynamic";
 
 export const revalidate = 60; // ISR
 
 type PageProps = {
-  searchParams?: { [key: string]: string | string[] | undefined };
-};
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
 
 const ROW_H = "h-14";
 const PAGE_SIZE = 10;
@@ -47,11 +48,13 @@ function ArrowButton({
 }
 
 export default async function Page({ searchParams }: PageProps) {
-  // 현재 페이지 (1부터 시작)
-  const pageParam = Array.isArray(searchParams?.page)
-    ? searchParams?.page[0]
-    : searchParams?.page;
-  const page = Math.max(1, Number(pageParam) || 1);
+  const sp = await searchParams
+
+  const pageParam = Array.isArray(sp.page)
+    ? sp.page[0]
+    : sp.page
+
+  const page = Math.max(1, Number(pageParam) || 1)
 
   // Supabase range 계산
   const from = (page - 1) * PAGE_SIZE;
