@@ -9,7 +9,7 @@ type Props = {
   title?: string;
 };
 
-const DEFAULT_DEADLINE = "2025-09-12T00:00:00+09:00";
+const DEFAULT_DEADLINE = "2026-02-29T00:00:00+09:00";
 
 function format(ms: number) {
   if (ms <= 0) return { done: true, text: "모집이 마감되었습니다" };
@@ -24,7 +24,7 @@ function format(ms: number) {
 export default function RecruitCountdownBlock({
   deadline = DEFAULT_DEADLINE,
   className = "",
-  title = "하나와영 25-2 신규 인원 모집 마감까지",
+  title = "하나와영 26-1 신규 인원 모집 마감까지",
 }: Props) {
   const end = useMemo(() => new Date(deadline).getTime(), [deadline]);
   const [now, setNow] = useState(() => Date.now());
