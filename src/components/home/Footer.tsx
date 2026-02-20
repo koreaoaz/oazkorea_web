@@ -111,10 +111,10 @@ export default function Footer() {
           {/* RIGHT */}
           <div className="w-full sm:w-auto">
             <p className="text-gray-950 text-base font-bold">회장</p>
-            <p className="text-gray-600 text-sm mt-2">박지우 010-2864-0604</p>
+            <p className="text-gray-600 text-sm mt-2">이영재 010-3222-4259</p>
 
             <p className="text-gray-950 text-base font-bold mt-4">부회장</p>
-            <p className="text-gray-600 text-sm mt-2">김령환 010-7741-0719</p>
+            <p className="text-gray-600 text-sm mt-2">박유림 010-9570-7899</p>
 
             {/* 소셜 아이콘 행 */}
             <div className="mt-4 flex justify-end gap-3">
