@@ -93,24 +93,6 @@ export default function FeaturesSection() {
           </div>
           
         </div>
-
-        {/* 기존 상단 설명 영역*/}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-            Why choose shadcn/ui?
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            A component library that gives you everything you need to build beautiful, 
-            accessible, and customizable user interfaces.
-          </p>
-        </motion.div>
-    
       </div>
     </section>
   );
