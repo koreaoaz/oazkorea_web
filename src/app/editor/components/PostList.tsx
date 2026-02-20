@@ -62,8 +62,15 @@ const BOARD_COLUMNS: Record<
       { label: "이메일", field: "email" },
       { label: "전화번호", field: "phone_number" },
     ],
-    "승인email":[{ label: "이름", field: "name" }],
-    "관리자id":[{ label: "이름", field: "name" }]
+    "승인email":[
+      { label: "이름", field: "name" },
+      { label: "이메일", field: "emal" }
+    ],
+    "관리자id":[
+      { label: "이름", field: "name" },
+      { label: "이메일", field: "email"},
+      { label: "uuid", field: "uuid" }
+    ]
   }
 
 export function PostList({ board, posts, setPosts, reload, loading }: Props) {
@@ -130,7 +137,7 @@ export function PostList({ board, posts, setPosts, reload, loading }: Props) {
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="flex items-center justify-between p-2">
         <h2 className="text-xl font-bold text-gray-900">
-          게시글 목록
+          목록
         </h2>
         {(board=="등록회원") && (
           <button
