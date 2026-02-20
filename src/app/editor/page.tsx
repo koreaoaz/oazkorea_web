@@ -14,6 +14,7 @@ import { TimetableForm } from "./boards/3_timetable/TimetableForm"
 import { HonorForm } from "./boards/4_honor/HonorForm"
 import { ScheduleForm } from "./boards/5_schedule/ScheduleForm"
 import { EventForm } from "./boards/6_event/EventForm"
+import { Allowed_user } from "./boards/7_allowed_user/Allowed_user"
 
 export default function EditorPage() {
   const [board, setBoard] = useState<BoardType>("공지")
@@ -22,7 +23,7 @@ export default function EditorPage() {
   return (
     <EditorLayout>
       <BoardTabs board={board} onChange={setBoard} />
-
+      
       <section className="bg-white rounded-lg shadow-md p-6 mb-8">
         {board === "공지" && <NoticeForm />}
         {board === "프로젝트" && <ProjectForm onSuccess={(newPost) => {postsState.setPosts((prev) => [newPost, ...prev])}}/>}
@@ -31,6 +32,7 @@ export default function EditorPage() {
         {board === "명예의 전당" && <HonorForm />}
         {board === "일정" && <ScheduleForm />}
         {board === "행사" && <EventForm />}
+        {board === "승인email" && <Allowed_user onSuccess={(newRow) => {postsState.setPosts((prev) => [newRow, ...prev])}}/>}
       </section>
       
       <PostList
@@ -40,6 +42,7 @@ export default function EditorPage() {
         reload={postsState.reload}
         loading={postsState.loading}
       />
+      
     </EditorLayout>
   )
 }

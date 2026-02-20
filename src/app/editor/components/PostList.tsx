@@ -158,6 +158,20 @@ export function PostList({ board, posts, setPosts, reload, loading }: Props) {
                   </>
                 )}
 
+                {board === "승인email" && (
+                  <>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      {post.name}
+                    </h3>
+                    {post.email && (
+                      <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                        {post.email}
+                      </p>
+                    )}
+                  </>
+                )}
+
+
                 
               </div>
             </div>

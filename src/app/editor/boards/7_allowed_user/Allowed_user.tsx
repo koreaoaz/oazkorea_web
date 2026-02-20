@@ -1,159 +1,111 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { insertPost } from "../../services/board.service"
 import { BOARD_TABLE_MAP } from "../../constants"
-import { generateTimeOptions, isValidTimeRange } from "../../utils/time"
 import { FormField } from "../../components/common/FormField"
-import { inputBase } from "../../utils/inputformClasses"
+import { textareaBase } from "../../utils/inputformClasses"
+import { supabase } from "@/lib/supabaseClient"
 
-const DAYS = ["월요일", "화요일", "수요일", "목요일", "금요일"]
+type AllowedUserRow = {
+  id: number
+  name: string
+  email: string
+}
 
-export function TimetableForm() {
-  const [day, setDay] = useState("")
-  const [start, setStart] = useState("")
-  const [end, setEnd] = useState("")
-  const [name, setName] = useState("")
-  const [leader, setLeader] = useState("")
-  const [studyColor, setStudyColor] = useState("#00ff00")
+export function Allowed_user({
+  onSuccess,
+}: {
+  onSuccess?: (newRow: AllowedUserRow) => void
+}) {
+  const [title, setName] = useState("")
+  const [body, setEmail] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState("") //  에러 상태 추가
 
-  const times = generateTimeOptions(11, 22)
+  const isFormValid = title.trim() !== "" && body.trim() !== ""
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setErrorMsg("")
 
-    if (!day || !start || !end || !name || !leader) {
-      alert("필수 항목을 모두 입력해주세요.")
+    if (!isFormValid) {
+      setErrorMsg("이름과 이메일을 모두 입력해주세요.")
       return
     }
 
-    if (!isValidTimeRange(start, end)) {
-      alert("시간 범위 오류")
-      return
+    setLoading(true)
+
+    try {
+      const trimmedName = title.trim()
+      const trimmedEmail = body.trim()
+
+      // 기존 데이터와 동일한 이름 + 이메일 있는지 확인
+      const { data: existing } = await supabase
+        .from(BOARD_TABLE_MAP["승인email"])
+        .select("id")
+        .eq("email", trimmedEmail)
+        .maybeSingle()
+
+      if (existing) {
+        setErrorMsg("이미 등록된 계정입니다.")
+        alert("이미 등록된 계정입니다.")
+        setLoading(false)
+        return
+      }
+
+      const newRow = await insertPost(BOARD_TABLE_MAP["승인email"], {
+        name: trimmedName,
+        email: trimmedEmail,
+      })
+
+      setName("")
+      setEmail("")
+      onSuccess?.(newRow)
+    } catch (err: any) {
+      console.error(err)
+      setErrorMsg("등록에 실패했습니다.")
+    } finally {
+      setLoading(false)
     }
-
-    await insertPost(BOARD_TABLE_MAP["학회실 사용 시간표"], {
-      study_name: name,
-      leader,
-      start_time: `${day} ${start}`,
-      end_time: `${day} ${end}`,
-      color: studyColor,
-      created_at: new Date().toISOString(),
-    })
-
-    setDay("")
-    setStart("")
-    setEnd("")
-    setName("")
-    setLeader("")
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* 요일 + 시간 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField>
-          <select
-            value={day}
-            onChange={(e) => setDay(e.target.value)}
-            className={`w-full ${inputBase}`}
-            required
-          >
-            {/* <option value="" disabled>
-              요일 선택
-            </option> */}
-            {DAYS.map((d) => (
-              <option key={d} value={d}>
-                {d}
-              </option>
-            ))}
-          </select>
-        </FormField>
-
-        <FormField>
-          <div className="flex gap-4">
-            <select
-              value={start}
-              onChange={(e) => setStart(e.target.value)}
-              className={`w-full ${inputBase}`}
-              required
-            >
-              <option value="" disabled>
-                시작 시간
-              </option>
-              {times.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={end}
-              onChange={(e) => setEnd(e.target.value)}
-              className={`w-full ${inputBase}`}
-              required
-            >
-              <option value="" disabled>
-                종료 시간
-              </option>
-              {times.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-        </FormField>
-      </div>
-
-      {/* 스터디명 */}
       <FormField>
         <input
-          type="text"
-          placeholder="스터디명"
-          value={name}
+          value={title}
           onChange={(e) => setName(e.target.value)}
-          className={`w-full ${inputBase}`}
-          required
+          placeholder="승인할 회원의 이름을 입력하세요"
+          className={`w-full ${textareaBase} ${
+            errorMsg ? "border-red-500" : ""
+          }`}
         />
       </FormField>
 
-      {/* 스터디장 */}
       <FormField>
         <input
-          type="text"
-          placeholder="스터디장"
-          value={leader}
-          onChange={(e) => setLeader(e.target.value)}
-          className={`w-full ${inputBase}`}
-          required
+          value={body}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="회원가입을 승인할 이메일 주소를 입력하세요"
+          className={`w-full ${textareaBase} ${
+            errorMsg ? "border-red-500" : ""
+          }`}
         />
       </FormField>
-      
-      {/* 색상 선택 */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          색상 선택
-        </label>
 
-        <div className="flex items-center gap-4">
-          <input
-            type="color"
-            value={studyColor}
-            onChange={(e) => setStudyColor(e.target.value)}
-            className="w-16 h-10 border border-gray-300 rounded-md cursor-pointer"
-          />
+      {errorMsg && (
+        <p className="text-sm text-red-600 font-medium">
+          {errorMsg}
+        </p>
+      )}
 
-          <span className="text-sm text-gray-600">
-            {studyColor}
-          </span>
-        </div>
-      </div>
-
-      {/* 제출 버튼 */}
-       <button className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors rounded">
-        등록
+      <button
+        type="submit"
+        disabled={loading || !isFormValid}
+        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+      >
+        추가
       </button>
     </form>
   )
