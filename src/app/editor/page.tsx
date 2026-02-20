@@ -7,13 +7,13 @@ import { EditorLayout } from "./EditorLayout"
 import { BoardType } from "./constants"
 import { useBoardPosts } from "./hooks/useBoardPosts"
 
-import { NoticeForm } from "./boards/notice/NoticeForm"
-import { ProjectForm } from "./boards/project/ProjectForm"
-import { StudyForm } from "./boards/study/StudyForm"
-import { TimetableForm } from "./boards/timetable/TimetableForm"
-import { HonorForm } from "./boards/honor/HonorForm"
-import { ScheduleForm } from "./boards/schedule/ScheduleForm"
-import { EventForm } from "./boards/event/EventForm"
+import { NoticeForm } from "./boards/0_notice/NoticeForm"
+import { ProjectForm } from "./boards/1_project/ProjectForm"
+import { StudyForm } from "./boards/2_study/StudyForm"
+import { TimetableForm } from "./boards/3_timetable/TimetableForm"
+import { HonorForm } from "./boards/4_honor/HonorForm"
+import { ScheduleForm } from "./boards/5_schedule/ScheduleForm"
+import { EventForm } from "./boards/6_event/EventForm"
 
 export default function EditorPage() {
   const [board, setBoard] = useState<BoardType>("공지")
