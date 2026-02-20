@@ -14,6 +14,7 @@ import { TimetableForm } from "./boards/3_timetable/TimetableForm"
 import { HonorForm } from "./boards/4_honor/HonorForm"
 import { ScheduleForm } from "./boards/5_schedule/ScheduleForm"
 import { EventForm } from "./boards/6_event/EventForm"
+import { Registered_mem_Form } from "./boards/8_registered_member/Registered_mem"
 
 export default function EditorPage() {
   const [board, setBoard] = useState<BoardType>("공지")
@@ -31,6 +32,7 @@ export default function EditorPage() {
         {board === "명예의 전당" && <HonorForm />}
         {board === "일정" && <ScheduleForm />}
         {board === "행사" && <EventForm />}
+        {board === "등록회원" && <Registered_mem_Form />}
       </section>
       
       <PostList
