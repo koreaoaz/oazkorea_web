@@ -162,7 +162,7 @@ export default function RegistrationForm() {
           }`}
         >
           <Github className="w-5 h-5" />
-          <span>Sign in with GitHub</span>
+          <span>Sign up with GitHub</span>
         </button>
       </form>
     </div>
