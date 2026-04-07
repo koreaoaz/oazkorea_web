@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { createClient } from "@supabase/supabase-js"
 import { Loader2, AlertCircle } from "lucide-react"
+import { supabase } from "@/lib/supabaseClient"
 
 interface Study {
   id: string
@@ -15,9 +16,6 @@ interface Study {
   startSlot: number
   endSlot: number
 }
-
-// Supabase client setup
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_KEY!)
 
 // Utility functions
 const timeToSlot = (time: string): number => {
@@ -192,9 +190,9 @@ export const TimetableDemo = () => {
             <div className="overflow-x-auto">
               <div className="w-full min-w-[300px]">
                 {/* Header */}
-                <div className="grid grid-cols-[0.3fr_repeat(5,1fr)] border-b bg-white">
+                <div className="grid grid-cols-[0.3fr_repeat(6,1fr)] border-b bg-white">
                   <div className="p-2 text-center font-medium text-xs sm:text-sm"></div>
-                  {["월", "화", "수", "목", "금"].map((day) => (
+                  {["월", "화", "수", "목", "금", "토"].map((day) => (
                     <div key={day} className="p-0.3 text-center font-medium text-[10px] border-l">
                       {day}
                     </div>
@@ -227,7 +225,7 @@ export const TimetableDemo = () => {
                         {hour % 12 === 0 ? 12 : hour % 12}
                       </div>
 
-                      {["월요일","화요일","수요일","목요일","금요일"].map((day) => {
+                      {["월요일","화요일","수요일","목요일","금요일","토요일"].map((day) => {
                         const dayStudies = studies.filter(
                           (study) =>
                             study.day === day && study.startSlot < (hour - 9 + 1) * 2 && study.endSlot > (hour - 9) * 2,
