@@ -10,7 +10,7 @@ import { inputBase } from "../../utils/inputformClasses"
 const DAYS = ["월요일", "화요일", "수요일", "목요일", "금요일"]
 
 export function TimetableForm() {
-  const [day, setDay] = useState("")
+  const [day, setDay] = useState(DAYS[0])
   const [start, setStart] = useState("")
   const [end, setEnd] = useState("")
   const [name, setName] = useState("")
