@@ -218,7 +218,7 @@ export const TimetableDemo = () => {
                   return (
                     <div
                       key={`hour-${hour}`}
-                      className="grid grid-cols-[0.3fr_repeat(5,1fr)] border-b relative "
+                      className="grid grid-cols-[0.3fr_repeat(6,1fr)] border-b relative "
                       style={{ minHeight: "45px" }}
                     >
                       <div className="px-0.5 py-0.2 text-right text-[9px] font-medium bg-white">
