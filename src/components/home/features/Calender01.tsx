@@ -128,7 +128,7 @@ export default function Calendar01() {
 
   return (
     // ✅ 공통 래퍼로 감싸기 (좌/우 2칼럼)
-    <div className="w-full h-auto grid grid-cols-1 md:grid-cols-[1fr_1.4fr] gap-6 px-2 py-2">
+    <div className="w-full h-auto grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-6 px-2 py-2">
       {/* 왼쪽: 달력 */}
       <div className="min-w-0 flex justify-center items-center">
         <Calendar

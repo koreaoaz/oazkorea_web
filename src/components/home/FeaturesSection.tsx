@@ -27,7 +27,7 @@ export default function FeaturesSection() {
         {/* 카드 영역 (grid) */}
         <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-x-4">
         {/* 왼쪽 column */}
-          <div className="grid grid-cols-[1fr_1.25fr] gap-x-4">
+          <div className="grid grid-cols-[1fr_1.1fr] gap-x-4">
           {/* 왼쪽 column_0 */}
             <div className="flex flex-col">
               <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }}>
