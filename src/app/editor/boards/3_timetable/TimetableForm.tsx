@@ -7,7 +7,7 @@ import { generateTimeOptions, isValidTimeRange } from "../../utils/time"
 import { FormField } from "../../components/common/FormField"
 import { inputBase } from "../../utils/inputformClasses"
 
-const DAYS = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요알"]
+const DAYS = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
 
 export function TimetableForm() {
   const [day, setDay] = useState(DAYS[0])
