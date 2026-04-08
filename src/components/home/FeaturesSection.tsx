@@ -43,7 +43,7 @@ export default function FeaturesSection() {
                 <h3 className="text-base font-bold mb-2" style={{ fontFamily: "Inter, sans-serif", fontSize: "20px" }} >공지</h3>
               </motion.div>
               <FeatureCard  className="break-inside-avoid mb-2" contentClassName="p-0">
-                <Link href="/about/notice" className="block w-full h-full">
+                <Link href="/about/notice" className="block w-full">
                   <Notification />
                 </Link>
               </FeatureCard>
