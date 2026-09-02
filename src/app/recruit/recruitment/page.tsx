@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 };
 
 export default function RecruitmentPage() {
-  const FORM_URL = "https://forms.gle/dk8WUjpeHwyGzeVJ6";
-  const DEADLINE = "2026-03-05T23:59:00+09:00";
+  const FORM_URL = "https://forms.gle/g8br3LNXoi13bidf7";
+  const DEADLINE = "2026-09-08T23:59:00+09:00";
 
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-blue-100">
