@@ -53,14 +53,13 @@ export default function RecruitmentPage() {
 
         {/* 3. 모집 일정 (타임라인) */}
         <section className="space-y-16">
-          <h3 className="text-2xl font-bold text-center border-b border-gray-100 pb-6">2026년 1학기 일정</h3>
+          <h3 className="text-2xl font-bold text-center border-b border-gray-100 pb-6">2026년 2학기 일정</h3>
           <div className="relative flex flex-wrap justify-between gap-8 md:gap-0">
             <div className="hidden md:block absolute top-5 left-0 w-full h-[2px] bg-gray-100 -z-10" />
             
-            <TimelineItem date="~ 03.05 (목)" label="서류 모집" />
-            <TimelineItem date="03.06 (금)" label="서류 발표" isHighlight />
-            <TimelineItem date="03.03 ~ 03.06" label="면접 진행" />
-            <TimelineItem date="03.08 (일)" label="최종 발표" />
+            <TimelineItem date="~ 09.08 (화)" label="서류 모집" isHighlight />
+            <TimelineItem date="09.09 (수)" label="서류 발표"  />
+            <TimelineItem date="09.11 (금)" label="개강총회" />
           </div>
 
           {/* 학회실 위치 섹션 - 이미지 경로 수정 */}
@@ -73,10 +72,10 @@ export default function RecruitmentPage() {
                />
             </div>
             <div className="md:w-1/2 p-8 flex flex-col justify-center space-y-4">
-              <h4 className="text-xl font-bold text-gray-900">📍 면접 및 학회실 위치</h4>
+              <h4 className="text-xl font-bold text-gray-900">📍 학회실 위치</h4>
               <p className="text-gray-600 leading-relaxed">
                 <span className="font-semibold text-blue-600">신공학관 106B호 (하나와영 학회실)</span><br />
-                오시는 길: 신공학관 로비층 엘리베이터 근처에 위치해 있습니다. 면접 시간에 맞춰 방문해 주세요.
+                오시는 길: 신공학관 로비층 엘리베이터 근처에 위치해 있습니다.
               </p>
             </div>
           </div>
