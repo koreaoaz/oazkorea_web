@@ -4,6 +4,7 @@ import "./globals.css";
 import { ReactNode } from "react";
 import Navigation from "@/components/home/Navigation";
 import Footer from "@/components/home/Footer";
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 
 export const metadata = {
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </main>
           <Footer />
         </div>
+        <SpeedInsights />
       </body>
     </html>
   );
