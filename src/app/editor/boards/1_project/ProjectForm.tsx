@@ -60,7 +60,10 @@ export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
       team_size: teamSize, // 혹시 컬럼명이 teamSize면 teamSize로 바꿔줘
       members: membersList, // 문자열로 저장하려면 members 그대로 넣기
       detailed_description: detailedDescription,
-      tech_stack: techStackList, // 문자열 저장이면 techStack 그대로
+      // tech_stack: techStackList, // 문자열 저장이면 techStack 그대로
+      tech_stack: {
+        stack: techStackList,
+      },
       filename,
 
       created_at: new Date().toISOString(),
