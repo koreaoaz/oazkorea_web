@@ -32,7 +32,7 @@ export default function LoginCallback() {
       if (registered) {
         // 로그인 성공 → 대시보드나 메인 페이지로 이동
         setStatus('allowed');
-        router.push('/dashboard'); // or your main page
+        router.push('/'); // or your main page
       } else {
         // 등록되지 않은 사용자 → 로그아웃
         setStatus('denied');
