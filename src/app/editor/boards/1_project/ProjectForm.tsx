@@ -25,11 +25,12 @@ export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    let filename = "one_and_zero_logo_white.png" // project_img 스토리지에 미리 업로드된 기본 이미지
 
-    let filename: string | null = null
     if (image.file) {
       filename = await uploadImage("project_img", image.file)
     }
+
 
     // members/techStack는 문자열로 저장하거나, 서버에서 split 하도록 둘 수 있음
     // 여기서는 "입력 그대로(문자열)" 저장 + 필요하면 파싱해서 함께 저장하는 예시를 포함
