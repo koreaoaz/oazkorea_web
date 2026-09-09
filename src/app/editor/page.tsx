@@ -16,6 +16,7 @@ import { ScheduleForm } from "./boards/5_schedule/ScheduleForm"
 import { EventForm } from "./boards/6_event/EventForm"
 import { Registered_mem_Form } from "./boards/8_registered_member/Registered_mem"
 import { Allowed_user } from "./boards/7_allowed_user/Allowed_user"
+import { SignupSettingForm } from "./boards/9_signup_setting/SignupSettingForm"
 
 export default function EditorPage() {
   const [board, setBoard] = useState<BoardType>("공지")
@@ -35,9 +36,10 @@ export default function EditorPage() {
         {board === "행사" && <EventForm />}
         {board === "등록회원" && <Registered_mem_Form />}
         {board === "승인email" && <Allowed_user onSuccess={(newRow) => {postsState.setPosts((prev) => [newRow, ...prev])}}/>}
+        {board === "회원가입 설정" && <SignupSettingForm />}
       </section>
-      
-      {board !== "공지" && (
+
+      {board !== "공지" && board !== "회원가입 설정" && (
         <PostList
           board={board}
           posts={postsState.posts}

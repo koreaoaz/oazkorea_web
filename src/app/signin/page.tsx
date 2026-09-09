@@ -3,6 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import { Github } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
+import { SignupSetting, fetchSignupSetting } from '@/lib/signupSetting';
+
+const formatRemaining = (ms: number) => {
+  const total = Math.floor(ms / 1000);
+  const days = Math.floor(total / 86400);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${days}일 ${pad(Math.floor((total % 86400) / 3600))}:${pad(Math.floor((total % 3600) / 60))}:${pad(total % 60)}`;
+};
 
 export default function RegistrationForm() {
   const [form, setForm] = useState({
@@ -14,7 +22,10 @@ export default function RegistrationForm() {
     phone_number: ''
   });
 
-  const [isAllowed, setIsAllowed] = useState<'allowed' | 'denied' | null>(null);
+  const [password, setPassword] = useState('');
+  const [setting, setSetting] = useState<SignupSetting | null>(null);
+  const [settingLoading, setSettingLoading] = useState(true);
+  const [now, setNow] = useState(() => Date.now());
   const [isRegistered, setIsRegistered] = useState<'registered' | 'unregistered' | null>(null);
   const isFormFilled =
       form.name.trim() !== '' &&
@@ -24,13 +35,28 @@ export default function RegistrationForm() {
       form.email.trim() !== '' &&
       form.phone_number.trim() !== '';
 
+  useEffect(() => {
+    fetchSignupSetting().then((data) => {
+      setSetting(data);
+      setSettingLoading(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const remaining = setting?.deadline ? new Date(setting.deadline).getTime() - now : null;
+  const isOpen = remaining !== null && remaining > 0;
+  const isPasswordCorrect = !!setting?.password && password === setting.password;
+  const canSubmit = isOpen && isPasswordCorrect && isFormFilled && isRegistered !== 'registered';
+
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const updatedForm = { ...form, [name]: value };
     setForm(updatedForm);
 
-    
-    
     if (name === 'email') {
       // check if email is already registered
       const { data: registered } = await supabase
@@ -39,26 +65,7 @@ export default function RegistrationForm() {
         .eq('email', value)
         .maybeSingle();
 
-      if (registered) {
-        setIsRegistered('registered');
-        setIsAllowed(null);
-        return;
-      }else{
-        setIsRegistered('unregistered');        
-      }
-
-      // check if email is allowed
-      const { data: allowed } = await supabase
-        .from('allowed_user')
-        .select('email')
-        .eq('email', value)
-        .maybeSingle();
-
-      if (allowed) {
-        setIsAllowed('allowed');
-      } else {
-        setIsAllowed('denied');
-      }
+      setIsRegistered(registered ? 'registered' : 'unregistered');
     }
   };
 
@@ -81,6 +88,15 @@ export default function RegistrationForm() {
       >
         <h1 className="text-xl font-semibold text-center">Register</h1>
 
+        {!settingLoading && (
+          <div className="rounded-md border p-4 text-center">
+            <p className="text-sm text-gray-500">회원가입 마감까지</p>
+            <p className={`text-xl font-bold tabular-nums ${isOpen ? 'text-blue-600' : 'text-red-500'}`}>
+              {remaining === null ? '미설정' : isOpen ? formatRemaining(remaining) : '마감'}
+            </p>
+          </div>
+        )}
+
         <input
           name="email"
           type="text"
@@ -91,11 +107,24 @@ export default function RegistrationForm() {
           required
         />
 
-        {isAllowed === 'allowed' && (
-          <p className="text-sm text-red-500">⭕ 나머지 정보를 기입 부탁드립니다.</p>
+        <input
+          name="password"
+          type="password"
+          placeholder="회원가입 비밀번호"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-2 border rounded-md"
+          required
+        />
+
+        {!settingLoading && !isOpen && (
+          <p className="text-sm text-red-500">❌ 현재는 회원가입 기간이 아닙니다.</p>
         )}
-        {isAllowed === 'denied' && (
-          <p className="text-sm text-red-500">❌ 허용되지 않은 이메일입니다.</p>
+        {isOpen && password !== '' && !isPasswordCorrect && (
+          <p className="text-sm text-red-500">❌ 비밀번호가 일치하지 않습니다.</p>
+        )}
+        {isOpen && isPasswordCorrect && isRegistered !== 'registered' && (
+          <p className="text-sm text-red-500">⭕ 나머지 정보를 기입 부탁드립니다.</p>
         )}
         {isRegistered === 'registered' && (
           <p className="text-sm text-red-500">❌ 이미 가입된 이메일입니다.</p>
@@ -154,9 +183,9 @@ export default function RegistrationForm() {
         <button
           type="button"
           onClick={handleGithubLogin}
-          disabled={isAllowed !== 'allowed' || isRegistered === 'registered' || !isFormFilled}
+          disabled={!canSubmit}
           className={`w-full flex justify-center items-center py-2 rounded-md space-x-2 ${
-            isAllowed === 'allowed' && isRegistered === 'unregistered' && isFormFilled
+            canSubmit
               ? 'bg-black text-white hover:bg-gray-800'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}

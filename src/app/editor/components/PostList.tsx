@@ -6,6 +6,7 @@ import { useDragAndDrop } from "../hooks/useDragAndDrop"
 import { persistOrder } from "../services/order.service"
 import { deletePost, fetchPosts, updatePost} from "../services/board.service"
 import { ImageFromStorage } from "./ImageFromStorage"
+import { useManagerRole } from "@/hooks/useManagerRole"
 import { cx } from "../utils/cx"
 import { getFirstImageFilename } from "../utils/parsing_first"
 import * as XLSX from "xlsx"
@@ -70,10 +71,15 @@ const BOARD_COLUMNS: Record<
       { label: "이름", field: "name" },
       { label: "이메일", field: "email"},
       { label: "uuid", field: "uuid" }
-    ]
+    ],
+    "회원가입 설정": []
   }
 
 export function PostList({ board, posts, setPosts, reload, loading }: Props) {
+  const { isMainManager } = useManagerRole()
+  // 서브매니저 지정은 메인 매니저에게만 노출
+  const showManagerToggle = board === "등록회원" && isMainManager
+
   const drag = useDragAndDrop({
     items: posts,
     onReorder: async (newPosts) => {
@@ -164,6 +170,8 @@ export function PostList({ board, posts, setPosts, reload, loading }: Props) {
               </th>
             ))}
 
+            {showManagerToggle && <th className="border p-2">서브매니저</th>}
+
           </tr>
         </thead>
 
@@ -251,6 +259,27 @@ export function PostList({ board, posts, setPosts, reload, loading }: Props) {
                 )}
               </td>
             ))}
+
+            {/* 서브매니저 지정 (메인 매니저 전용) */}
+            {showManagerToggle && (
+              <td className="border p-2 text-center">
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 cursor-pointer"
+                  checked={!!post.is_manager}
+                  onChange={async (e) => {
+                    const is_manager = e.target.checked
+                    try {
+                      await updatePost(BOARD_TABLE_MAP[board], post.id, { is_manager })
+                      reload()
+                    } catch (err) {
+                      console.error("서브매니저 지정 실패:", err)
+                      alert("서브매니저 지정에 실패했습니다.")
+                    }
+                  }}
+                />
+              </td>
+            )}
 
             {/* 삭제 버튼 */}
             <td className="border p-2 text-center">

@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
+import { fetchSignupSetting, isSignupOpen } from '@/lib/signupSetting';
 import { useRouter } from 'next/navigation';
 
 export default function OAuthCallback() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
+  const [closed, setClosed] = useState(false);
 
   useEffect(() => {
     const storeData = async () => {
@@ -24,6 +26,13 @@ export default function OAuthCallback() {
       const uuid = user.id;
 
       const stored = JSON.parse(localStorage.getItem('registration_data') || '{}');
+
+      // 가입 기한이 지난 뒤 남아있는 신청 정보로 등록되는 것을 막는다
+      if (!isSignupOpen(await fetchSignupSetting())) {
+        setClosed(true);
+        setLoading(false);
+        return;
+      }
 
       if (uuid && stored.name) {
         const { error } = await supabase.from('registered_member').insert({
@@ -69,7 +78,9 @@ export default function OAuthCallback() {
             </>
         ) : (
             <>
-            <h1 className="text-red-500 text-xl">회원가입 처리 중 오류가 발생했습니다.</h1>
+            <h1 className="text-red-500 text-xl">
+              {closed ? '회원가입 기간이 종료되었습니다.' : '회원가입 처리 중 오류가 발생했습니다.'}
+            </h1>
             <button
                 onClick={() => router.push('/')}
                 className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
