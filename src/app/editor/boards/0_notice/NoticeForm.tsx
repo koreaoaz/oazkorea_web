@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { deletePost, fetchPosts, insertPost } from "../../services/board.service"
+import { persistOrder } from "../../services/order.service"
+import { useDragAndDrop } from "../../hooks/useDragAndDrop"
 import { BOARD_TABLE_MAP } from "../../constants"
 import { FormField } from "../../components/common/FormField"
 import { textareaBase } from "../../utils/inputformClasses"
@@ -56,6 +58,23 @@ export function NoticeForm() {
   const filteredPosts = posts.filter((post) =>
     filter === "공지" ? !!post.is_noti : !post.is_noti,
   )
+
+  const matchesFilter = (post: any) =>
+    filter === "공지" ? !!post.is_noti : !post.is_noti
+
+  const drag = useDragAndDrop({
+    items: filteredPosts,
+    onReorder: async (reorderedFiltered) => {
+      const queue = [...reorderedFiltered]
+      const reorderedAll = posts.map((post) =>
+        matchesFilter(post) ? queue.shift() : post,
+      )
+
+      setPosts(reorderedAll)
+      await persistOrder(BOARD_TABLE_MAP["공지"], reorderedAll)
+      loadPosts()
+    },
+  })
 
   return (
     <div className="space-y-6">
@@ -137,14 +156,32 @@ export function NoticeForm() {
           <table className="w-full border border-gray-300 text-sm">
             <thead className="bg-gray-100">
               <tr>
+                <th className="border p-2 w-8"></th>
                 <th className="border p-2">제목</th>
                 <th className="border p-2">내용</th>
                 <th className="border p-2"></th>
               </tr>
             </thead>
             <tbody>
-              {filteredPosts.map((post) => (
-                <tr key={post.id} className="hover:bg-gray-50">
+              {filteredPosts.map((post, index) => (
+                <tr
+                  key={post.id}
+                  draggable
+                  onDragStart={(e) => drag.handleDragStart(e, index)}
+                  onDragOver={(e) => drag.handleDragOver(e, index)}
+                  onDrop={(e) => drag.handleDrop(e, index)}
+                  onDragEnd={drag.handleDragEnd}
+                  className={cx(
+                    "hover:bg-gray-50 cursor-move",
+                    drag.dragOverIndex === index &&
+                      drag.dropPosition === "top" &&
+                      "border-t-2 border-blue-500",
+                    drag.dragOverIndex === index &&
+                      drag.dropPosition === "bottom" &&
+                      "border-b-2 border-blue-500",
+                  )}
+                >
+                  <td className="border p-2 text-center text-gray-400 select-none">⠿</td>
                   <td className="border p-2">{post.text}</td>
                   <td className="border p-2">{post.description}</td>
                   <td className="border p-2 text-center">

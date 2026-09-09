@@ -42,6 +42,7 @@ export default function Projects() {
         members,
         description,
         created_at,
+        year,
         semester,
         detailed_description,
         tech_stack,
@@ -61,15 +62,21 @@ export default function Projects() {
     const BUCKET = "project_img";
 
     const mapped: Project[] = data?.map((p: any) => {
-  let techStack: string[] = [];
+      let techStack: string[] = [];
 
-    try {
-        const parsed = JSON.parse(p.tech_stack);
-        if (Array.isArray(parsed?.stack)) {
-          techStack = parsed.stack;
+      if (Array.isArray(p.tech_stack)) {
+        techStack = p.tech_stack;
+      } else if (typeof p.tech_stack === "string" && p.tech_stack) {
+        try {
+          const parsed = JSON.parse(p.tech_stack);
+          if (Array.isArray(parsed)) {
+            techStack = parsed;
+          } else if (Array.isArray(parsed?.stack)) {
+            techStack = parsed.stack;
+          }
+        } catch (e) {
+          console.error("tech_stack 파싱 실패:", e);
         }
-      } catch (e) {
-        console.error("tech_stack 파싱 실패:", e);
       }
 
       return {
@@ -80,7 +87,8 @@ export default function Projects() {
         duration: p.duration || "",
         team_size: p.team_size || 0,
         members: p.members || "",
-        semester: p.semester || "",                        
+        year: p.year || undefined,
+        semester: p.semester || undefined,
         detailed_description: p.detailed_description || "",
         created_at: p.created_at,
         tech_stack: techStack,
@@ -90,7 +98,18 @@ export default function Projects() {
       };
     }) ?? [];
 
-    setProjects(mapped);
+    const latest = mapped.reduce<Project | null>((latest, p) => {
+      if (!latest) return p;
+      if ((p.year ?? 0) > (latest.year ?? 0)) return p;
+      if ((p.year ?? 0) === (latest.year ?? 0) && (p.semester ?? 0) > (latest.semester ?? 0)) return p;
+      return latest;
+    }, null);
+
+    const latestOnly = latest
+      ? mapped.filter((p) => p.year === latest.year && p.semester === latest.semester)
+      : mapped;
+
+    setProjects(latestOnly);
     setIsLoading(false);
   };
   // useEffect(() => {

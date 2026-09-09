@@ -152,6 +152,8 @@ export function PostList({ board, posts, setPosts, reload, loading }: Props) {
       <table className="w-full border border-gray-300 text-sm">
         <thead className="bg-gray-100">
           <tr>
+            <th className="border p-2 w-8"></th>
+
             {(board === "프로젝트" || board === "스터디" || board === "행사") && (
               <th className="border p-2">이미지</th>
             )}
@@ -166,9 +168,25 @@ export function PostList({ board, posts, setPosts, reload, loading }: Props) {
         </thead>
 
         <tbody>
-          {posts.map((post) => (
-            <tr key={post.id} className="hover:bg-gray-50">
-
+          {posts.map((post, index) => (
+            <tr
+              key={post.id}
+              draggable
+              onDragStart={(e) => drag.handleDragStart(e, index)}
+              onDragOver={(e) => drag.handleDragOver(e, index)}
+              onDrop={(e) => drag.handleDrop(e, index)}
+              onDragEnd={drag.handleDragEnd}
+              className={cx(
+                "hover:bg-gray-50 cursor-move",
+                drag.dragOverIndex === index &&
+                  drag.dropPosition === "top" &&
+                  "border-t-2 border-blue-500",
+                drag.dragOverIndex === index &&
+                  drag.dropPosition === "bottom" &&
+                  "border-b-2 border-blue-500",
+              )}
+            >
+            <td className="border p-2 text-center text-gray-400 select-none">⠿</td>
 
             {(board === "프로젝트" || board === "스터디") && (
               <td className="border p-2">

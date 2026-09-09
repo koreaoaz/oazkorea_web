@@ -6,7 +6,8 @@ export interface Project {
   duration?: string;
   team_size?: number;
   members?: string;
-  semester?: string;
+  year?: number;
+  semester?: number;
   detailed_description?: string;
   created_at?: string;
   tech_stack?: string[];
