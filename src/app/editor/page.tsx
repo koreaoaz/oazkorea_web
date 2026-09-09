@@ -100,14 +100,16 @@ function AuthorizedEditor() {
         {board === "승인email" && <Allowed_user onSuccess={(newRow) => {postsState.setPosts((prev) => [newRow, ...prev])}}/>}
       </section>
       
-      <PostList
-        board={board}
-        posts={postsState.posts}
-        setPosts={postsState.setPosts}
-        reload={postsState.reload}
-        loading={postsState.loading}
-      />
-      
+      {board !== "공지" && (
+        <PostList
+          board={board}
+          posts={postsState.posts}
+          setPosts={postsState.setPosts}
+          reload={postsState.reload}
+          loading={postsState.loading}
+        />
+      )}
+
     </EditorLayout>
   )
 }

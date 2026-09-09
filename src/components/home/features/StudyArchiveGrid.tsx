@@ -15,6 +15,8 @@ type StudyItem = {
   studyName: string
   studyDescription: string
   studyLeader: string
+  year?: number
+  semester?: number
 }
 
 export default function StudyArchiveGrid() {
@@ -23,6 +25,7 @@ export default function StudyArchiveGrid() {
   const [files, setFiles] = useState<StudyItem[]>([])
   const [supabaseError, setSupabaseError] = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(0)
+  const [latestLabel, setLatestLabel] = useState<string | null>(null)
 
   const totalCount = files.length
   const totalPages = Math.max(1, Math.ceil(totalCount / CARD_COUNT))
@@ -92,10 +95,24 @@ export default function StudyArchiveGrid() {
         studyName: record.study_name ?? "스터디",
         studyDescription: record.outline ?? "설명이 없습니다.",
         studyLeader: record.leader ?? "미정",
+        year: record.year ?? undefined,
+        semester: record.semester ?? undefined,
       }
     })
 
-    setFiles(items)
+    const latest = items.reduce<StudyItem | null>((latest, item) => {
+      if (!latest) return item
+      if ((item.year ?? 0) > (latest.year ?? 0)) return item
+      if ((item.year ?? 0) === (latest.year ?? 0) && (item.semester ?? 0) > (latest.semester ?? 0)) return item
+      return latest
+    }, null)
+
+    const latestItems = latest
+      ? items.filter((item) => item.year === latest.year && item.semester === latest.semester)
+      : items
+
+    setLatestLabel(latest?.year && latest?.semester ? `${latest.year}-${latest.semester}` : null)
+    setFiles(latestItems)
     setCurrentPage(0)
   } catch (err) {
     setSupabaseError("데이터 로딩 중 오류가 발생했습니다.")
@@ -116,7 +133,7 @@ export default function StudyArchiveGrid() {
   return (
     <div className="w-full px-10 py-8">
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-3xl font-bold">2025-2 스터디 목록</h2>
+        <h2 className="text-3xl font-bold">{latestLabel ? `${latestLabel} 스터디 목록` : "스터디 목록"}</h2>
       </div>
 
       <div className="relative w-full max-w-5xl mx-auto">

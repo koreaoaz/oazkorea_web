@@ -14,7 +14,10 @@ export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
   const [title, setTitle] = useState("") // 프로젝트명
   const [duration, setDuration] = useState("") // 기간
   const [category, setCategory] = useState<CategoryKey | "">("")
-  const [semester, setSemester] = useState("") // 학기
+  const currentYear = new Date().getFullYear()
+  const yearOptions = Array.from({ length: 10 }, (_, i) => currentYear - i)
+  const [year, setYear] = useState<number>(currentYear) // 연도
+  const [semester, setSemester] = useState<1 | 2>(1) // 학기 (1 또는 2)
   const [teamSize, setTeamSize] = useState<number | null>(null) // 팀 규모
   const [members, setMembers] = useState("") // 팀원(쉼표)
   const [body, setBody] = useState("") // 간단 설명
@@ -57,6 +60,7 @@ export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
       // 나머지 필드들도 함께 저장 (테이블 스키마에 맞게 키 이름 수정 필요할 수 있음)
       duration,
       category,
+      year,
       semester,
       team_size: teamSize, // 혹시 컬럼명이 teamSize면 teamSize로 바꿔줘
       members: members, // 문자열로 저장하려면 members 그대로 넣기
@@ -74,7 +78,8 @@ export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
     setTitle("")
     setDuration("")
     setCategory("")
-    setSemester("")
+    setYear(currentYear)
+    setSemester(1)
     setTeamSize(null)
     setMembers("")
     setBody("")
@@ -112,15 +117,30 @@ export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
         </FormField>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <FormField >
-          <input
-            type="text"
-            placeholder="학기 (예: 2024-2)"
-            value={semester}
-            onChange={(e) => setSemester(e.target.value)}
+          <select
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
             className={`w-full ${textareaBase}`}
-          />
+          >
+            {yearOptions.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        </FormField>
+
+        <FormField >
+          <select
+            value={semester}
+            onChange={(e) => setSemester(Number(e.target.value) as 1 | 2)}
+            className={`w-full ${textareaBase}`}
+          >
+            <option value={1}>1학기</option>
+            <option value={2}>2학기</option>
+          </select>
         </FormField>
 
         <FormField >

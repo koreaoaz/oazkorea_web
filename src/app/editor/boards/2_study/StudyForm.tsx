@@ -12,6 +12,10 @@ export function StudyForm() {
   const [name, setName] = useState("")
   const [leader, setLeader] = useState("")
   const [outline, setOutline] = useState("")
+  const currentYear = new Date().getFullYear()
+  const yearOptions = Array.from({ length: 10 }, (_, i) => currentYear - i)
+  const [year, setYear] = useState<number>(currentYear)
+  const [semester, setSemester] = useState<1 | 2>(1)
   const image = useImageUpload()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -26,6 +30,8 @@ export function StudyForm() {
       study_name: name,
       leader,
       outline,
+      year,
+      semester,
       filename,
       created_at: new Date().toISOString(),
     })
@@ -33,6 +39,8 @@ export function StudyForm() {
     setName("")
     setLeader("")
     setOutline("")
+    setYear(currentYear)
+    setSemester(1)
     image.reset()
   }
 
@@ -55,6 +63,33 @@ export function StudyForm() {
             onChange={(e) => setLeader(e.target.value)}
             className={`w-full ${textareaBase}`}
           />
+        </FormField>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <FormField>
+          <select
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+            className={`w-full ${textareaBase}`}
+          >
+            {yearOptions.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        </FormField>
+
+        <FormField>
+          <select
+            value={semester}
+            onChange={(e) => setSemester(Number(e.target.value) as 1 | 2)}
+            className={`w-full ${textareaBase}`}
+          >
+            <option value={1}>1학기</option>
+            <option value={2}>2학기</option>
+          </select>
         </FormField>
       </div>
 

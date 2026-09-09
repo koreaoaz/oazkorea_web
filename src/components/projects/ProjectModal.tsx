@@ -72,10 +72,10 @@ export default function ProjectModal({ project, onClose } : ProjectModalProps) {
                 <div className="text-xs text-slate-500">팀 규모</div>
               </div>
             )}
-            {project.semester && (
+            {project.year && project.semester && (
               <div className="bg-slate-50 rounded-lg p-4 text-center">
                 <Target className="w-5 h-5 text-slate-600 mx-auto mb-2" />
-                <div className="text-sm font-medium text-slate-900">{project.semester}</div>
+                <div className="text-sm font-medium text-slate-900">{project.year}-{project.semester}</div>
                 <div className="text-xs text-slate-500">진행 학기</div>
               </div>
             )}
