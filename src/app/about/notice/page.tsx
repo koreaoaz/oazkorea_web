@@ -56,6 +56,9 @@ export default async function Page({ searchParams }: PageProps) {
 
   const page = Math.max(1, Number(pageParam) || 1)
 
+  const typeParam = Array.isArray(sp.type) ? sp.type[0] : sp.type
+  const type: "공지" | "홍보" = typeParam === "홍보" ? "홍보" : "공지"
+
   // Supabase range 계산
   const from = (page - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
@@ -64,6 +67,7 @@ export default async function Page({ searchParams }: PageProps) {
   const { data, error, count } = await supabase
     .from("editor_0_noti")
     .select("id, text, created_at", { count: "exact" })
+    .eq("is_noti", type === "공지")
     .order("created_at", { ascending: false })
     .range(from, to);
 
@@ -96,6 +100,32 @@ export default async function Page({ searchParams }: PageProps) {
             총 {total}건 · 페이지 {page}/{totalPages}
           </p>
         </div>
+      </div>
+
+      {/* 공지/홍보 탭 */}
+      <div className="mb-4 flex gap-2">
+        <Link
+          href="/about/notice?type=공지"
+          className={[
+            "inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium transition",
+            type === "공지"
+              ? "bg-primary text-primary-foreground"
+              : "border text-gray-700 hover:bg-muted",
+          ].join(" ")}
+        >
+          공지
+        </Link>
+        <Link
+          href="/about/notice?type=홍보"
+          className={[
+            "inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium transition",
+            type === "홍보"
+              ? "bg-primary text-primary-foreground"
+              : "border text-gray-700 hover:bg-muted",
+          ].join(" ")}
+        >
+          홍보
+        </Link>
       </div>
 
       {/* 비어있는 경우 */}
@@ -178,7 +208,7 @@ export default async function Page({ searchParams }: PageProps) {
             <nav className="mt-6 flex items-center justify-center gap-1">
               {/* < */}
               <ArrowButton
-                href={`/about/notice?page=${page - 1}`}
+                href={`/about/notice?page=${page - 1}&type=${type}`}
                 disabled={page <= 1}
                 direction="<"
               />
@@ -190,7 +220,7 @@ export default async function Page({ searchParams }: PageProps) {
                 return (
                   <Link
                     key={p}
-                    href={`/about/notice?page=${p}`}
+                    href={`/about/notice?page=${p}&type=${type}`}
                     aria-current={active ? "page" : undefined}
                     className={[
                       "inline-flex h-9 min-w-9 items-center justify-center rounded-md px-3 text-sm transition",
@@ -206,7 +236,7 @@ export default async function Page({ searchParams }: PageProps) {
 
               {/* > */}
               <ArrowButton
-                href={`/about/notice?page=${page + 1}`}
+                href={`/about/notice?page=${page + 1}&type=${type}`}
                 disabled={page >= totalPages}
                 direction=">"
               />
