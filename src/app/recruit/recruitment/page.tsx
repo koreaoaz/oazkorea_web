@@ -32,7 +32,7 @@ export default function RecruitmentPage() {
         {/* 2. 현재 상태 알림 & 카운트다운 */}
         <section className="text-center space-y-10">
           <div className="space-y-3">
-            <h2 className="text-3xl font-bold text-gray-900">지금은 지원 기간입니다</h2>
+            <h2 className="text-3xl font-bold text-gray-900">지금은 지원 기간이 아닙니다</h2>
             <p className="text-gray-500">이진수의 무한한 가능성, OaZ와 함께할 여러분을 기다립니다.</p>
           </div>
           
@@ -57,8 +57,8 @@ export default function RecruitmentPage() {
           <div className="relative flex flex-wrap justify-between gap-8 md:gap-0">
             <div className="hidden md:block absolute top-5 left-0 w-full h-[2px] bg-gray-100 -z-10" />
             
-            <TimelineItem date="~ 09.08 (화)" label="서류 모집" isHighlight />
-            <TimelineItem date="09.09 (수)" label="서류 발표"  />
+            <TimelineItem date="~ 09.08 (화)" label="서류 모집" />
+            <TimelineItem date="09.09 (수)" label="서류 발표" isHighlight />
             <TimelineItem date="09.11 (금)" label="개강총회" />
           </div>
 
