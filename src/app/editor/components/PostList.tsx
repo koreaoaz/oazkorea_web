@@ -9,7 +9,6 @@ import { ImageFromStorage } from "./ImageFromStorage"
 import { cx } from "../utils/cx"
 import { getFirstImageFilename } from "../utils/parsing_first"
 import * as XLSX from "xlsx"
-import { saveAs } from "file-saver"
 
 type Props = {
   board: BoardType

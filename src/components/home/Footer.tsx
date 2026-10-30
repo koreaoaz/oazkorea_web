@@ -1,31 +1,10 @@
 "use client";
 
 import React from "react";
-import { Github, Twitter, Heart } from "lucide-react";
+import { Github, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Footer() {
-  const links = {
-    Product: [
-      { name: "Documentation", href: "#" },
-      { name: "Components", href: "#" },
-      { name: "Examples", href: "#" },
-      { name: "Blocks", href: "#" },
-    ],
-    Resources: [
-      { name: "GitHub", href: "#" },
-      { name: "Twitter", href: "#" },
-      { name: "Discord", href: "#" },
-      { name: "Changelog", href: "#" },
-    ],
-    Community: [
-      { name: "Discord", href: "#" },
-      { name: "Twitter", href: "#" },
-      { name: "GitHub", href: "#" },
-      { name: "Discussions", href: "#" },
-    ]
-  };
-
   return (
     <footer className="bg-white border-t border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">

@@ -1,18 +1,9 @@
 'use client';
 
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Copy, ExternalLink, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function HeroSection() {
-  const copyCommand = "npx shadcn-ui@latest init";
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(copyCommand);
-  };
-
   return (
     <section className="pt-20 pb-5 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto text-center">

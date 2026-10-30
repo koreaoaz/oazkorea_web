@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, ExternalLink, Github, ChevronRight } from "lucide-react";
+import { Calendar, Users, Github, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Project } from "@/types/project";
 

@@ -9,7 +9,6 @@ import {
   Users, 
   Trophy, 
   Github, 
-  ExternalLink,
   Code2,
   Target
 } from "lucide-react";

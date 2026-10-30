@@ -87,7 +87,7 @@ export default async function Page({ searchParams }: PageProps) {
 
   // 페이지 버튼 범위 계산 (슬라이딩 윈도우)
   let start = Math.max(1, page - Math.floor(PAGE_WINDOW / 2));
-  let end = Math.min(totalPages, start + PAGE_WINDOW - 1);
+  const end = Math.min(totalPages, start + PAGE_WINDOW - 1);
   start = Math.max(1, end - PAGE_WINDOW + 1);
 
   return (
@@ -244,31 +244,5 @@ export default async function Page({ searchParams }: PageProps) {
         </>
       )}
     </div>
-  );
-}
-
-function PaginationLink({
-  href,
-  disabled,
-  children,
-}: {
-  href: string;
-  disabled?: boolean;
-  children: React.ReactNode;
-}) {
-  if (disabled) {
-    return (
-      <span className="inline-flex h-9 min-w-9 cursor-not-allowed items-center justify-center rounded-md border bg-muted px-3 text-sm text-muted-foreground">
-        {children}
-      </span>
-    );
-  }
-  return (
-    <Link
-      href={href}
-      className="inline-flex h-9 min-w-9 items-center justify-center rounded-md border px-3 text-sm hover:bg-muted"
-    >
-      {children}
-    </Link>
   );
 }

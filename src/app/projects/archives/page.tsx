@@ -6,7 +6,6 @@ import ProjectGrid from "../../../components/projects/ProjectGrid";
 // import ProjectFilters from "../components/projects/ProjectFilters";
 import ProjectModal from "../../../components/projects/ProjectModal";
 // import ProjectStats from "../components/projects/ProjectStats";
-import { Search } from "lucide-react";
 import { supabase } from '@/lib/supabaseClient';
 // import { Input } from "@/components/ui/input";
 import { Project } from "@/types/project";

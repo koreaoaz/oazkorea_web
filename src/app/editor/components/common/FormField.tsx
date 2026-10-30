@@ -1,7 +1,6 @@
 "use client"
 
 import type { ReactNode } from "react"
-import { inputBase, textareaBase } from "../../utils/inputformClasses"
 
 type Props = {
   children: ReactNode

@@ -17,7 +17,7 @@ export function getFirstImageFilename(
   try {
     const parsed = JSON.parse(filenames) as ImageItem[]
     return parsed[0]?.filename ?? null
-  } catch (e) {
+  } catch {
     console.error("filenames 파싱 실패:", filenames)
     return null
   }

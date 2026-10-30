@@ -6,13 +6,9 @@ import Donators from "@/components/home/features/Donators";
 import FeatureCard from "@/components/home/features/FeatureCard";
 import FeatureCard_blank from "@/components/home/features/FeatureCard_blank";
 import Notification from "@/components/home/features/Notification";
-import PersonalTimeTable from "@/components/home/features/PersonalTimeTable";
-import ProjectList from "@/components/home/features/ProjectList";
 import Link from "next/link";
 
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Palette, Accessibility, Zap, Code2, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 

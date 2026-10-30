@@ -3,8 +3,6 @@
 import { useState } from "react"
 import { insertPost } from "../../services/board.service"
 import { BOARD_TABLE_MAP } from "../../constants"
-import { FormField } from "../../components/common/FormField"
-import { textareaBase } from "../../utils/inputformClasses"
 
 export function Registered_mem_Form() {
   const [name, setName] = useState("")

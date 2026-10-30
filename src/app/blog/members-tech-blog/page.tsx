@@ -296,7 +296,7 @@ export default function FeedPage() {
         let data: FeedResponse;
         try {
           data = JSON.parse(text);
-        } catch (e) {
+        } catch {
           console.error("FEEDS_PARSE_FAIL", text);
           throw new Error("피드 응답 파싱 실패");
         }

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createClient } from "@supabase/supabase-js"
 import { Loader2, AlertCircle } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
 

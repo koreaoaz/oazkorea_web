@@ -76,7 +76,7 @@ export default async function EventsArchivePage({ searchParams }: PageProps) {
 
   /* 페이지 버튼 범위 */
   let start = Math.max(1, page - Math.floor(PAGE_WINDOW / 2))
-  let end = Math.min(totalPages, start + PAGE_WINDOW - 1)
+  const end = Math.min(totalPages, start + PAGE_WINDOW - 1)
   start = Math.max(1, end - PAGE_WINDOW + 1)
 
   return (

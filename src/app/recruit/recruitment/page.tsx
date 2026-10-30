@@ -1,5 +1,4 @@
 import RecruitCountdownBlock from "@/components/home/features/RecruitCountdownBlock";
-import RecruitDetail from "@/components/home/features/RecruitDetail";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
