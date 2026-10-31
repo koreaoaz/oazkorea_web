@@ -15,7 +15,7 @@ type FeedItem = {
   link: string;
   image?: string | null;
 };
-type FeedResponse = { total: number; items: FeedItem[]; _debug?: any };
+type FeedResponse = { total: number; items: FeedItem[]; _debug?: unknown };
 
 /** ===== UI Const ===== */
 const PAGE_SIZE = 10;

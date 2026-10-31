@@ -1,45 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import Image from "next/image";
-import Link from "next/link";
-
-function RightImageCard({
-  href,
-  src,
-  alt,
-  label,
-}: {
-  href: string;
-  src: string;
-  alt: string;
-  label: string;
-}) {
-  return (
-    <Link href={href} className="block group" aria-label={label}>
-      <div className="relative h-48 rounded-xl overflow-hidden border bg-gray-100">
-        <Image
-          src={src}
-          alt={alt}
-          fill
-          sizes="(min-width:1024px) 384px, 100vw"
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-          priority={false}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-        <div className="absolute inset-0 flex items-end justify-center pb-4">
-          <span className="inline-flex items-center rounded-md bg-white/90 px-3 py-1.5 text-sm font-medium shadow-sm group-hover:bg-white">
-            {label}
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}
 
 type Props = { formUrl: string };
 
