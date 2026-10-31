@@ -1,84 +1,47 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
-import { useRouter } from 'next/navigation';
+import { completeRegistration, REGISTRATION_STORAGE_KEY, type RegistrationResult } from '@/lib/registration';
 
 export default function OAuthCallback() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [success, setSuccess] = useState(false);
+  const [result, setResult] = useState<RegistrationResult | null>(null);
+  const request = useRef<Promise<RegistrationResult> | null>(null);
 
   useEffect(() => {
-    const storeData = async () => {
-      const sessionRes = await supabase.auth.getSession();
-      const session = sessionRes.data?.session;
-
-      if (!session) {
-        console.log('⛔ 세션 없음 — 아직 로그인되지 않았습니다.');
-        setLoading(false);
-        return;
+    let active = true;
+    // Strict Mode의 effect 재실행에서도 같은 작업을 기다린다.
+    request.current ??= completeRegistration(
+      supabase, () => localStorage.getItem(REGISTRATION_STORAGE_KEY),
+    );
+    void request.current.then(outcome => {
+      if (!active) return;
+      if (outcome.status !== 'error') {
+        try { localStorage.removeItem(REGISTRATION_STORAGE_KEY); } catch { /* 가입 결과는 유지한다. */ }
       }
-
-      const user = session.user;
-      const uuid = user.id;
-
-      const stored = JSON.parse(localStorage.getItem('registration_data') || '{}');
-
-      if (uuid && stored.name) {
-        const { error } = await supabase.from('registered_member').insert({
-          name: stored.name,
-          department: stored.department,
-          student_id: stored.studentId,
-          generation: stored.generation,
-          email: stored.email,
-          uuid,
-          phone_number: stored.phone_number,
-        });
-
-        if (error) {
-          console.error('❌ 등록 실패:', error.message);
-        } else {
-          localStorage.removeItem('registration_data');
-          setSuccess(true);
-        }
-      }
-
-      setLoading(false);
-    };
-
-    storeData();
+      setResult(outcome);
+    });
+    return () => { active = false; };
   }, []);
 
-  if (loading) {
-    return <p className="text-center mt-10">등록 중입니다...</p>;
-  }
+  if (!result) return <p className="text-center mt-10" role="status">가입 정보를 확인 중입니다...</p>;
+  const message = result.status === 'error' ? result.message
+    : result.status === 'existing' ? '이미 등록된 회원입니다. 기존 계정으로 이용할 수 있습니다.'
+      : '회원가입이 완료되었습니다!';
 
-    return (
+  return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-6">
-        <div className="bg-white shadow-md rounded-2xl p-9 w-full max-w-md text-center">
-        {success ? (
-            <>
-            <h1 className="text-2xl font-semibold text-gray-800 mb-6">회원가입이 완료되었습니다!</h1>
-            <button
-                onClick={() => router.push('/')}
-                className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
-            >
-                메인으로 돌아가기
-            </button>
-            </>
-        ) : (
-            <>
-            <h1 className="text-red-500 text-xl">회원가입 처리 중 오류가 발생했습니다.</h1>
-            <button
-                onClick={() => router.push('/')}
-                className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800"
-            >
-                메인으로 돌아가기
-            </button>
-            </>
+      <div className="bg-white shadow-md rounded-2xl p-9 w-full max-w-md text-center">
+        <h1 className={result.status === 'error' ? 'text-red-500 text-xl' : 'text-2xl font-semibold text-gray-800 mb-6'}
+          role={result.status === 'error' ? 'alert' : 'status'}>{message}</h1>
+        {result.status === 'error' && (
+          <Link href="/signin" className="block mt-6 text-gray-700 underline">회원가입 화면으로 돌아가기</Link>
         )}
-        </div>
+        <Link href="/" className="inline-block mt-6 bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
+          메인으로 돌아가기
+        </Link>
+      </div>
     </div>
-    );
+  );
 }
