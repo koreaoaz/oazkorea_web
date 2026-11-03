@@ -1,3 +1,5 @@
+> 2026-11-03 RC ??: ?? CI 3 job? ?? Supabase 95? ??? ??????. ?? ?? ???/Preview ?? ???? [PRODUCTION_RC.md](PRODUCTION_RC.md)? [RUNBOOK.md](RUNBOOK.md)? ?????. ?? OAuth ??? ????? ?? Preview? ?? ?????.
+
 # P0 개인정보 Hotfix — 운영 기준 d95bc68
 
 최신 방향: 추가 클라우드 프로젝트 없이 로컬 Supabase와 GitHub CI를 사용한다. Main/Demo는 보존하고 Vercel Hotfix 자동 배포는 vercel.json으로 차단한다. 사용자 Dashboard에서 Production=main / Only build production도 확인됐다. 최신 CI 검증·커밋·승인 절차는 CI_RELEASE_READINESS.md를 따른다. 실제 Docker 전체 실행 및 원격 차단 실동작은 미확인이다. LOCAL_SUPABASE_PLAN.md는 로컬 실행 안내이며, 이전 PREVIEW_SPLIT_PLAN.md의 새 클라우드 프로젝트 제안은 폐기된 과거 계획이다.
