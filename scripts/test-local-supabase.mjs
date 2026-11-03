@@ -7,6 +7,7 @@ import { createClient } from '@supabase/supabase-js';
 import { API, localStatus, sql, reviewedSql, verifyRelease } from './local-supabase.mjs';
 import { prepareLocalGraphql, graphqlPreparationPhase } from './prepare-local-graphql.mjs';
 let phase = 'precheck';
+let checks = 0;
 
 export function localFetch(fetcher = globalThis.fetch) {
   return (input, options = {}) => {
@@ -21,7 +22,21 @@ export function requireGraphqlData(response, body, field) {
   return body.data[field];
 }
 export function requirePrivacyDenial(result) {
-  if (result.error?.code !== '42501') throw Error('LOCAL_PERMISSION_DENIAL_REQUIRED');
+  if (result.error?.code !== '42501') {
+    const code = ['PGRST202', 'PGRST204', 'PGRST205', '42703', '42P01', '23505', '22023'].includes(result.error?.code)
+      ? result.error.code : result.error ? 'other_error' : 'no_error';
+    console.error('LOCAL_API_DIAGNOSTIC ' + JSON.stringify({ check: 'permission-denial', code,
+      status: Number.isInteger(result.status) ? result.status : null }));
+    throw Error('LOCAL_PERMISSION_DENIAL_REQUIRED');
+  }
+}
+export function requireStorageDenial(result) {
+  if (result.error?.name !== 'StorageApiError' || ![400, 404].includes(result.error.status) ||
+      !['Object not found', 'Bucket not found'].includes(result.error.message)) throw Error('LOCAL_STORAGE_DENIAL_REQUIRED');
+}
+export function requireOwnApproval(result, email) {
+  if (result.error || !Array.isArray(result.data) || result.data.length !== 1 ||
+      Object.keys(result.data[0]).length !== 1 || result.data[0].email !== email) throw Error('LOCAL_OWN_APPROVAL_REQUIRED');
 }
 export async function integration() {
   verifyRelease();
@@ -33,7 +48,7 @@ export async function integration() {
   const admin = client(status.SERVICE_ROLE_KEY);
   const anon = client(status.ANON_KEY);
   const password = randomBytes(32).toString('base64url'); // ephemeral synthetic password; never persisted
-  let checks = 0;
+  checks = 0;
   const ok = condition => { assert.ok(condition); checks++; };
   const passed = () => console.log(`LOCAL_INTEGRATION_STAGE_PASS phase=${phase} checks=${checks}`);
   // Refuse an existing application schema. Never reset or reuse other local data.
@@ -108,8 +123,16 @@ export async function integration() {
   phase = 'rest-privacy-and-signup';
   const own = await clients[1].from('registered_member').select('uuid').eq('uuid', users[1]);
   ok(!own.error && own.data.length === 1);
+  // SQL v3 explicitly keeps SELECT(id,email) for an authenticated user's OWN
+  // verified approval row. Check that contract; never accept directory access.
+  for (const i of [1, 2]) {
+    requireOwnApproval(await clients[i].from('allowed_user').select('email'), emails[i]); checks++;
+    const otherApproval = await clients[i].from('allowed_user').select('email').eq('email', emails[i === 1 ? 2 : 1]);
+    ok(!otherApproval.error && otherApproval.data.length === 0);
+  }
+  requirePrivacyDenial(await anon.from('allowed_user').select('email')); checks++;
   for (const c of [anon, clients[1], clients[2]]) {
-    for (const table of ['registered_member', 'allowed_user', 'supervisor_id']) {
+    for (const table of ['registered_member', 'supervisor_id']) {
       const r = await c.from(table).select('email');
       requirePrivacyDenial(r); checks++;
     }
@@ -120,6 +143,10 @@ export async function integration() {
   requirePrivacyDenial(boss); checks++;
   // Auth user_metadata is user-controlled and must never grant editor access.
   ok(!(await clients[1].auth.updateUser({ data: { role: 'admin', is_manager: true } })).error);
+  const forgedMetadataSession = await clients[1].auth.refreshSession();
+  ok(!forgedMetadataSession.error && !!forgedMetadataSession.data.session);
+  const forgedMetadata = JSON.parse(Buffer.from(forgedMetadataSession.data.session.access_token.split('.')[1], 'base64url')).user_metadata;
+  ok(forgedMetadata.role === 'admin' && forgedMetadata.is_manager === true);
   requirePrivacyDenial(await clients[1].rpc('oaz_privacy_editor_list_v3', { board: 'registered_member' })); checks++;
   requirePrivacyDenial(await clients[3].from('registered_member').insert({ uuid: users[3], email: emails[3], name: 'fake escalation', is_manager: true })); checks++;
   const approved = await clients[3].from('registered_member').insert({ uuid: users[3], email: emails[3], name: 'fake new', is_manager: false });
@@ -151,8 +178,8 @@ export async function integration() {
   ok(!(await clients[1].storage.from(bucket).upload(object, new Blob(['synthetic fixture']), { contentType: 'text/plain' })).error);
   const downloaded = await clients[1].storage.from(bucket).download(object);
   ok(!downloaded.error && await downloaded.data.text() === 'synthetic fixture');
-  ok(!!(await clients[2].storage.from(bucket).download(object)).error);
-  ok(!!(await anon.storage.from(bucket).download(object)).error);
+  requireStorageDenial(await clients[2].storage.from(bucket).download(object)); checks++;
+  requireStorageDenial(await anon.storage.from(bucket).download(object)); checks++;
   passed();
   phase = 'expired-session';
   const session = (await clients[1].auth.getSession()).data.session;
@@ -160,6 +187,7 @@ export async function integration() {
   // the verified disposable stack's signing secret, never an operational key.
   const [header, payload] = session.access_token.split('.');
   ok(JSON.parse(Buffer.from(header, 'base64url')).alg === 'HS256' && !!status.JWT_SECRET);
+  ok(createHmac('sha256', status.JWT_SECRET).update(`${header}.${payload}`).digest('base64url') === session.access_token.split('.')[2]);
   const claims = JSON.parse(Buffer.from(payload, 'base64url'));
   const expiredPayload = Buffer.from(JSON.stringify({ ...claims, iat: 1, exp: 2 })).toString('base64url');
   const unsigned = `${header}.${expiredPayload}`;
@@ -173,10 +201,10 @@ export async function integration() {
     ok((await c.auth.getSession()).data.session === null);
   }
   const revokedRefresh = await client(status.ANON_KEY).auth.refreshSession({ refresh_token: session.refresh_token });
-  ok(!!revokedRefresh.error && revokedRefresh.data.session === null);
+  ok(['refresh_token_not_found', 'refresh_token_already_used'].includes(revokedRefresh.error?.code) && revokedRefresh.data.session === null);
   passed();
   console.log(`LOCAL_SUPABASE_INTEGRATION_PASS checks=${checks}`);
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  integration().catch(error => { const guard = /^LOCAL_[A-Z0-9_]+$/.test(error.message) || /^LOCAL_SQL_GUARD_[a-f0-9]{12}$/.test(error.message) ? ` guard=${error.message}` : ''; const detail = phase === 'reviewed-local-graphql' ? ` preparation=${graphqlPreparationPhase()}` : ''; console.error(`LOCAL_SUPABASE_INTEGRATION_STOP phase=${phase}${detail}${guard}`); process.exitCode = 1; });
+  integration().catch(error => { const guard = /^LOCAL_[A-Z0-9_]+$/.test(error.message) || /^LOCAL_SQL_GUARD_[a-f0-9]{12}$/.test(error.message) ? ` guard=${error.message}` : ''; const detail = phase === 'reviewed-local-graphql' ? ` preparation=${graphqlPreparationPhase()}` : ''; console.error(`LOCAL_SUPABASE_INTEGRATION_STOP phase=${phase}${detail}${guard} checks=${checks}`); process.exitCode = 1; });
 }

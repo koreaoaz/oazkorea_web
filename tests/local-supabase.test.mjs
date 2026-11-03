@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { createClient } from '@supabase/supabase-js';
 import { API, NETWORK, PROJECT, readiness, waitForReadiness, serviceProbe, commandDiagnostic, containerDiagnostics, assertLocalUrl, assertDockerEndpoint, verifyNetwork, verifyBindings, verifyRelease, safeCommandFailure } from '../scripts/local-supabase.mjs';
-import { localFetch, requireGraphqlData, requirePrivacyDenial } from '../scripts/test-local-supabase.mjs';
+import { localFetch, requireGraphqlData, requirePrivacyDenial, requireStorageDenial, requireOwnApproval } from '../scripts/test-local-supabase.mjs';
 import { assertNoEnvironmentFiles, localDevelopmentEnvironment } from '../scripts/local-dev.mjs';
 import { unpackReviewedGraphql, validateContainerPgPath, GRAPHQL_ASSET, GRAPHQL_SHA } from '../scripts/prepare-local-graphql.mjs';
 
@@ -94,6 +94,20 @@ test('CI cannot count broken GraphQL or authentication as successful privacy pro
   }
   assert.doesNotThrow(() => requirePrivacyDenial({ error: { code: '42501' } }));
   for (const code of ['401', 'PGRST202', '42703', undefined]) assert.throws(() => requirePrivacyDenial({ error: { code } }));
+});
+test('Storage denial requires a real hidden-object response, not network or authentication failure', () => {
+  assert.doesNotThrow(() => requireStorageDenial({ error: { name: 'StorageApiError', status: 404, message: 'Object not found' } }));
+  for (const error of [undefined, { name: 'StorageUnknownError', status: 404, message: 'Object not found' },
+    { name: 'StorageApiError', status: 500, message: 'Object not found' }, { name: 'StorageApiError', status: 401, message: 'Invalid JWT' },
+    { name: 'StorageApiError', status: 400, message: 'Invalid JWT' }]) assert.throws(() => requireStorageDenial({ error }));
+});
+test('Approval contract permits exactly the verified self email, never a directory or another person', () => {
+  const email = 'fake@example.invalid';
+  assert.doesNotThrow(() => requireOwnApproval({ data: [{ email }], error: null }, email));
+  for (const data of [[], [{ email: 'other@example.invalid' }], [{ email }, { email: 'other@example.invalid' }], [{ email, name: 'extra' }]]) {
+    assert.throws(() => requireOwnApproval({ data }, email));
+  }
+  assert.throws(() => requireOwnApproval({ data: [{ email }], error: { code: '42501' } }, email));
 });
 test('SQL guard diagnostics preserve failure without printing stderr or policy text', () => {
   const result = safeCommandFailure('ERROR: P0_STOP: fake guard failure\nCONTEXT: fake private policy and credentials');
