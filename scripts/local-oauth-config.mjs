@@ -45,12 +45,30 @@ export function oauthSession(root, ready) {
   const p = paths(root);
   if (lstatSync(p.dir).isSymbolicLink() || lstatSync(p.state).isSymbolicLink()) throw Error('LOCAL_OAUTH_REDIRECTED_PATH');
   const state = JSON.parse(readFileSync(p.state, 'utf8'));
-  if (!Number.isSafeInteger(state.ownerPid) || state.ownerPid <= 0) throw Error('LOCAL_OAUTH_SESSION_REQUIRED');
+  if (!Number.isSafeInteger(state.ownerPid) || state.ownerPid <= 0 || typeof state.ready !== 'boolean' ||
+      Object.keys(state).some(key => !['ownerPid', 'ready', 'ui', 'containers'].includes(key))) throw Error('LOCAL_OAUTH_SESSION_REQUIRED');
   if (ready !== undefined) {
     if (state.ownerPid !== process.pid) throw Error('LOCAL_OAUTH_SESSION_OWNER');
-    writeFileSync(p.state, JSON.stringify({ ownerPid: process.pid, ready: ready === true }));
+    state.ready = ready === true;
+    writeFileSync(p.state, JSON.stringify(state));
   }
   return state;
+}
+export function validUiIdentity(value) {
+  return !!value && Object.keys(value).length === 3 && Number.isSafeInteger(value.pid) && value.pid > 0 &&
+    /^[1-9][0-9]{10,20}$/.test(value.startedTicks ?? '') && /^[a-f0-9]{64}$/.test(value.commandSha256 ?? '');
+}
+export function recordOAuthUi(root, identity) {
+  if (!validUiIdentity(identity)) throw Error('LOCAL_OAUTH_UI_IDENTITY_REQUIRED');
+  const state = oauthSession(root);
+  if (state.ownerPid !== process.pid) throw Error('LOCAL_OAUTH_SESSION_OWNER');
+  writeFileSync(paths(root).state, JSON.stringify({ ...state, ui: identity }));
+}
+export function recordOAuthContainers(root, ids) {
+  if (!Array.isArray(ids) || !ids.length || ids.some(id => !/^[a-f0-9]{64}$/.test(id)) || new Set(ids).size !== ids.length) throw Error('LOCAL_OAUTH_CONTAINER_ID');
+  const state = oauthSession(root);
+  if (state.ownerPid !== process.pid) throw Error('LOCAL_OAUTH_SESSION_OWNER');
+  writeFileSync(paths(root).state, JSON.stringify({ ...state, containers: [...ids] }));
 }
 export function clearOAuthCredentials(env) {
   delete env.GITHUB_TEST_CLIENT_ID; delete env.GITHUB_TEST_CLIENT_SECRET;
@@ -72,12 +90,14 @@ export async function oauthLifecycle(root, adapters, env) {
   } finally {
     clearOAuthCredentials(env);
     if (opened) {
-      try { await adapters.closeUi(ui); }
+      let uiClosed = false;
+      try { await adapters.closeUi(ui); uiClosed = true; }
       finally {
         try { restoreOAuthConfig(root); }
         finally {
-          try { await adapters.stop(); }
-          finally { restoreOAuthConfig(root, true); }
+          let stopped = false;
+          try { await adapters.stop(); stopped = true; }
+          finally { restoreOAuthConfig(root, stopped && uiClosed); } // Retain ownership evidence if shutdown failed.
         }
       }
     }

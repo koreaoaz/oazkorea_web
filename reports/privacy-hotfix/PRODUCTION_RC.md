@@ -1,5 +1,7 @@
 # 개인정보 Hotfix Production Release Candidate
 
+2026-11-04 최종 후속 리뷰: [자율 통합 검증 기록](AUTONOMOUS_VALIDATION_20261104.md). 전체 회귀157, 분리된 새 로컬 Supabase95, 강화된 Storage38, 가짜 provider19를 재검증했다. Docker 및 Windows 실제 localhost 주소, GraphQL 백엔드의 매핑 경로·inode·공식1.6.3 파일 해시, 재시작·실행기 복구를 확인했다. 앱/SQL이 바뀌지 않은 OFF/ON 독립 빌드·독립 PostgreSQL/REST/GraphQL 증거는 이전 결과를 재사용했다. 실제 GitHub OAuth는 **OAUTH_BROWSER_NOT_VERIFIED**이며 운영 Storage 정책 전체·백업 복원은 미검증이다. 이번 로컬 결과는 운영 현재 상태·최종 SHA의 원격 CI·배포 승인을 대신하지 않는다. 운영 SQL 적용 여부를 재조회하지 않았으며 아래 과거 기록과 구분한다. **운영 NO-GO 유지**.
+
 2026-11-03. **로컬 RC 준비 완료, 운영 적용 NO-GO**다. 실제 GitHub OAuth 왕복, 적용 시점의 환경·preflight·백업 확인과 운영 변경 승인이 남아 있다. 운영 SQL은 미적용이며 Critical 3 / High 5 위험은 계속 존재한다. 이 문서와 RUNBOOK.md가 과거 Preview/CI 준비 문서보다 우선한다. 일반 Preview는 운영 DB를 가리키므로 사용하지 않는다.
 
 ## A 릴리스 구성과 변경 범위

@@ -3,16 +3,17 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { createClient } from '@supabase/supabase-js';
-import { API, NETWORK, PROJECT, readiness, waitForReadiness, serviceProbe, commandDiagnostic, containerDiagnostics, assertLocalUrl, assertDockerEndpoint, verifyNetwork, verifyBindings, verifyRelease, safeCommandFailure } from '../scripts/local-supabase.mjs';
+import { API, NETWORK, PROJECT, readiness, waitForReadiness, serviceProbe, commandDiagnostic, containerDiagnostics, assertLocalUrl, assertDockerEndpoint, verifyNetwork, verifyBindings, verifyRelease, safeCommandFailure, safeStartFailure, requireLocalDiskReserve, verifyBindingProbe, verifyWindowsListeners, localCommandEnvironment } from '../scripts/local-supabase.mjs';
 import { localFetch, requireGraphqlData, requirePrivacyDenial, requireStorageDenial, requireOwnApproval, storageFailureDiagnostic } from '../scripts/test-local-supabase.mjs';
 import { assertNoEnvironmentFiles, localDevelopmentEnvironment } from '../scripts/local-dev.mjs';
-import { unpackReviewedGraphql, validateContainerPgPath, GRAPHQL_ASSET, GRAPHQL_SHA } from '../scripts/prepare-local-graphql.mjs';
+import { unpackReviewedGraphql, validateContainerPgPath, serverLibraryPath, verifyLoadedGraphql, verifyGraphqlContainer, GRAPHQL_ASSET, GRAPHQL_SHA } from '../scripts/prepare-local-graphql.mjs';
+import { reviewProjectCopy, REVIEW_PROJECT } from '../scripts/test-local-fresh-review.mjs';
 
 test('Local test refuses remote, disguised and alternate-port endpoints', () => {
   assert.doesNotThrow(() => assertLocalUrl(API));
   for (const value of ['https://maoefmwpdcnugyenyiea.supabase.co', 'https://ctbwaqtqubmjmltbxfzm.supabase.co',
     'http://127.0.0.1:54321', `${API}@evil.invalid`, `${API}/`, 'http://localhost:56321']) assert.throws(() => assertLocalUrl(value));
-  for (const endpoint of ['tcp://127.0.0.1:2375', 'ssh://remote', undefined]) assert.throws(() => assertDockerEndpoint(endpoint));
+  for (const endpoint of ['tcp://127.0.0.1:2375', 'ssh://remote', 'npipe:////remote/pipe/docker_engine', undefined]) assert.throws(() => assertDockerEndpoint(endpoint));
   assert.doesNotThrow(() => assertDockerEndpoint('unix:///var/run/docker.sock'));
   assert.doesNotThrow(() => assertDockerEndpoint('npipe:////./pipe/dockerDesktopLinuxEngine'));
 });
@@ -22,8 +23,10 @@ test('Local network and every published binding must be loopback', () => {
   assert.throws(() => verifyNetwork({ ...network, Options: {} }));
   const c = { HostConfig: { NetworkMode: NETWORK }, NetworkSettings: { Networks: { [NETWORK]: {} }, Ports: { '8000/tcp': [{ HostIp: '127.0.0.1', HostPort: '56321' }] } } };
   assert.doesNotThrow(() => verifyBindings([c]));
+  assert.doesNotThrow(() => verifyBindings([{ ...c, NetworkSettings: { ...c.NetworkSettings,
+    Ports: { '8000/tcp': [{ HostIp: '127.0.0.1' }, { HostIp: '::1' }] } } }]));
   assert.throws(() => verifyBindings([]));
-  for (const ip of ['0.0.0.0', '::', '192.168.0.2']) assert.throws(() => verifyBindings([{ ...c, NetworkSettings: { ...c.NetworkSettings, Ports: { '8000/tcp': [{ HostIp: ip }] } } }]));
+  for (const ip of ['0.0.0.0', '::', '192.168.0.2', '::ffff:127.0.0.1', '', undefined]) assert.throws(() => verifyBindings([{ ...c, NetworkSettings: { ...c.NetworkSettings, Ports: { '8000/tcp': [{ HostIp: ip }] } } }]));
   assert.throws(() => verifyBindings([{ ...c, HostConfig: { NetworkMode: 'host' } }]));
   assert.throws(() => verifyBindings([{ ...c, NetworkSettings: { Networks: {} } }]));
 });
@@ -165,6 +168,65 @@ test('Local GraphQL provisioning cannot accept an untrusted artifact or target p
   assert.equal(validateContainerPgPath('/nix/store/' + 'b'.repeat(32) + '-postgresql-and-plugins-17.6/share/postgresql'), '/nix/store/' + 'b'.repeat(32) + '-postgresql-and-plugins-17.6/share/postgresql');
   for (const value of ['/nix/store/invalid/lib', '/nix/store/' + 'a'.repeat(32) + '-postgresql/../../etc', '/usr/lib/..', '/nix/var/nix/profiles/default/lib']) assert.throws(() => validateContainerPgPath(value));
 });
+test('Nix GraphQL uses the running bundled server library instead of plain pg_config', () => {
+  const base = '/nix/store/' + 'a'.repeat(32) + '-postgresql-17.6-lib/lib';
+  const server = '/nix/store/' + 'b'.repeat(32) + '-postgresql-and-plugins-17.6/bin/postgres';
+  assert.equal(serverLibraryPath(base, server), server.replace('/bin/postgres', '/lib'));
+  assert.equal(serverLibraryPath(base, server.replace('/postgres', '/.postgres-wrapped')), server.replace('/bin/postgres', '/lib'));
+  assert.equal(serverLibraryPath('/usr/lib/postgresql/17/lib', '/usr/lib/postgresql/17/bin/postgres'), '/usr/lib/postgresql/17/lib');
+  for (const path of [server + '/../../etc', '/tmp/postgres', undefined, server.replace('17.6', '18.0')]) {
+    assert.throws(() => serverLibraryPath(base, path), /LOCAL_PG_SERVER_PATH_REQUIRED/);
+  }
+});
+
+test('GraphQL mapping rejects an old, deleted, missing or different-inode loaded library', () => {
+  const path = '/nix/store/' + 'a'.repeat(32) + '-postgresql-and-plugins-17.6/lib/pg_graphql.so';
+  const row = `1000-2000 r-xp 00000000 08:01 12345 ${path}`;
+  assert.doesNotThrow(() => verifyLoadedGraphql(row, path, '12345'));
+  for (const maps of ['', row.replace('/pg_graphql.so', '/pg_graphql-1.5.11.so'), row + ' (deleted)', row.replace('12345', '54321'), row.replace('r-xp', 'r--p'), row + '\n' + row.replace('12345', '54321')]) {
+    assert.throws(() => verifyLoadedGraphql(maps, path, '12345'), /LOCAL_GRAPHQL_MAPPING_REQUIRED/);
+  }
+});
+
+test('A fresh review copy changes exactly one project identifier and cannot reuse the operator project', () => {
+  const source = `export const PROJECT = '${PROJECT}';\n// unchanged logic`;
+  const copied = reviewProjectCopy(source, 'script');
+  assert.notEqual(REVIEW_PROJECT, PROJECT);
+  assert.equal(copied.replace(REVIEW_PROJECT, PROJECT), source);
+  assert.equal(reviewProjectCopy(`project_id = "${PROJECT}"`, 'config'), `project_id = "${REVIEW_PROJECT}"`);
+  for (const [text, kind] of [[source + source, 'script'], ['unrecognized source', 'script'], [source, 'other']]) assert.throws(() => reviewProjectCopy(text, kind), /LOCAL_REVIEW_COPY_REQUIRED/);
+});
+
+test('GraphQL installation refuses foreign containers, images, host binds and unexpected mounts', () => {
+  const container = { Name: `/supabase_db_${PROJECT}`, Config: { Image: 'public.ecr.aws/supabase/postgres:17.6.1.029', Labels: { 'com.supabase.cli.project': PROJECT } },
+    Mounts: [{ Type: 'volume', Name: `supabase_db_${PROJECT}`, Destination: '/var/lib/postgresql/data' },
+      { Type: 'volume', Name: `supabase_config_${PROJECT}`, Destination: '/etc/postgresql-custom' }] };
+  assert.doesNotThrow(() => verifyGraphqlContainer(container));
+  for (const alter of [c => { c.Config.Labels = {}; }, c => { c.Name = '/other'; }, c => { c.Config.Image = 'postgres:17'; },
+    c => { c.Mounts[0].Type = 'bind'; }, c => { c.Mounts[0].Destination = '/nix/store'; }, c => { c.Mounts.push(c.Mounts[0]); }]) {
+    const changed = structuredClone(container); alter(changed);
+    assert.throws(() => verifyGraphqlContainer(changed), /LOCAL_GRAPHQL_CONTAINER_REQUIRED/);
+  }
+});
+
+test('Windows host sockets independently reject wildcard, LAN, missing and invalid ports', () => {
+  const rows = [{ LocalAddress: '127.0.0.1', LocalPort: 56321 }, { LocalAddress: '::1', LocalPort: 56321 }];
+  assert.doesNotThrow(() => verifyWindowsListeners(rows, [56321]));
+  for (const invalid of [[], [...rows, { LocalAddress: '::', LocalPort: 56321 }],
+    [{ LocalAddress: '0.0.0.0', LocalPort: 56321 }], [{ LocalAddress: '192.168.0.2', LocalPort: 56321 }]]) {
+    assert.throws(() => verifyWindowsListeners(invalid, [56321]), /LOCAL_WINDOWS_BINDING_REQUIRED/);
+  }
+  for (const ports of [[], [0], [65536], ['56321'], [NaN]]) assert.throws(() => verifyWindowsListeners(rows, ports));
+});
+
+test('Local command and UI children cannot inherit case-varied provider or cloud credentials', () => {
+  const inherited = { PATH: 'fake-path', github_test_client_secret: 'fake-private', Supabase_Service_Role_Key: 'fake-private',
+    node_options: 'fake-preload', github_token: 'fake-private', vercel_env: 'production', database_url: 'fake-private' };
+  assert.deepEqual(localCommandEnvironment(inherited), { PATH: 'fake-path' });
+  const ui = localDevelopmentEnvironment({ API_URL: API, ANON_KEY: 'synthetic-public' }, inherited);
+  for (const name of Object.keys(inherited).filter(name => name !== 'PATH')) assert.ok(!(name in ui));
+});
+
 test('Extension failure classification emits fixed safe categories only', () => {
   assert.equal(safeCommandFailure('could not load library: fake-sensitive-path'), 'LOCAL_EXTENSION_ABI');
   assert.equal(safeCommandFailure('permission denied for fake-sensitive-object'), 'LOCAL_SQL_PERMISSION');
@@ -182,6 +244,35 @@ test('Diagnostics expose only allowlisted command, exit, timing and failure fiel
   assert.equal(commandDiagnostic('docker', ['inspect', secret], { status: null, error: { code: 'ETIMEDOUT', message: secret } }, 12).type, 'timeout');
   assert.equal(commandDiagnostic('docker', ['inspect'], { error: { code: 'ENOENT' } }, 1).type, 'executable_missing');
   assert.equal(commandDiagnostic('docker', ['exec', secret, 'psql'], { status: 2, stderr: secret }, 1).command, 'docker.exec.psql');
+});
+
+test('Start failure distinguishes binding guards without leaking unreviewed diagnostics', () => {
+  assert.equal(safeStartFailure(Error('NON_LOOPBACK_BINDING')), 'NON_LOOPBACK_BINDING');
+  assert.equal(safeStartFailure(Error('LOCAL_TARGET_REQUIRED')), 'LOCAL_TARGET_REQUIRED');
+  assert.equal(safeStartFailure(Error('LOCAL_secret_like_value')), 'LOCAL_START_UNCLASSIFIED');
+  assert.equal(safeStartFailure(Error('private value or URL')), 'LOCAL_START_UNCLASSIFIED');
+  assert.equal(safeStartFailure(null), 'LOCAL_START_UNCLASSIFIED');
+});
+
+test('A default publish probe permits exact IPv4/IPv6 localhost and refuses wildcard or missing bindings', () => {
+  const binding = { HostIp: '127.0.0.1', HostPort: '56329' };
+  assert.doesNotThrow(() => verifyBindingProbe({ '9999/tcp': [binding] }));
+  assert.doesNotThrow(() => verifyBindingProbe({ '9999/tcp': [binding, { ...binding, HostIp: '::1' }] }));
+  for (const ports of [null, {}, { '9999/tcp': [] }, { '9999/tcp': [{ ...binding, HostIp: '0.0.0.0' }] },
+    { '9999/tcp': [binding, { ...binding, HostIp: '::' }] },
+    { '9999/tcp': [binding, { ...binding, HostIp: '192.168.0.2' }] },
+    { '9999/tcp': [{ ...binding, HostIp: '::ffff:127.0.0.1' }] },
+    { '9999/tcp': [{ ...binding, HostPort: '' }] }]) {
+    assert.throws(() => verifyBindingProbe(ports), /NON_LOOPBACK_BINDING/);
+  }
+});
+
+test('Disk reserve gate refuses at or below 12GiB and invalid measurements', () => {
+  const bsize = 1024;
+  assert.doesNotThrow(() => requireLocalDiskReserve({ bavail: 13 * 1024 ** 2, bsize }));
+  for (const stats of [{ bavail: 12 * 1024 ** 2, bsize }, { bavail: 10, bsize }, { bavail: NaN, bsize }]) {
+    assert.throws(() => requireLocalDiskReserve(stats), /LOCAL_DISK_RESERVE_REQUIRED/);
+  }
 });
 
 test('Container diagnostic cannot leak environment, logs, arbitrary names or images', () => {

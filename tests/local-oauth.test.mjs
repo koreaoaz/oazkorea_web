@@ -4,8 +4,8 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync, rmSync
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
-import { renderOAuthConfig, openOAuthConfig, restoreOAuthConfig, oauthLifecycle, validateOAuthCredentials } from '../scripts/local-oauth-config.mjs';
-import { selectOAuthTestUser, reviewedOAuthFixture } from '../scripts/local-oauth.mjs';
+import { renderOAuthConfig, openOAuthConfig, restoreOAuthConfig, oauthLifecycle, validateOAuthCredentials, recordOAuthUi, recordOAuthContainers, oauthSession } from '../scripts/local-oauth-config.mjs';
+import { selectOAuthTestUser, reviewedOAuthFixture, oauthMenuAction, sameUiIdentity, selectOwnedOAuthContainers } from '../scripts/local-oauth.mjs';
 import { localDevelopmentEnvironment } from '../scripts/local-dev.mjs';
 import { createClient } from '@supabase/supabase-js';
 import { loadSource } from './helpers/react-dom.mjs';
@@ -64,7 +64,7 @@ test('Cleanup preserves concurrent user config edits rather than overwriting the
     assert.equal(readFileSync(join(dir, 'supabase/config.toml'), 'utf8'), 'synthetic concurrent edit');
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
-for (const failure of [undefined, 'start', 'initialize', 'serve', 'wait', 'stop']) {
+for (const failure of [undefined, 'start', 'initialize', 'serve', 'wait', 'closeUi', 'stop']) {
   test(`OAuth lifecycle clears credentials and restores config on ${failure ?? 'normal completion'}`, async () => {
     const dir = sandbox(), env = credentials(), steps = [];
     const adapters = Object.fromEntries(['start', 'initialize', 'serve', 'wait', 'closeUi', 'stop'].map(name => [name, async restore => {
@@ -77,10 +77,44 @@ for (const failure of [undefined, 'start', 'initialize', 'serve', 'wait', 'stop'
       if (failure) await assert.rejects(oauthLifecycle(dir, adapters, env));
       else await oauthLifecycle(dir, adapters, env);
       assert.deepEqual(env, {}); assert.deepEqual(readFileSync(join(dir, 'supabase/config.toml')), original);
-      assert.equal(existsSync(join(dir, 'supabase/.oauth-local')), false); assert.ok(steps.includes('stop'));
+      assert.equal(existsSync(join(dir, 'supabase/.oauth-local')), failure === 'closeUi' || failure === 'stop');
+      assert.ok(steps.includes('stop'));
     } finally { rmSync(dir, { recursive: true, force: true }); }
   });
 }
+
+test('UI recovery identifies the original process and refuses a reused PID or changed command', () => {
+  const identity = { pid: 123, startedTicks: '638950000000000000', commandSha256: 'a'.repeat(64) };
+  assert.equal(sameUiIdentity(identity, { ...identity }), true);
+  for (const other of [null, { ...identity, pid: 124 }, { ...identity, startedTicks: '638950000000000001' },
+    { ...identity, commandSha256: 'b'.repeat(64) }]) assert.equal(sameUiIdentity(identity, other), false);
+  assert.throws(() => sameUiIdentity({ ...identity, secret: 'synthetic' }, identity), /IDENTITY_REQUIRED/);
+});
+
+test('Recovery state stores only owned process identity and exact container IDs', () => {
+  const dir = sandbox();
+  const identity = { pid: 123, startedTicks: '638950000000000000', commandSha256: 'a'.repeat(64) };
+  try {
+    openOAuthConfig(dir);
+    recordOAuthUi(dir, identity); recordOAuthContainers(dir, ['a'.repeat(64)]);
+    const state = oauthSession(dir, true);
+    assert.deepEqual(state.ui, identity); assert.deepEqual(state.containers, ['a'.repeat(64)]);
+    assert.deepEqual(oauthSession(dir), state); // Re-read disk: ready must not discard ownership fields.
+    assert.equal(state.ready, true);
+    for (const ids of [[], ['short'], ['a'.repeat(64), 'a'.repeat(64)]]) assert.throws(() => recordOAuthContainers(dir, ids));
+    assert.throws(() => recordOAuthUi(dir, { ...identity, secret: 'synthetic' }));
+    writeFileSync(join(dir, 'supabase/.oauth-local/session.json'), JSON.stringify({ ...state, ownerPid: process.pid + 1 }));
+    assert.throws(() => recordOAuthUi(dir, identity), /SESSION_OWNER/);
+    assert.throws(() => recordOAuthContainers(dir, ['a'.repeat(64)]), /SESSION_OWNER/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('Container recovery selects recorded IDs and preserves foreign replacements', () => {
+  const a = 'a'.repeat(64), b = 'b'.repeat(64), foreign = 'c'.repeat(64);
+  assert.deepEqual(selectOwnedOAuthContainers([a, b], [a, foreign]), { owned: [a], foreign: [foreign] });
+  assert.throws(() => selectOwnedOAuthContainers(undefined, [a]), /MANUAL_CHECK_REQUIRED/);
+  assert.throws(() => selectOwnedOAuthContainers([a], ['invalid']), /MANUAL_CHECK_REQUIRED/);
+});
 test('Concurrent config changes still stop owned services and never overwrite the user edit', async () => {
   const dir = sandbox(), env = credentials(); let stopped = false;
   try {
@@ -111,6 +145,12 @@ test('An existing volume is resumable only with this reviewed fixture provenance
     sqlSha256: 'bea86d888eea295c5ef092b2fa0f39955d494cf4b81a304615cf3079be57ed98' };
   assert.equal(reviewedOAuthFixture(receipt), true);
   for (const value of [null, {}, { ...receipt, project: 'other' }, { ...receipt, syntheticAppFixture: false }, { ...receipt, secret: 'synthetic' }]) assert.equal(reviewedOAuthFixture(value), false);
+});
+
+test('Operator menu dispatches only existing local test actions and never arbitrary input', () => {
+  assert.equal(oauthMenuAction(''), 'stop');
+  assert.deepEqual(['1', '2', '3', '4'].map(oauthMenuAction), ['verify', 'approve', 'existing', 'administrator']);
+  for (const value of ['__proto__', 'constructor', 'approve', '5', 'fake-secret', undefined]) assert.throws(() => oauthMenuAction(value), /LOCAL_OAUTH_MENU_REQUIRED/);
 });
 test('Credentials are validated in memory; the CLI accepts no credential or remote-host arguments', () => {
   assert.doesNotThrow(() => validateOAuthCredentials(credentials()));

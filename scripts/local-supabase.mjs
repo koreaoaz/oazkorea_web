@@ -2,13 +2,19 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, statfsSync } from 'node:fs';
 import { localExecutable } from './local-executable.mjs';
 
 export const CLI_VERSION = '2.54.11';
 export const PROJECT = 'oaz-privacy-local';
 export const NETWORK = 'oaz-privacy-loopback';
 export const API = 'http://127.0.0.1:56321';
+export function reviewedOAuthFixture(value) {
+  const expected = { version: 1, project: PROJECT, syntheticAppFixture: true,
+    sqlSha256: 'bea86d888eea295c5ef092b2fa0f39955d494cf4b81a304615cf3079be57ed98' };
+  return !!value && Object.keys(value).length === Object.keys(expected).length &&
+    Object.entries(expected).every(([key, entry]) => value[key] === entry);
+}
 const root = fileURLToPath(new URL('../', import.meta.url));
 const services = ['db', 'auth', 'rest', 'storage', 'kong', 'imgproxy', 'pg_meta'];
 const started = Date.now();
@@ -63,8 +69,76 @@ export function safeCommandFailure(stderr = '') {
   if (/dependent objects still exist|cannot drop extension.*other objects depend/i.test(stderr ?? '')) return 'LOCAL_EXTENSION_DEPENDENCY';
   return 'LOCAL_STACK_COMMAND_FAILED';
 }
+export function safeStartFailure(error) {
+  const allowed = ['LOCAL_NETWORK_REQUIRED', 'LOCAL_CONTAINERS_MISSING', 'LOCAL_DATABASE_REQUIRED',
+    'HOST_NETWORK_FORBIDDEN', 'NON_LOOPBACK_BINDING', 'LOCAL_TARGET_REQUIRED', 'LOCAL_KEYS_MISSING',
+    'LOCAL_STACK_COMMAND_FAILED', 'LOCAL_DISK_RESERVE_REQUIRED', 'LOCAL_BINDING_PROBE_ID', 'LOCAL_WINDOWS_BINDING_REQUIRED'];
+  return allowed.includes(error?.message) ? error.message : 'LOCAL_START_UNCLASSIFIED';
+}
+export function requireLocalDiskReserve(stats = statfsSync(root)) {
+  const available = stats.bavail * stats.bsize;
+  if (!Number.isFinite(available) || available <= 12 * 1024 ** 3) throw Error('LOCAL_DISK_RESERVE_REQUIRED');
+}
+export function verifyBindingProbe(ports) {
+  const bindings = ports?.['9999/tcp'];
+  if (!Array.isArray(bindings) || !bindings.length || bindings.some(binding =>
+    !isLoopbackBinding(binding?.HostIp) || !/^[0-9]+$/.test(binding?.HostPort ?? ''))) throw Error('NON_LOOPBACK_BINDING');
+}
+// Docker Desktop's localhost-only publishing includes IPv6 localhost. Accept
+// these two exact addresses; wildcard, LAN and mapped addresses remain denied.
+function isLoopbackBinding(address) { return address === '127.0.0.1' || address === '::1'; }
+export function localCommandEnvironment(inherited = process.env) {
+  return Object.fromEntries(Object.entries(inherited).filter(([key]) =>
+    !/SUPABASE|^PG|^DATABASE|^POSTGRES|^OAZ_|^NEXT_PUBLIC_|^DOCKER_HOST$|^DOCKER_CONTEXT$|^GITHUB_|^VERCEL|^NODE_OPTIONS$/i.test(key)));
+}
+export function verifyWindowsListeners(listeners, ports) {
+  if (!Array.isArray(ports) || !ports.length || ports.some(port => !Number.isInteger(port) || port < 1 || port > 65535) ||
+      !Array.isArray(listeners) || ports.some(port => {
+        const matches = listeners.filter(row => row?.LocalPort === port);
+        return !matches.length || matches.some(row => !isLoopbackBinding(row.LocalAddress));
+      })) throw Error('LOCAL_WINDOWS_BINDING_REQUIRED');
+}
+function verifyWindowsPublishedBindings(bindings) {
+  if (process.platform !== 'win32') return;
+  const ports = [...new Set(bindings.map(binding => Number(binding.HostPort)))];
+  // Validate numeric input before embedding it in the fixed, read-only command.
+  if (!ports.length || ports.some(port => !Number.isInteger(port) || port < 1 || port > 65535)) throw Error('LOCAL_WINDOWS_BINDING_REQUIRED');
+  const command = `$ErrorActionPreference='Stop'; $required=@(${ports.join(',')}); ` +
+    '$rows=@(Get-NetTCPConnection -State Listen -ErrorAction Stop | Where-Object {$_.LocalPort -in $required} | Select-Object LocalAddress,LocalPort); ' +
+    'ConvertTo-Json -InputObject $rows -Compress';
+  const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', command],
+    { env: localCommandEnvironment(), encoding: 'utf8', windowsHide: true, timeout: 20000 });
+  if (result.error || result.status !== 0) throw Error('LOCAL_WINDOWS_BINDING_REQUIRED');
+  let rows;
+  try { rows = JSON.parse(result.stdout); } catch { throw Error('LOCAL_WINDOWS_BINDING_REQUIRED'); }
+  verifyWindowsListeners(rows, ports);
+  console.log('LOCAL_WINDOWS_BINDING_PASS ports=' + ports.length);
+}
+export function preflightBindings() {
+  requireLocalDiskReserve();
+  assertDockerEndpoint(JSON.parse(run('docker', ['context', 'inspect']))[0]?.Endpoints?.docker?.Host);
+  const names = run('docker', ['network', 'ls', '--filter', `name=^${NETWORK}$`, '--format', '{{.Name}}']);
+  if (!names) run('docker', ['network', 'create', '-o', 'com.docker.network.bridge.host_binding_ipv4=127.0.0.1', NETWORK]);
+  verifyNetwork(JSON.parse(run('docker', ['network', 'inspect', NETWORK]))[0]);
+  // Test the actual Desktop port forwarder BEFORE starting DB/Auth or using a
+  // provider secret. The probe runs only sleep: no listener, data or credentials.
+  const image = 'public.ecr.aws/supabase/gotrue:v2.180.0';
+  if (!run('docker', ['image', 'ls', image, '-q'])) run('docker', ['pull', image]);
+  let id;
+  try {
+    id = run('docker', ['run', '--rm', '-d', '--label', 'oaz.privacy.binding-probe=1', '--network', NETWORK,
+      '--publish', '9999/tcp', '--entrypoint', '/bin/sh', image, '-c', 'sleep 60']);
+    if (!/^[a-f0-9]{64}$/.test(id)) throw Error('LOCAL_BINDING_PROBE_ID');
+    const ports = JSON.parse(run('docker', ['inspect', '--format', '{{json .NetworkSettings.Ports}}', id]));
+    verifyBindingProbe(ports);
+    verifyWindowsPublishedBindings(ports['9999/tcp']);
+  } finally {
+    // Exact ID returned by our own create; never discover/delete another asset.
+    if (/^[a-f0-9]{64}$/.test(id ?? '') && run('docker', ['ps', '-aq', '--filter', `id=${id}`])) run('docker', ['rm', '--force', id]);
+  }
+}
 export function run(command, args, input, oauth = false) {
-  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/SUPABASE|^PG|^DATABASE|^POSTGRES|^OAZ_|^NEXT_PUBLIC_|^DOCKER_HOST$|^DOCKER_CONTEXT$|^GITHUB_TEST_/.test(key)));
+  const env = localCommandEnvironment();
   if (oauth) {
     if (command !== 'supabase' || args[0] !== 'start') throw Error('LOCAL_OAUTH_START_ONLY');
     for (const name of ['GITHUB_TEST_CLIENT_ID', 'GITHUB_TEST_CLIENT_SECRET']) {
@@ -99,13 +173,13 @@ export function verifyBindings(containers) {
     if (!c.NetworkSettings?.Networks?.[NETWORK]) throw Error('LOCAL_NETWORK_REQUIRED');
     for (const bindings of Object.values(c.NetworkSettings?.Ports ?? {})) {
       for (const binding of bindings ?? []) {
-        if (binding.HostIp !== '127.0.0.1') throw Error('NON_LOOPBACK_BINDING');
+        if (!isLoopbackBinding(binding.HostIp)) throw Error('NON_LOOPBACK_BINDING');
       }
     }
   }
 }
 export function assertDockerEndpoint(endpoint) {
-  if (!endpoint?.startsWith('npipe://') && !endpoint?.startsWith('unix:///')) throw Error('LOCAL_DOCKER_REQUIRED');
+  if (!/^npipe:\/\/\/\/\.\/pipe\/[a-zA-Z0-9_.-]+$/.test(endpoint ?? '') && !endpoint?.startsWith('unix:///')) throw Error('LOCAL_DOCKER_REQUIRED');
 }
 export function inspectStack() {
   assertDockerEndpoint(JSON.parse(run('docker', ['context', 'inspect']))[0]?.Endpoints?.docker?.Host);
@@ -219,16 +293,16 @@ export function start(oauth = false, afterStart = () => {}) {
   if (existsSync(new URL('../supabase/.temp/project-ref', import.meta.url))) throw Error('LINKED_PROJECT_FORBIDDEN');
   if (cli(['--version']) !== CLI_VERSION) throw Error('PINNED_CLI_REQUIRED');
   assertDockerEndpoint(JSON.parse(run('docker', ['context', 'inspect']))[0]?.Endpoints?.docker?.Host);
-  // Existing networks must be verified, not silently reused or modified.
-  const names = run('docker', ['network', 'ls', '--filter', `name=^${NETWORK}$`, '--format', '{{.Name}}']);
-  if (!names) run('docker', ['network', 'create', '-o', 'com.docker.network.bridge.host_binding_ipv4=127.0.0.1', NETWORK]);
-  verifyNetwork(JSON.parse(run('docker', ['network', 'inspect', NETWORK]))[0]);
+  preflightBindings(); // Existing networks are verified; do not trust defaults.
   try {
     run('supabase', ['start', '--network-id', NETWORK], undefined, oauth);
     afterStart(); // OAuth launcher restores the secret-free default config before status/stop.
     localStatus();
-  } catch {
+    verifyWindowsPublishedBindings(inspectStack().flatMap(container =>
+      Object.values(container.NetworkSettings?.Ports ?? {}).flatMap(bindings => bindings ?? [])));
+  } catch (error) {
     // Shut down this project only if exposure/readiness verification fails.
+    console.error('LOCAL_START_DIAGNOSTIC ' + JSON.stringify({ guard: safeStartFailure(error) }));
     try { stop(); } catch { /* report failure without leaking output */ }
     throw Error('LOCAL_START_OR_BINDING_CHECK_FAILED');
   }
@@ -240,5 +314,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     else if (process.argv[2] === 'check') localStatus();
     else stop();
     console.log('LOCAL_STACK_PASS');
-  } catch { console.error('LOCAL_STACK_STOP: prerequisites, local binding or health check failed'); process.exitCode = 1; }
+  } catch (error) {
+    console.error('LOCAL_STACK_STOP ' + JSON.stringify({ guard: safeStartFailure(error) }));
+    process.exitCode = 1;
+  }
 }
