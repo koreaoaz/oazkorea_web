@@ -6,6 +6,8 @@ import { pathToFileURL } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import { API, localStatus, sql, reviewedSql, verifyRelease } from './local-supabase.mjs';
 import { prepareLocalGraphql, graphqlPreparationPhase } from './prepare-local-graphql.mjs';
+import { storageDownloadProbe, storageSessionVerdict, recordStorageCatalog } from './storage-rca.mjs';
+export { storageFailureDiagnostic } from './storage-rca.mjs';
 let phase = 'precheck';
 let checks = 0;
 
@@ -32,6 +34,7 @@ export function requirePrivacyDenial(result) {
 }
 export async function requireStorageDenial(result) {
   const error = result.error;
+  let body;
   if (error?.name === 'StorageApiError' && [400, 404].includes(error.status) &&
       ['Object not found', 'Bucket not found'].includes(error.message)) return;
   // storage-js 2.7.1 download(noResolveJson) wraps even real HTTP errors in
@@ -39,15 +42,15 @@ export async function requireStorageDenial(result) {
   // to an arbitrary UnknownError (transport/JSON/5xx errors must still fail).
   if (error?.name === 'StorageUnknownError' && error.originalError instanceof Response) {
     const response = error.originalError;
-    let body;
-    try { body = await response.clone().json(); } catch { throw Error('LOCAL_STORAGE_DENIAL_REQUIRED'); }
-    const hidden = (body.code === 'NoSuchKey' && body.message === 'Object not found') ||
-      (body.code === 'NoSuchBucket' && body.message === 'Bucket not found');
-    if ([400, 404].includes(response.status) && String(body.statusCode) === '404' && hidden) {
-      console.log('LOCAL_STORAGE_DIAGNOSTIC ' + JSON.stringify({ httpStatus: response.status, type: 'hidden_object', sdkWrapper: 'response' }));
+    try { body = await response.clone().json(); } catch { /* The unchanged guard rejects invalid JSON. */ }
+    const hidden = (body?.code === 'NoSuchKey' && body?.message === 'Object not found') ||
+      (body?.code === 'NoSuchBucket' && body?.message === 'Bucket not found');
+    if ([400, 404].includes(response.status) && String(body?.statusCode) === '404' && hidden) {
       return;
     }
   }
+  // Diagnostics are emitted by the transport probe; do not change this guard
+  // during RCA, even if the observed server contract differs from its predicate.
   throw Error('LOCAL_STORAGE_DENIAL_REQUIRED');
 }
 export function requireOwnApproval(result, email) {
@@ -59,7 +62,8 @@ export async function integration() {
   phase = 'reviewed-local-graphql';
   await prepareLocalGraphql();
   const status = localStatus();
-  const fetcher = localFetch();
+  const storageProbe = storageDownloadProbe();
+  const fetcher = localFetch(storageProbe.fetch);
   const client = key => createClient(API, key, { global: { fetch: fetcher }, auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
   const admin = client(status.SERVICE_ROLE_KEY);
   const anon = client(status.ANON_KEY);
@@ -192,10 +196,14 @@ export async function integration() {
   sql("CREATE POLICY local_fake_storage ON storage.objects FOR ALL TO authenticated USING(bucket_id='privacy-fake-private' AND (storage.foldername(name))[1]=auth.uid()::text) WITH CHECK(bucket_id='privacy-fake-private' AND (storage.foldername(name))[1]=auth.uid()::text);");
   const object = `${users[1]}/fake.txt`;
   ok(!(await clients[1].storage.from(bucket).upload(object, new Blob(['synthetic fixture']), { contentType: 'text/plain' })).error);
-  const downloaded = await clients[1].storage.from(bucket).download(object);
+  const ownerToken = (await clients[1].auth.getSession()).data.session?.access_token;
+  const otherToken = (await clients[2].auth.getSession()).data.session?.access_token;
+  console.log('LOCAL_STORAGE_DIAGNOSTIC ' + JSON.stringify({ phase: 'storage-session-independence', verdict: storageSessionVerdict([ownerToken, otherToken], [users[1], users[2]], status.JWT_SECRET) }));
+  recordStorageCatalog(sql, [users[1], users[2]]);
+  const downloaded = await storageProbe.download('owner', clients[1], bucket, object, ownerToken);
   ok(!downloaded.error && await downloaded.data.text() === 'synthetic fixture');
-  await requireStorageDenial(await clients[2].storage.from(bucket).download(object)); checks++;
-  await requireStorageDenial(await anon.storage.from(bucket).download(object)); checks++;
+  await requireStorageDenial(await storageProbe.download('other-user', clients[2], bucket, object, otherToken)); checks++;
+  await requireStorageDenial(await storageProbe.download('anonymous', anon, bucket, object, status.ANON_KEY)); checks++;
   passed();
   phase = 'expired-session';
   const session = (await clients[1].auth.getSession()).data.session;

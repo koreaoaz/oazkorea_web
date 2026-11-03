@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { createClient } from '@supabase/supabase-js';
 import { API, NETWORK, PROJECT, readiness, waitForReadiness, serviceProbe, commandDiagnostic, containerDiagnostics, assertLocalUrl, assertDockerEndpoint, verifyNetwork, verifyBindings, verifyRelease, safeCommandFailure } from '../scripts/local-supabase.mjs';
-import { localFetch, requireGraphqlData, requirePrivacyDenial, requireStorageDenial, requireOwnApproval } from '../scripts/test-local-supabase.mjs';
+import { localFetch, requireGraphqlData, requirePrivacyDenial, requireStorageDenial, requireOwnApproval, storageFailureDiagnostic } from '../scripts/test-local-supabase.mjs';
 import { assertNoEnvironmentFiles, localDevelopmentEnvironment } from '../scripts/local-dev.mjs';
 import { unpackReviewedGraphql, validateContainerPgPath, GRAPHQL_ASSET, GRAPHQL_SHA } from '../scripts/prepare-local-graphql.mjs';
 
@@ -115,6 +115,18 @@ test('Actual storage SDK reproduces wrapped HTTP denial and still rejects transp
   }
   await assert.rejects(requireStorageDenial({ error: { name: 'StorageUnknownError', originalError: new TypeError('fake transport') } }));
   await assert.rejects(requireStorageDenial({ error: { name: 'StorageUnknownError', originalError: new Response('not json', { status: 404 }) } }));
+});
+test('Storage failure evidence admits fixed fields only, never server response text or private fields', () => {
+  const secret = 'fake-private-never-emit';
+  const diagnostic = storageFailureDiagnostic({ name: 'StorageUnknownError', message: secret,
+    originalError: new Response(secret, { status: 403 }), credentials: secret }, { statusCode: '403', code: 'AccessDenied', message: secret, policy: secret });
+  assert.equal(diagnostic.httpStatus, 403);
+  assert.equal(diagnostic.storageCode, 'AccessDenied');
+  assert.equal(diagnostic.sdkErrorClass, 'StorageUnknownError');
+  assert.equal(storageFailureDiagnostic(null).sdkErrorClass, 'none');
+  assert.equal(diagnostic.verdict, 'ACCESS_DENIED_CODE');
+  assert.ok(!JSON.stringify(diagnostic).includes(secret));
+  assert.equal(storageFailureDiagnostic({ name: secret }, { code: secret, message: secret }).sdkErrorClass, 'other');
 });
 test('Approval contract permits exactly the verified self email, never a directory or another person', () => {
   const email = 'fake@example.invalid';
