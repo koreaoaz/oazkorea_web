@@ -1,4 +1,4 @@
-// Diagnostic projection only. This module never decides that a denial test passes.
+// Allowlisted observations and fail-closed prerequisites for the local Storage test.
 import { createHmac } from 'node:crypto';
 import { API } from './local-supabase.mjs';
 
@@ -58,7 +58,10 @@ export function storageDownloadProbe(fetcher = globalThis.fetch, emit = value =>
       if (!active || url.origin !== API || url.pathname !== active.path || (options.method ?? 'GET') !== 'GET') return fetcher(input, options);
       const observed = active;
       const headers = new Headers(options.headers ?? (input instanceof Request ? input.headers : undefined));
-      emit({ request: observed.request, phase: 'storage-wire-identity', verdict: headers.get('Authorization') === `Bearer ${observed.token}` ? 'EXPECTED_SESSION_TOKEN' : 'UNEXPECTED_SESSION_TOKEN' });
+      const matches = headers.get('Authorization') === `Bearer ${observed.token}`;
+      observed.requests++;
+      emit({ request: observed.request, phase: 'storage-wire-identity', verdict: matches ? 'EXPECTED_SESSION_TOKEN' : 'UNEXPECTED_SESSION_TOKEN' });
+      if (!matches) throw Error('LOCAL_STORAGE_SESSION_MISMATCH');
       const response = await fetcher(input, options);
       observed.httpStatus = response.status;
       observed.responseOk = response.ok;
@@ -69,10 +72,11 @@ export function storageDownloadProbe(fetcher = globalThis.fetch, emit = value =>
       return response;
     },
     download: async (request, client, bucket, object, token) => {
-      if (!actors.includes(request) || active) throw Error('LOCAL_STORAGE_DIAGNOSTIC_CONTEXT');
-      active = { request, path: `/storage/v1/object/${bucket}/${object}`, token };
+      if (!actors.includes(request) || active || typeof token !== 'string' || !token) throw Error('LOCAL_STORAGE_DIAGNOSTIC_CONTEXT');
+      active = { request, path: `/storage/v1/object/${bucket}/${object}`, token, requests: 0 };
       try {
         const result = await client.storage.from(bucket).download(object);
+        if (active.requests !== 1) throw Error('LOCAL_STORAGE_REQUEST_REQUIRED');
         let fixtureMatches = false;
         if (active.responseOk && result.data instanceof Blob) fixtureMatches = await result.data.text() === 'synthetic fixture';
         emit(storageFailureDiagnostic(result.error, active.body, { ...active, dataPresent: result.data != null, fixtureMatches }));
@@ -91,6 +95,12 @@ export function storageCatalogVerdicts(meta) {
     { phase: 'storage-select-policies', verdict: meta.rls === true && meta.no_bypass === true && meta.auth_policies === 1 && meta.expected_policy === 1 && meta.anon_policies === 0 ? 'SINGLE_PERMISSIVE_OWNER_POLICY_RLS_NO_BYPASS' : 'POLICY_REVIEW_REQUIRED' },
     { phase: 'storage-select-grants', verdict: meta.auth_select === true && meta.anon_select === true ? 'ANON_AND_AUTHENTICATED_SELECT_SUBJECT_TO_RLS' : 'GRANT_REVIEW_REQUIRED' },
   ];
+}
+
+export function requireStorageCatalog(meta, visible) {
+  const expected = ['PRIVATE_BUCKET_CONFIRMED', 'SINGLE_PERMISSIVE_OWNER_POLICY_RLS_NO_BYPASS', 'ANON_AND_AUTHENTICATED_SELECT_SUBJECT_TO_RLS'];
+  if (storageCatalogVerdicts(meta).some((result, i) => result.verdict !== expected[i]) ||
+      !Array.isArray(visible) || visible.length !== 2 || visible[0] !== '1' || visible[1] !== '0') throw Error('LOCAL_STORAGE_ISOLATION_REQUIRED');
 }
 
 // Only the verified disposable stack is supplied as query(). No operational SQL
@@ -115,4 +125,5 @@ SET LOCAL "request.jwt.claims"='{"sub":"${id}","role":"authenticated"}';
 SELECT count(*) FROM storage.objects WHERE bucket_id='privacy-fake-private' AND name='${users[0]}/fake.txt';
 ROLLBACK;`));
   emit({ phase: 'storage-direct-rls', verdict: visible[0] === '1' && visible[1] === '0' ? 'OWNER_VISIBLE_OTHER_HIDDEN' : 'DIRECT_RLS_REVIEW_REQUIRED' });
+  requireStorageCatalog(meta, visible);
 }

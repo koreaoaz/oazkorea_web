@@ -96,8 +96,9 @@ test('CI cannot count broken GraphQL or authentication as successful privacy pro
   for (const code of ['401', 'PGRST202', '42703', undefined]) assert.throws(() => requirePrivacyDenial({ error: { code } }));
 });
 test('Storage denial requires a real hidden-object response, not network or authentication failure', async () => {
-  await assert.doesNotReject(requireStorageDenial({ error: { name: 'StorageApiError', status: 404, message: 'Object not found' } }));
+  await assert.doesNotReject(requireStorageDenial({ data: null, error: { name: 'StorageUnknownError', originalError: Response.json({ statusCode: '404', code: 'NoSuchKey', message: 'Object not found' }, { status: 404 }) } }));
   for (const error of [undefined, { name: 'StorageUnknownError', status: 404, message: 'Object not found' },
+    { name: 'StorageApiError', status: 404, message: 'Object not found' },
     { name: 'StorageApiError', status: 500, message: 'Object not found' }, { name: 'StorageApiError', status: 401, message: 'Invalid JWT' },
     { name: 'StorageApiError', status: 400, message: 'Invalid JWT' }]) await assert.rejects(requireStorageDenial({ error }));
 });

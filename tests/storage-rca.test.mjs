@@ -4,7 +4,7 @@ import { createHmac } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { API } from '../scripts/local-supabase.mjs';
 import { localFetch, requireStorageDenial } from '../scripts/test-local-supabase.mjs';
-import { storageFailureDiagnostic, storageDownloadProbe, storageSessionVerdict, storageCatalogVerdicts, recordStorageCatalog } from '../scripts/storage-rca.mjs';
+import { storageFailureDiagnostic, storageDownloadProbe, storageSessionVerdict, storageCatalogVerdicts, recordStorageCatalog, requireStorageCatalog } from '../scripts/storage-rca.mjs';
 
 const hidden = { statusCode: '404', code: 'NoSuchKey', message: 'Object not found' };
 const bucket = { statusCode: '404', code: 'NoSuchBucket', message: 'Bucket not found' };
@@ -17,9 +17,10 @@ const cases = [
   ['404 NoSuchBucket', 404, bucket, true, 'HIDDEN_BUCKET_WITH_CODE'],
   ['400 hidden NoSuchKey', 400, hidden, true, 'HIDDEN_OBJECT_WITH_CODE'],
   // Official v1.28.2 GET 4xx schema only declares statusCode/error/message.
-  // Reproduce the existing false-negative without changing its pass predicate.
-  ['400 legacy hidden object without code', 400, { statusCode: '404', error: 'not_found', message: 'Object not found' }, false, 'LEGACY_HIDDEN_OBJECT_NO_CODE'],
-  ['404 legacy hidden bucket without code', 404, { statusCode: '404', error: 'Bucket not found', message: 'Bucket not found' }, false, 'LEGACY_HIDDEN_BUCKET_NO_CODE'],
+  // The real CI response is a denial only with this exact legacy structure.
+  ['400 legacy hidden object without code', 400, { statusCode: '404', error: 'not_found', message: 'Object not found' }, true, 'LEGACY_HIDDEN_OBJECT_NO_CODE'],
+  ['404 legacy hidden bucket without code', 404, { statusCode: '404', error: 'Bucket not found', message: 'Bucket not found' }, true, 'LEGACY_HIDDEN_BUCKET_NO_CODE'],
+  ['400 anonymous hidden bucket without code', 400, { statusCode: '404', error: 'Bucket not found', message: 'Bucket not found' }, true, 'LEGACY_HIDDEN_BUCKET_NO_CODE'],
   ['200 file content', 200, 'synthetic fixture', false, 'HTTP_SUCCESS_FIXTURE_CONTENT'],
   ['200 unexpected content', 200, 'fake unrelated content', false, 'HTTP_SUCCESS'],
   ['401 authentication failure', 401, invalid, false, 'AUTHENTICATION_ERROR'],
@@ -30,8 +31,8 @@ const cases = [
   ['network failure', null, null, false, 'NO_HTTP_RESPONSE'],
 ];
 
-for (const [name, status, body, acceptedByExistingGuard, verdict] of cases) {
-  test(`Storage RCA with installed SDK: ${name}`, async () => {
+for (const [name, status, body, accepted, verdict] of cases) {
+  test(`Storage denial with installed SDK: ${name}`, async () => {
     const output = [];
     let requests = 0;
     const probe = storageDownloadProbe(async (url, options) => {
@@ -42,7 +43,8 @@ for (const [name, status, body, acceptedByExistingGuard, verdict] of cases) {
       return typeof body === 'string' ? new Response(body, { status }) : Response.json(body, { status });
     }, value => output.push(value));
     const client = createClient(API, 'fake-local-only', { global: { fetch: localFetch(probe.fetch) }, auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
-    const result = await probe.download('other-user', client, 'fake-private', 'fake.txt', 'fake-local-only');
+    const request = name.includes('anonymous') ? 'anonymous' : 'other-user';
+    const result = await probe.download(request, client, 'fake-private', 'fake.txt', 'fake-local-only');
     assert.equal(requests, 1);
     assert.equal(output[0].verdict, 'EXPECTED_SESSION_TOKEN');
     const evidence = output[1];
@@ -53,7 +55,7 @@ for (const [name, status, body, acceptedByExistingGuard, verdict] of cases) {
     assert.equal(evidence.sdkErrorClass, status === 200 ? 'none' : 'StorageUnknownError');
     assert.equal(evidence.responseWrapper, status === 200 ? 'none' : status === null ? 'TypeError' : 'Response');
     assert.equal(evidence.storageCode, body?.code ?? 'absent');
-    if (acceptedByExistingGuard) await assert.doesNotReject(requireStorageDenial(result));
+    if (accepted) await assert.doesNotReject(requireStorageDenial(result));
     else await assert.rejects(requireStorageDenial(result), /LOCAL_STORAGE_DENIAL_REQUIRED/);
     assert.equal(output.length, 2);
     assert.doesNotMatch(JSON.stringify(output), /fake private|fake-private|synthetic fixture|fake-local-only|Authorization|Bearer/);
@@ -72,10 +74,10 @@ test('RCA output has exactly the approved fixed fields and rejects arbitrary nes
   assert.equal(evidence.responseOk, null);
 });
 
-test('Probe reports wrong wire identity without changing the request or converting its failure to success', async () => {
+test('Probe blocks wrong wire identity before transport and cannot convert it to a valid denial', async () => {
   const output = [];
   const probe = storageDownloadProbe(async (_url, options) => {
-    assert.equal(new Headers(options.headers).get('Authorization'), 'Bearer fake-local-only');
+    assert.fail('Unexpected session must not reach transport: ' + typeof options.headers);
     return Response.json(denied, { status: 403 });
   }, value => output.push(value));
   const client = createClient(API, 'fake-local-only', { global: { fetch: localFetch(probe.fetch) }, auth: { persistSession: false, autoRefreshToken: false } });
@@ -100,7 +102,45 @@ test('Session evidence verifies distinct subjects, signatures, role and expiry i
   assert.equal(storageSessionVerdict([undefined, undefined], users, 'fake-signing-only', 100), 'SESSION_IDENTITY_MISMATCH');
 });
 
+test('Owner positive control requires actual successful fixture download; its result is never a denial', async () => {
+  const output = [];
+  const probe = storageDownloadProbe(async () => new Response('synthetic fixture', { status: 200 }), value => output.push(value));
+  const client = createClient(API, 'fake-local-only', { global: { fetch: localFetch(probe.fetch) }, auth: { persistSession: false, autoRefreshToken: false } });
+  const result = await probe.download('owner', client, 'fake-private', 'fake.txt', 'fake-local-only');
+  assert.equal(result.error, null);
+  assert.equal(await result.data.text(), 'synthetic fixture');
+  assert.equal(output[1].verdict, 'HTTP_SUCCESS_FIXTURE_CONTENT');
+  await assert.rejects(requireStorageDenial(result));
+});
+
+test('Observed legacy contract rejects malformed, contradictory, unknown and data-bearing results', async () => {
+  const legacy = { statusCode: '404', error: 'not_found', message: 'Object not found' };
+  for (const body of [null, [], {}, { ...legacy, statusCode: '403' }, { ...legacy, code: null },
+    { ...legacy, code: 'InvalidJWT' }, { ...legacy, error: 'Unauthorized' }, { ...legacy, message: 'unknown' },
+    { ...legacy, data: 'fake payload' }, { statusCode: '404', message: 'Object not found' },
+    { ...hidden, error: 'InvalidJWT' }]) {
+    await assert.rejects(requireStorageDenial({ data: null, error: { name: 'StorageUnknownError', originalError: Response.json(body, { status: 400 }) } }), /LOCAL_STORAGE_DENIAL_REQUIRED/);
+  }
+  for (const data of ['', 'fake content', [], {}, new Blob([]), new Blob(['fake content'])]) {
+    await assert.rejects(requireStorageDenial({ data, error: { name: 'StorageUnknownError', originalError: Response.json(legacy, { status: 400 }) } }), /LOCAL_STORAGE_DENIAL_REQUIRED/);
+  }
+  await assert.rejects(requireStorageDenial({ data: null, error: { name: 'StorageUnknownError', originalError: Response.json(legacy, { status: 200 }) } }));
+});
+
 const expectedCatalog = { private_bucket: true, rls: true, no_bypass: true, auth_select: true, anon_select: true, auth_policies: 1, anon_policies: 0, expected_policy: 1 };
+test('Storage isolation gate fails on public buckets, disabled RLS, bypass and extra SELECT policies', () => {
+  assert.doesNotThrow(() => requireStorageCatalog(expectedCatalog, ['1', '0']));
+  for (const change of [{ private_bucket: false }, { rls: false }, { no_bypass: false }, { auth_policies: 2 },
+    { anon_policies: 1 }, { expected_policy: 0 }, { auth_select: false }, { anon_select: false }]) {
+    assert.throws(() => requireStorageCatalog({ ...expectedCatalog, ...change }, ['1', '0']), /LOCAL_STORAGE_ISOLATION_REQUIRED/);
+  }
+  for (const visible of [['1', '1'], ['0', '0'], ['1'], [], null]) {
+    assert.throws(() => requireStorageCatalog(expectedCatalog, visible), /LOCAL_STORAGE_ISOLATION_REQUIRED/);
+  }
+  const users = ['00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000002'];
+  let calls = 0;
+  assert.throws(() => recordStorageCatalog(() => ++calls === 1 ? JSON.stringify({ ...expectedCatalog, rls: false }) : '1', users, () => {}), /LOCAL_STORAGE_ISOLATION_REQUIRED/);
+});
 test('Policy diagnostics include inherited/public SELECT and ALL policies, never raw metadata', () => {
   assert.equal(storageCatalogVerdicts(expectedCatalog)[1].verdict, 'SINGLE_PERMISSIVE_OWNER_POLICY_RLS_NO_BYPASS');
   for (const change of [{ rls: false }, { no_bypass: false }, { auth_policies: 2 }, { expected_policy: 0 }, { anon_policies: 1 }]) {
