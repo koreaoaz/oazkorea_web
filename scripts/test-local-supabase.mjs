@@ -30,9 +30,25 @@ export function requirePrivacyDenial(result) {
     throw Error('LOCAL_PERMISSION_DENIAL_REQUIRED');
   }
 }
-export function requireStorageDenial(result) {
-  if (result.error?.name !== 'StorageApiError' || ![400, 404].includes(result.error.status) ||
-      !['Object not found', 'Bucket not found'].includes(result.error.message)) throw Error('LOCAL_STORAGE_DENIAL_REQUIRED');
+export async function requireStorageDenial(result) {
+  const error = result.error;
+  if (error?.name === 'StorageApiError' && [400, 404].includes(error.status) &&
+      ['Object not found', 'Bucket not found'].includes(error.message)) return;
+  // storage-js 2.7.1 download(noResolveJson) wraps even real HTTP errors in
+  // StorageUnknownError. A Response with a verified 404 body is NOT equivalent
+  // to an arbitrary UnknownError (transport/JSON/5xx errors must still fail).
+  if (error?.name === 'StorageUnknownError' && error.originalError instanceof Response) {
+    const response = error.originalError;
+    let body;
+    try { body = await response.clone().json(); } catch { throw Error('LOCAL_STORAGE_DENIAL_REQUIRED'); }
+    const hidden = (body.code === 'NoSuchKey' && body.message === 'Object not found') ||
+      (body.code === 'NoSuchBucket' && body.message === 'Bucket not found');
+    if ([400, 404].includes(response.status) && String(body.statusCode) === '404' && hidden) {
+      console.log('LOCAL_STORAGE_DIAGNOSTIC ' + JSON.stringify({ httpStatus: response.status, type: 'hidden_object', sdkWrapper: 'response' }));
+      return;
+    }
+  }
+  throw Error('LOCAL_STORAGE_DENIAL_REQUIRED');
 }
 export function requireOwnApproval(result, email) {
   if (result.error || !Array.isArray(result.data) || result.data.length !== 1 ||
@@ -178,8 +194,8 @@ export async function integration() {
   ok(!(await clients[1].storage.from(bucket).upload(object, new Blob(['synthetic fixture']), { contentType: 'text/plain' })).error);
   const downloaded = await clients[1].storage.from(bucket).download(object);
   ok(!downloaded.error && await downloaded.data.text() === 'synthetic fixture');
-  requireStorageDenial(await clients[2].storage.from(bucket).download(object)); checks++;
-  requireStorageDenial(await anon.storage.from(bucket).download(object)); checks++;
+  await requireStorageDenial(await clients[2].storage.from(bucket).download(object)); checks++;
+  await requireStorageDenial(await anon.storage.from(bucket).download(object)); checks++;
   passed();
   phase = 'expired-session';
   const session = (await clients[1].auth.getSession()).data.session;

@@ -95,11 +95,26 @@ test('CI cannot count broken GraphQL or authentication as successful privacy pro
   assert.doesNotThrow(() => requirePrivacyDenial({ error: { code: '42501' } }));
   for (const code of ['401', 'PGRST202', '42703', undefined]) assert.throws(() => requirePrivacyDenial({ error: { code } }));
 });
-test('Storage denial requires a real hidden-object response, not network or authentication failure', () => {
-  assert.doesNotThrow(() => requireStorageDenial({ error: { name: 'StorageApiError', status: 404, message: 'Object not found' } }));
+test('Storage denial requires a real hidden-object response, not network or authentication failure', async () => {
+  await assert.doesNotReject(requireStorageDenial({ error: { name: 'StorageApiError', status: 404, message: 'Object not found' } }));
   for (const error of [undefined, { name: 'StorageUnknownError', status: 404, message: 'Object not found' },
     { name: 'StorageApiError', status: 500, message: 'Object not found' }, { name: 'StorageApiError', status: 401, message: 'Invalid JWT' },
-    { name: 'StorageApiError', status: 400, message: 'Invalid JWT' }]) assert.throws(() => requireStorageDenial({ error }));
+    { name: 'StorageApiError', status: 400, message: 'Invalid JWT' }]) await assert.rejects(requireStorageDenial({ error }));
+});
+test('Actual storage SDK reproduces wrapped HTTP denial and still rejects transport, JWT and server errors', async () => {
+  const hidden = { statusCode: '404', code: 'NoSuchKey', message: 'Object not found' };
+  for (const [status, body, allow] of [[400, hidden, true], [404, hidden, true], [500, hidden, false],
+    [400, { statusCode: '400', code: 'InvalidJWT', message: 'Invalid JWT' }, false], [404, { message: 'Object not found' }, false]]) {
+    const c = createClient(API, 'fake-local-only', { global: { fetch: localFetch(async () => Response.json(body, { status })) },
+      auth: { persistSession: false, autoRefreshToken: false } });
+    const result = await c.storage.from('fake-private').download('fake.txt');
+    assert.equal(result.error.name, 'StorageUnknownError');
+    assert.ok(result.error.originalError instanceof Response);
+    if (allow) await assert.doesNotReject(requireStorageDenial(result));
+    else await assert.rejects(requireStorageDenial(result));
+  }
+  await assert.rejects(requireStorageDenial({ error: { name: 'StorageUnknownError', originalError: new TypeError('fake transport') } }));
+  await assert.rejects(requireStorageDenial({ error: { name: 'StorageUnknownError', originalError: new Response('not json', { status: 404 }) } }));
 });
 test('Approval contract permits exactly the verified self email, never a directory or another person', () => {
   const email = 'fake@example.invalid';
