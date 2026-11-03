@@ -11,7 +11,11 @@ export const API = 'http://127.0.0.1:56321';
 const root = fileURLToPath(new URL('../', import.meta.url));
 export function safeCommandFailure(stderr = '') {
   const guard = (stderr ?? '').match(/ERROR:\s+(P0_STOP:[^\r\n]+)/i)?.[1];
-  return guard ? 'LOCAL_SQL_GUARD_' + createHash('sha256').update(guard).digest('hex').slice(0, 12) : 'LOCAL_STACK_COMMAND_FAILED';
+  if (guard) return 'LOCAL_SQL_GUARD_' + createHash('sha256').update(guard).digest('hex').slice(0, 12);
+  if (/GLIBC_.*not found|incompatible library|could not load library|undefined symbol/i.test(stderr ?? '')) return 'LOCAL_EXTENSION_ABI';
+  if (/must be superuser|permission denied|must be owner/i.test(stderr ?? '')) return 'LOCAL_SQL_PERMISSION';
+  if (/dependent objects still exist|cannot drop extension.*other objects depend/i.test(stderr ?? '')) return 'LOCAL_EXTENSION_DEPENDENCY';
+  return 'LOCAL_STACK_COMMAND_FAILED';
 }
 export function run(command, args, input) {
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/SUPABASE|^PG|^DATABASE|^POSTGRES|^OAZ_|^NEXT_PUBLIC_|^DOCKER_HOST$|^DOCKER_CONTEXT$/.test(key)));

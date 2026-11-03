@@ -6,6 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 import { API, NETWORK, assertLocalUrl, assertDockerEndpoint, verifyNetwork, verifyBindings, verifyRelease, safeCommandFailure } from '../scripts/local-supabase.mjs';
 import { localFetch, requireGraphqlData, requirePrivacyDenial } from '../scripts/test-local-supabase.mjs';
 import { assertNoEnvironmentFiles, localDevelopmentEnvironment } from '../scripts/local-dev.mjs';
+import { unpackReviewedGraphql, validateContainerPgPath, GRAPHQL_ASSET, GRAPHQL_SHA } from '../scripts/prepare-local-graphql.mjs';
 
 test('Local test refuses remote, disguised and alternate-port endpoints', () => {
   assert.doesNotThrow(() => assertLocalUrl(API));
@@ -110,4 +111,18 @@ test('Fresh-install lock retains chalk dependencies and integrity metadata', () 
     assert.match(entry.resolved, /^https:\/\/registry\.npmjs\.org\//);
     assert.match(entry.integrity, /^sha512-/);
   }
+});
+test('Local GraphQL provisioning cannot accept an untrusted artifact or target path', () => {
+  assert.equal(new URL(GRAPHQL_ASSET).hostname, 'github.com');
+  assert.match(GRAPHQL_ASSET, /supabase\/pg_graphql\/releases\/download\/v1\.6\.3\/.*pg17-amd64-linux-gnu\.deb$/);
+  assert.equal(GRAPHQL_SHA, 'e827939c60bd1e0b861bf30206d04a274e354b1f8942d36fe4b7cd8889f4dc84');
+  assert.throws(() => unpackReviewedGraphql(Buffer.from('fake untrusted package')), /INTEGRITY/);
+  for (const value of ['/etc', '/usr/../etc', '/usr/lib;echo fake', 'https://remote.invalid/lib', 'C:/backups']) assert.throws(() => validateContainerPgPath(value));
+  assert.equal(validateContainerPgPath('/usr/lib/postgresql/17/lib'), '/usr/lib/postgresql/17/lib');
+});
+test('Extension failure classification emits fixed safe categories only', () => {
+  assert.equal(safeCommandFailure('could not load library: fake-sensitive-path'), 'LOCAL_EXTENSION_ABI');
+  assert.equal(safeCommandFailure('permission denied for fake-sensitive-object'), 'LOCAL_SQL_PERMISSION');
+  assert.equal(safeCommandFailure('dependent objects still exist: fake-sensitive-object'), 'LOCAL_EXTENSION_DEPENDENCY');
+  assert.equal(safeCommandFailure(null), 'LOCAL_STACK_COMMAND_FAILED');
 });
