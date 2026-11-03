@@ -24,8 +24,12 @@ export function checkRelease(root = process.cwd()) {
   const failures = [];
   for (const file of new Set(files)) {
     for (const code of inspectSource(file, '')) failures.push({ file, code });
-    if (!existsSync(`${root}/${file}`) || !/\.(?:ts|tsx|mts|cts|js|mjs|cjs|py|json|sql|md|yml|yaml|cmd|txt)$|(?:^|\/)\.env/.test(file)) continue;
-    const content = readFileSync(`${root}/${file}`, 'utf8'); checked++;
+    if (!existsSync(`${root}/${file}`)) continue;
+    const bytes = readFileSync(`${root}/${file}`);
+    // Scan every text file, including extensionless config and legacy .oaz
+    // files; a new extension must not silently evade credential inspection.
+    if (bytes.includes(0)) continue;
+    const content = bytes.toString('utf8'); checked++;
     for (const code of inspectSource(file, content)) failures.push({ file, code });
   }
   const sql = readFileSync(`${root}/reports/main-safety/integration/sql/010-privacy-minimal.sql`);

@@ -115,3 +115,11 @@
 - tests/preview-runtime.test.mjs
 - tests/registration.test.mjs
 - tests/release-readiness.test.mjs
+# 로컬 Supabase 전환 추가 파일 (2026-11-03)
+
+이번 단계의 추가/변경 범위: vercel.json, supabase/config.toml, scripts/local-supabase.mjs,
+scripts/test-local-supabase.mjs, scripts/local-dev.mjs, tests/local-supabase.test.mjs,
+.github/workflows/privacy-hotfix.yml, .gitignore, package.json, scripts/check-hotfix-security.mjs,
+reports/privacy-hotfix/README.md, PREVIEW_SPLIT_PLAN.md, LOCAL_SUPABASE_PLAN.md, LOCAL_SUPABASE_VALIDATION.md 및 이 목록.
+운영 SQL과 앱의 Production 인증 동작은 변경하지 않았다. 이 절 위 목록은 이전 Hotfix 범위다.
+이후 CI 검증 단계에서는 CI_RELEASE_READINESS.md를 추가하고 SDK 권한 검사·종료 보호·텍스트 보안 검사를 보강했다.

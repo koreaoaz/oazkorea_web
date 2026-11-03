@@ -55,3 +55,7 @@ verification-*.txt
 *.key
 __pycache__/
 *.pyc
+
+# Local CLI state/keys are never committed.
+/supabase/.temp/
+/supabase/.branches/

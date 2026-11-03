@@ -1,6 +1,6 @@
 # P0 개인정보 Hotfix — 운영 기준 d95bc68
 
-최신 상태: 일반 Preview의 운영 Supabase 연결이 사용자 Dashboard에서 확인되어 실제 Push/Preview는 **BLOCKED**다. 기존 Demo는 보존 대상으로 선택을 차단했다. 최신 준비/검증 결과는 PREVIEW_SPLIT_PLAN.md, DEMO_REUSE_REVIEW.md, INTEGRATION_VALIDATION.md를 따른다.
+최신 방향: 추가 클라우드 프로젝트 없이 로컬 Supabase와 GitHub CI를 사용한다. Main/Demo는 보존하고 Vercel Hotfix 자동 배포는 vercel.json으로 차단한다. 사용자 Dashboard에서 Production=main / Only build production도 확인됐다. 최신 CI 검증·커밋·승인 절차는 CI_RELEASE_READINESS.md를 따른다. 실제 Docker 전체 실행 및 원격 차단 실동작은 미확인이다. LOCAL_SUPABASE_PLAN.md는 로컬 실행 안내이며, 이전 PREVIEW_SPLIT_PLAN.md의 새 클라우드 프로젝트 제안은 폐기된 과거 계획이다.
 
 작업 경로: C:/Users/yjcha/OAZ-Workspace/oazkorea_web-privacy-hotfix
 브랜치: hotfix/privacy-p0. 시작 커밋 d95bc68. 원래 main과 feature/main-integration의 코드/작업 트리는 수정하지 않았다.

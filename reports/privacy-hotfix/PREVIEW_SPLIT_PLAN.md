@@ -1,4 +1,6 @@
-# Hotfix Preview 분리·실행 계획 — 현재 BLOCKED
+# Hotfix Preview 분리·실행 계획 — 과거 계획
+
+> 2026-11-03 변경: 이 문서의 세 번째 Supabase 프로젝트 생성 및 Preview 연결 제안은 더 이상 실행하지 않는다. Main/Demo 보존과 Free 쿼터 제약에 따라 LOCAL_SUPABASE_PLAN.md로 대체했다. 아래 내용은 이전 검토 기록이다. 현재는 Hotfix Vercel Git 자동 배포를 차단하고 로컬 Supabase / GitHub CI만 준비한다.
 
 ## 새로 확인된 원격 상태 (사용자 Dashboard 근거)
 

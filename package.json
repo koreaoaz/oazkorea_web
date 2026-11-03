@@ -14,7 +14,12 @@
     "check:preview": "node scripts/check-preview-env.mjs",
     "test:preview": "node --require ./scripts/offline-network.cjs --test --test-concurrency=1 tests/preview-runtime.test.mjs tests/preview-integration.test.mjs",
     "test:runtime": "node scripts/test-next-runtime.mjs",
-    "audit:preview": "node scripts/audit-preview-env.mjs"
+    "audit:preview": "node scripts/audit-preview-env.mjs",
+    "local:start": "node scripts/local-supabase.mjs start",
+    "local:check": "node scripts/local-supabase.mjs check",
+    "local:stop": "node scripts/local-supabase.mjs stop",
+    "local:dev": "node scripts/local-dev.mjs",
+    "test:local-supabase": "node scripts/test-local-supabase.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
