@@ -9,6 +9,51 @@ export const PROJECT = 'oaz-privacy-local';
 export const NETWORK = 'oaz-privacy-loopback';
 export const API = 'http://127.0.0.1:56321';
 const root = fileURLToPath(new URL('../', import.meta.url));
+const services = ['db', 'auth', 'rest', 'storage', 'kong', 'imgproxy', 'pg_meta'];
+const started = Date.now();
+export function commandId(command, args) {
+  if (command === 'supabase' && ['start', 'stop', 'status', '--version'].includes(args[0])) return `cli.${args[0].replace('--', '')}`;
+  if (command === 'git') return 'git.branch';
+  if (command !== 'docker') return 'unknown';
+  if (['ps', 'inspect', 'restart', 'cp'].includes(args[0])) return `docker.${args[0]}`;
+  if (['context', 'network'].includes(args[0]) && ['inspect', 'ls', 'create'].includes(args[1])) return `docker.${args[0]}.${args[1]}`;
+  if (args[0] === 'exec') {
+    for (const program of ['psql', 'pg_config', 'uname', 'chmod', 'mv']) if (args.includes(program)) return `docker.exec.${program}`;
+  }
+  return 'docker.other';
+}
+export function commandDiagnostic(command, args, result, elapsedMs) {
+  const stderr = result.stderr ?? '';
+  const type = result.error?.code === 'ETIMEDOUT' ? 'timeout'
+    : result.error?.code === 'ENOENT' ? 'executable_missing'
+      : result.signal ? 'signal'
+        : /container is not ready: starting/.test(stderr) ? 'health_starting'
+          : /container is not ready: unhealthy/.test(stderr) ? 'health_unhealthy'
+            : /container is not running/.test(stderr) ? 'container_stopped'
+              : 'nonzero_exit';
+  return { command: commandId(command, args), exitCode: Number.isInteger(result.status) ? result.status : null,
+    timeout: type === 'timeout', type, guard: safeCommandFailure(stderr), elapsedMs: Math.max(0, Math.round(elapsedMs)) };
+}
+export function containerDiagnostics(containers) {
+  return services.flatMap(service => {
+    const c = containers.find(c => c.Name === `/supabase_${service}_${PROJECT}`);
+    if (!c) return [{ service, state: 'missing' }];
+    const state = ['running', 'restarting', 'exited', 'created', 'dead', 'paused'].includes(c.State?.Status) ? c.State.Status : 'unknown';
+    const health = ['healthy', 'unhealthy', 'starting'].includes(c.State?.Health?.Status) ? c.State.Health.Status : 'none';
+    const image = c.Config?.Image ?? '';
+    // Never include inspect's Env, health Output, labels or arbitrary image names.
+    const version = /^(?:(?:public\.ecr\.aws\/supabase|supabase)\/[a-z0-9_-]+):([a-zA-Z0-9._-]+)$/.exec(image)?.[1] ?? 'unrecognized';
+    return [{ service, state, health, restarts: Number.isInteger(c.RestartCount) ? c.RestartCount : null,
+      oom: c.State?.OOMKilled === true, loopbackNetwork: !!c.NetworkSettings?.Networks?.[NETWORK], imageVersion: version }];
+  });
+}
+export function reportStack() {
+  try {
+    const ids = run('docker', ['ps', '-aq', '--filter', `label=com.supabase.cli.project=${PROJECT}`]).split(/\s+/).filter(Boolean);
+    const containers = ids.length ? JSON.parse(run('docker', ['inspect', ...ids])) : [];
+    console.log('LOCAL_STACK_DIAGNOSTIC ' + JSON.stringify({ cliVersion: CLI_VERSION, elapsedMs: Date.now() - started, services: containerDiagnostics(containers) }));
+  } catch { console.log('LOCAL_STACK_DIAGNOSTIC_UNAVAILABLE'); }
+}
 export function safeCommandFailure(stderr = '') {
   const guard = (stderr ?? '').match(/ERROR:\s+(P0_STOP:[^\r\n]+)/i)?.[1];
   if (guard) return 'LOCAL_SQL_GUARD_' + createHash('sha256').update(guard).digest('hex').slice(0, 12);
@@ -19,8 +64,16 @@ export function safeCommandFailure(stderr = '') {
 }
 export function run(command, args, input) {
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/SUPABASE|^PG|^DATABASE|^POSTGRES|^OAZ_|^NEXT_PUBLIC_|^DOCKER_HOST$|^DOCKER_CONTEXT$/.test(key)));
-  const r = spawnSync(command, args, { cwd: root, env, input, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, windowsHide: true });
-  if (r.error || r.status !== 0) throw Error(safeCommandFailure(r.stderr));
+  const before = Date.now();
+  const timeout = command === 'supabase' && args[0] === 'start' ? 600000 : 120000;
+  const r = spawnSync(command, args, { cwd: root, env, input, encoding: 'utf8', timeout, maxBuffer: 16 * 1024 * 1024, windowsHide: true });
+  if (r.error || r.status !== 0) {
+    const diagnostic = commandDiagnostic(command, args, r, Date.now() - before);
+    console.error('LOCAL_COMMAND_DIAGNOSTIC ' + JSON.stringify(diagnostic));
+    const error = Error(diagnostic.guard);
+    error.diagnostic = diagnostic;
+    throw error;
+  }
   return r.stdout.trim(); // never print command output: status contains local credentials
 }
 export function cli(args) { return run('supabase', args); }
@@ -57,7 +110,9 @@ export function inspectStack() {
 }
 export function localStatus() {
   inspectStack();
-  const status = JSON.parse(cli(['status', '-o', 'json']));
+  let status;
+  try { status = JSON.parse(cli(['status', '-o', 'json'])); }
+  catch (error) { reportStack(); throw error; }
   assertLocalUrl(status.API_URL);
   if (!status.ANON_KEY || !status.SERVICE_ROLE_KEY) throw Error('LOCAL_KEYS_MISSING');
   return status;

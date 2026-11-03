@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { createClient } from '@supabase/supabase-js';
-import { API, NETWORK, assertLocalUrl, assertDockerEndpoint, verifyNetwork, verifyBindings, verifyRelease, safeCommandFailure } from '../scripts/local-supabase.mjs';
+import { API, NETWORK, PROJECT, commandDiagnostic, containerDiagnostics, assertLocalUrl, assertDockerEndpoint, verifyNetwork, verifyBindings, verifyRelease, safeCommandFailure } from '../scripts/local-supabase.mjs';
 import { localFetch, requireGraphqlData, requirePrivacyDenial } from '../scripts/test-local-supabase.mjs';
 import { assertNoEnvironmentFiles, localDevelopmentEnvironment } from '../scripts/local-dev.mjs';
 import { unpackReviewedGraphql, validateContainerPgPath, GRAPHQL_ASSET, GRAPHQL_SHA } from '../scripts/prepare-local-graphql.mjs';
@@ -128,4 +128,27 @@ test('Extension failure classification emits fixed safe categories only', () => 
   assert.equal(safeCommandFailure('permission denied for fake-sensitive-object'), 'LOCAL_SQL_PERMISSION');
   assert.equal(safeCommandFailure('dependent objects still exist: fake-sensitive-object'), 'LOCAL_EXTENSION_DEPENDENCY');
   assert.equal(safeCommandFailure(null), 'LOCAL_STACK_COMMAND_FAILED');
+});
+
+test('Diagnostics expose only allowlisted command, exit, timing and failure fields', () => {
+  const secret = 'fake-private-never-emit';
+  const result = commandDiagnostic('supabase', ['status', '-o', 'json', secret], {
+    status: 1, stderr: `container is not ready: starting\n${secret}`, stdout: secret,
+  }, 123);
+  assert.deepEqual(result, { command: 'cli.status', exitCode: 1, timeout: false, type: 'health_starting', guard: 'LOCAL_STACK_COMMAND_FAILED', elapsedMs: 123 });
+  assert.ok(!JSON.stringify(result).includes(secret));
+  assert.equal(commandDiagnostic('docker', ['inspect', secret], { status: null, error: { code: 'ETIMEDOUT', message: secret } }, 12).type, 'timeout');
+  assert.equal(commandDiagnostic('docker', ['inspect'], { error: { code: 'ENOENT' } }, 1).type, 'executable_missing');
+  assert.equal(commandDiagnostic('docker', ['exec', secret, 'psql'], { status: 2, stderr: secret }, 1).command, 'docker.exec.psql');
+});
+
+test('Container diagnostic cannot leak environment, logs, arbitrary names or images', () => {
+  const secret = 'fake-private-never-emit';
+  const states = containerDiagnostics([{ Name: `/supabase_db_${PROJECT}`, Config: { Image: 'public.ecr.aws/supabase/postgres:17.6.1.029', Env: [secret] },
+    State: { Status: 'running', Health: { Status: 'starting', Log: [{ Output: secret }] }, OOMKilled: false }, RestartCount: 0,
+    NetworkSettings: { Networks: { [NETWORK]: {} } } }, { Name: secret, Config: { Image: secret } }]);
+  assert.equal(states[0].health, 'starting');
+  assert.equal(states[0].imageVersion, '17.6.1.029');
+  assert.equal(states[1].state, 'missing');
+  assert.ok(!JSON.stringify(states).includes(secret));
 });
