@@ -10,6 +10,13 @@ def run_privacy_v3(sql,check,identity,root,postgrest,context):
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     for name,value in module.assemble().items():check(read(name)==value,'assembled release current: '+name)
     sql((root/'tests/fixtures/privacy.sql').read_text(encoding='utf-8'))
+    # Prepare-only metadata collector is exercised against synthetic data, never
+    # against Main or the preserved Demo. Output stays in memory.
+    catalog=json.loads(sql((root/'reports/privacy-hotfix/sql/020-test-environment-catalog.sql').read_text(encoding='utf-8')))
+    check({'registered_member','allowed_user','supervisor_id'} <= {t['name'] for t in catalog['public_tables']},
+          'test-environment collector reports synthetic structural contracts')
+    check(all('rows' not in t and 'columns' in t and 'api_roles' in t for t in catalog['public_tables']),
+          'test-environment collector contains no member data rows')
     def defaults(mode):
         roles='anon,authenticated,service_role'
         sql('ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO '+roles+';'

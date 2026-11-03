@@ -12,8 +12,9 @@
     "build:offline": "node scripts/build-offline.mjs",
     "check:security": "node scripts/check-hotfix-security.mjs",
     "check:preview": "node scripts/check-preview-env.mjs",
-    "test:preview": "node --require ./scripts/offline-network.cjs --test --test-concurrency=1 tests/preview-runtime.test.mjs",
-    "test:runtime": "node scripts/test-next-runtime.mjs"
+    "test:preview": "node --require ./scripts/offline-network.cjs --test --test-concurrency=1 tests/preview-runtime.test.mjs tests/preview-integration.test.mjs",
+    "test:runtime": "node scripts/test-next-runtime.mjs",
+    "audit:preview": "node scripts/audit-preview-env.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

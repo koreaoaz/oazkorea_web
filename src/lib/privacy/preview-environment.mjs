@@ -1,8 +1,51 @@
 const productionRef = 'maoefmwpdcnugyenyiea';
+// Existing Demo has its own Netlify/Auth/data lifecycle; not a disposable lab.
+const preservedDemoRef = 'ctbwaqtqubmjmltbxfzm';
 const productionHosts = new Set(['www.oazkorea.co.kr', 'oazkorea.co.kr']);
 const stop = (code) => { throw new Error(`PREVIEW_STOP:${code}`); };
 
 const readClaims = key => JSON.parse(atob(key.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+const urls = new Set(['NEXT_PUBLIC_SUPABASE_URL', 'SUPABASE_URL', 'SUPABASE_STORAGE_URL', 'NEXT_PUBLIC_SUPABASE_STORAGE_URL', 'NEXT_PUBLIC_PROJECT_STORAGE_URL']);
+const keys = new Set(['NEXT_PUBLIC_SUPABASE_KEY', 'NEXT_PUBLIC_SUPABASE_ANON_KEY', 'SUPABASE_ANON_KEY', 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_PUBLISHABLE_KEY']);
+const refs = new Set(['OAZ_PREVIEW_ISOLATED_REF', 'SUPABASE_PROJECT_REF', 'NEXT_PUBLIC_SUPABASE_PROJECT_REF', 'SUPABASE_REF', 'NEXT_PUBLIC_SUPABASE_REF']);
+const related = name => /(?:^|_)(?:SUPABASE|POSTGRES|POSTGRESQL|DATABASE|DB|DEMO_VISITOR)(?:_|$)/.test(name) || /^PG(?:HOST|HOSTADDR|PORT|USER|PASSWORD|DATABASE|SERVICE|SERVICEFILE|PASSFILE)$/.test(name);
+
+/** Names and presence only. Never return a value, token, URL or decoded claims. */
+export function previewVariableInventory(env) {
+  const ref = env.OAZ_PREVIEW_ISOLATED_REF;
+  const target = /^[a-z]{20}$/.test(ref ?? '') && ![productionRef, preservedDemoRef].includes(ref) ? `https://${ref}.supabase.co` : undefined;
+  return Object.entries(env).filter(([name, value]) => value && /^[A-Z0-9_]+$/.test(name) &&
+    (related(name) || refs.has(name) || name === 'NEXT_PUBLIC_OAZ_OAUTH_TEST_ORIGIN' || name === 'NEXT_PUBLIC_OAZ_PRIVACY_V2'))
+    .map(([name, value]) => ({ name, present: true, kind: urls.has(name) ? 'target' : keys.has(name) ? 'public-key' : refs.has(name) ? 'project-ref' :
+      name === 'NEXT_PUBLIC_OAZ_OAUTH_TEST_ORIGIN' ? 'oauth-origin' : name === 'NEXT_PUBLIC_OAZ_PRIVACY_V2' ? 'feature-flag' : 'unreviewed-connection-variable',
+      matchesDeclaredTarget: urls.has(name) ? !!target && (value === target || value.startsWith(`${target}/`)) :
+        keys.has(name) ? !!target && value === env.NEXT_PUBLIC_SUPABASE_KEY : refs.has(name) ? !!target && value === ref : undefined }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+function checkAllConnections(env, target, ref) {
+  for (const [name, value] of Object.entries(env)) {
+    if (!value) continue;
+    // Catch a privileged Supabase key even under an unrelated/custom name.
+    if (typeof value === 'string' && value.startsWith('sb_secret_')) stop('PRIVILEGED_CREDENTIAL_ALIAS');
+    if (typeof value === 'string' && value.startsWith('eyJ')) {
+      try {
+        const claim = readClaims(value);
+        if (claim.ref === productionRef) stop('PRODUCTION_CREDENTIAL_ALIAS');
+        if (claim.ref === preservedDemoRef) stop('PRESERVED_DEMO_CREDENTIAL_ALIAS');
+        if (claim.role === 'service_role' || claim.ref && claim.role && claim.role !== 'anon') stop('PRIVILEGED_CREDENTIAL_ALIAS');
+      } catch (error) { if (error instanceof Error && error.message.startsWith('PREVIEW_STOP:')) throw error; }
+    }
+    if (refs.has(name)) { if (value !== ref) stop('ALTERNATE_REF_MISMATCH'); continue; }
+    if (urls.has(name)) {
+      if (value !== target.origin && !value.startsWith(`${target.origin}/`)) stop('ALTERNATE_TARGET_MISMATCH');
+      continue;
+    }
+    if (keys.has(name)) { if (value !== env.NEXT_PUBLIC_SUPABASE_KEY) stop('ALTERNATE_KEY_MISMATCH'); continue; }
+    if (related(name)) stop('UNREVIEWED_CONNECTION_VARIABLE');
+  }
+  if (env.NEXT_PUBLIC_OAZ_PRIVACY_V2 && !['true', 'false'].includes(env.NEXT_PUBLIC_OAZ_PRIVACY_V2)) stop('INVALID_PRIVACY_FLAG');
+}
 
 // Values are inspected in memory only. Never print or persist environment values.
 export function checkPreviewEnvironment(env) {
@@ -32,10 +75,12 @@ export function checkPreviewEnvironment(env) {
   if (env.VERCEL_GIT_COMMIT_REF !== 'hotfix/privacy-p0') stop('HOTFIX_BRANCH_REQUIRED');
   const ref = env.OAZ_PREVIEW_ISOLATED_REF;
   if (!/^[a-z]{20}$/.test(ref ?? '') || ref === productionRef) stop('ISOLATED_REF_REQUIRED');
+  if (ref === preservedDemoRef) stop('PRESERVED_DEMO_TARGET');
   let target;
   try { target = new URL(env.NEXT_PUBLIC_SUPABASE_URL); } catch { stop('INVALID_URL'); }
   if (target.origin !== `https://${ref}.supabase.co` || target.username || target.password ||
       target.pathname !== '/' || target.search || target.hash) stop('TARGET_MISMATCH');
+  checkAllConnections(env, target, ref);
   for (const name of ['SUPABASE_URL', 'NEXT_PUBLIC_PROJECT_STORAGE_URL']) {
     if (env[name] && !env[name].startsWith(`${target.origin}/`) && env[name] !== target.origin) stop('ALTERNATE_TARGET_MISMATCH');
   }

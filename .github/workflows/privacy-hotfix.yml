@@ -38,3 +38,30 @@ jobs:
       - run: npm run build:offline -- --privacy-v3
       - run: npm run typecheck
       - run: git diff --check
+  isolated-postgres:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Prepare hash-pinned official portable PostgreSQL
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'postgresql-17.6.zip'
+          Invoke-WebRequest -Uri 'https://get.enterprisedb.com/postgresql/postgresql-17.6-1-windows-x64-binaries.zip' -OutFile $archive
+          if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'd378882abd001a186735acd6f6ba716bca6ccd192e800412d4fd15ed25376b3e') { throw 'Official archive integrity mismatch' }
+      - name: Synthetic PostgreSQL RLS and GRANT regression, automatic grants ON and OFF
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'postgresql-17.6.zip'
+          $lab = Join-Path $env:RUNNER_TEMP 'oaz-privacy-lab'
+          python -B scripts/test-isolated-db.py --archive $archive --work $lab --privacy-v3 --auto-grants on
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -B scripts/test-isolated-db.py --archive $archive --work $lab --privacy-v3 --auto-grants off
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      # The native pg_graphql/PostgREST 332-check suite is also run locally.
+      # This job is SQL-only and does not claim to run real Auth or HTTP/GraphQL.

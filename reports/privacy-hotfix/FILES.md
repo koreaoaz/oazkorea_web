@@ -1,6 +1,6 @@
-# Hotfix 변경 파일 목록
+# Hotfix 전체 변경 파일
 
-운영 기준 d95bc68 대비 검토한 명시적 커밋 대상입니다. 이전 Hotfix와 lint 정리 변경을 보존합니다. SQL 후보 13개는 원래 개발 경로와 바이트 단위 동일합니다. 생성물·백업·비공개 메타데이터는 제외합니다.
+운영 기준 d95bc68 대비 이전 Hotfix와 이번 독립 Preview 준비 변경을 모두 포함합니다. 원래 개인정보 SQL 13개는 동일하며, 새로운 020 파일은 미실행 메타데이터 수집용입니다. 비공개 자료·백업·환경변수 값은 없습니다.
 
 - .gitattributes
 - .github/workflows/privacy-hotfix.yml
@@ -22,13 +22,19 @@
 - reports/main-safety/integration/sql/012-enable-approval-writes.sql
 - reports/main-safety/integration/sql/013-resume-reviewed-reads.sql
 - reports/main-safety/integration/sql/015-resume-reviewed-graphql.sql
+- reports/privacy-hotfix/DEMO_REUSE_REVIEW.md
 - reports/privacy-hotfix/FILES.md
+- reports/privacy-hotfix/INTEGRATION_VALIDATION.md
 - reports/privacy-hotfix/PREVIEW_AUTH.md
+- reports/privacy-hotfix/PREVIEW_SPLIT_PLAN.md
 - reports/privacy-hotfix/PUSH_PREPARATION.md
 - reports/privacy-hotfix/README.md
 - reports/privacy-hotfix/RUNBOOK.md
+- reports/privacy-hotfix/TEST_ENV_SCHEMA_PLAN.md
 - reports/privacy-hotfix/VALIDATION.md
+- reports/privacy-hotfix/sql/020-test-environment-catalog.sql
 - scripts/assemble-privacy.py
+- scripts/audit-preview-env.mjs
 - scripts/build-offline.mjs
 - scripts/check-hotfix-security.mjs
 - scripts/check-preview-env.mjs
@@ -105,6 +111,7 @@
 - tests/fixtures/privacy.sql
 - tests/helpers/react-dom.mjs
 - tests/hotfix.test.mjs
+- tests/preview-integration.test.mjs
 - tests/preview-runtime.test.mjs
 - tests/registration.test.mjs
 - tests/release-readiness.test.mjs

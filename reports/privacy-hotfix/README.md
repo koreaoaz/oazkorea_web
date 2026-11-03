@@ -1,5 +1,7 @@
 # P0 개인정보 Hotfix — 운영 기준 d95bc68
 
+최신 상태: 일반 Preview의 운영 Supabase 연결이 사용자 Dashboard에서 확인되어 실제 Push/Preview는 **BLOCKED**다. 기존 Demo는 보존 대상으로 선택을 차단했다. 최신 준비/검증 결과는 PREVIEW_SPLIT_PLAN.md, DEMO_REUSE_REVIEW.md, INTEGRATION_VALIDATION.md를 따른다.
+
 작업 경로: C:/Users/yjcha/OAZ-Workspace/oazkorea_web-privacy-hotfix
 브랜치: hotfix/privacy-p0. 시작 커밋 d95bc68. 원래 main과 feature/main-integration의 코드/작업 트리는 수정하지 않았다.
 운영 DB·Auth·Storage 접속/변경, push, Vercel 배포는 수행하지 않았다. 이번 준비 단계에서는 검증한 Hotfix 파일만 전용 브랜치에 로컬 커밋한다. 운영 개인정보 위험 Critical 3 / High 5는 남아 있다.
