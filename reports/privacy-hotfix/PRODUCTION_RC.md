@@ -4,7 +4,7 @@
 
 ## A 릴리스 구성과 변경 범위
 
-기준 main은 `d95bc684a45879255b61396fdaef46218be115ce`, 검증된 앱 기준은 `5bb15db15dec73dcd4c54e683871e49ce4b49817`이다. 이번 RC는 애플리케이션·13개 SQL·CI workflow를 변경하지 않고 배포 전 검사와 절차만 추가한다. 정확한 최종 SHA와 해당 SHA의 CI를 승인 기록에 함께 남긴다.
+기준 main은 `d95bc684a45879255b61396fdaef46218be115ce`, 검증된 앱 기준은 `5bb15db15dec73dcd4c54e683871e49ce4b49817`이다. c7a58fc RC는 앱·13개 SQL·CI workflow를 변경하지 않고 검사·절차를 추가했다. 후속 독립 OAuth와 Production 검사기 변경·최신 수동 절차는 LOCAL_OAUTH_BROWSER.md를 따른다. 정확한 최종 SHA와 해당 SHA의 CI를 승인 기록에 함께 남긴다.
 
 main 대비 기존 Hotfix 125개 파일의 경로·diff를 검토했다.
 
@@ -50,11 +50,11 @@ SQL 전에 true로 잘못 빌드하면 RPC 미설치 오류로 닫히며 공개 
 
 ### 새 클라우드 프로젝트 없는 독립 OAuth 절차
 
-1. 사용자 승인으로 Docker Desktop과 Supabase CLI 2.54.11을 준비한다. 현재 PC에서는 전체 stack을 실행하지 않았다. Main/Demo 클라우드를 재사용하지 않는다.
-2. GitHub → Settings → Developer settings → OAuth Apps → New OAuth App에서 별도 Test App 생성. Homepage `http://127.0.0.1:3000`, callback `http://127.0.0.1:56321/auth/v1/callback`. 기존 앱은 수정하지 않는다. Client ID/secret은 로컬 담당자만 관리하며 채팅/Git/명령 인수에 넣지 않는다.
-3. 로컬 전용 설정으로 `[auth.external.github]`, `enabled=true`, `client_id="env(GITHUB_TEST_CLIENT_ID)"`, `secret="env(GITHUB_TEST_CLIENT_SECRET)"`, `redirect_uri="http://127.0.0.1:56321/auth/v1/callback"`를 검토해 적용한다. 현재 config에는 provider가 없다. secret은 사용자 숨김 입력으로 해당 세션 환경에만 전달한다. `.env`는 local:dev가 거절한다. 임시 설정/secret은 커밋하지 않는다.
-4. `npm.cmd run local:start` → `npm.cmd run test:local-supabase` → 별도 터미널 `npm.cmd run local:dev`. 실제 테스트 GitHub 계정은 로컬 Auth에만 생성한다. 가짜 승인 이메일/필요시 supervisor를 이 로컬 DB에만 준비한다. 127.0.0.1과 localhost를 섞지 않는다.
-5. 허용 계정 가입·재로그인·Editor, 미승인 가입 거절, provider 취소, 이메일 미확인 오류, 로그아웃을 브라우저 검증한다. 값/응답 대신 결과만 기록한다. 임시 설정·환경 메모리 정리 후 `npm.cmd run local:stop`.
+1. 사용자가 OAZ Privacy Local OAuth Test App과 새 Secret을 준비했고 이전 Secret을 폐기했다. App을 다시 생성하지 않는다. Client ID/Secret은 채팅/Git/명령 인수에 넣지 않는다.
+2. WSL/Docker는 사용자 설치가 필요하다. CLI2.54.11은 시스템 설치 없이 준비했다. Main/Demo 클라우드를 재사용하지 않는다.
+3. [LOCAL_OAUTH_BROWSER.md](LOCAL_OAUTH_BROWSER.md)를 따라 Start-Local-OAuth-Test.cmd를 실행한다. 선행 검사 통과 후 로컬 숨김 Secret을 입력한다. 도구가 env() 참조 임시 설정·가짜 검증·앱 실행·원본 복구·Secret 정리를 처리한다. tracked config를 수동으로 편집하지 않는다.
+4. 실제 사용자가 브라우저에서 Test App 이름과 두 로컬 callback 복귀를 확인한다. 실제 GitHub 인증 계정은 로컬 Auth에만 생성한다. 로컬 가짜 승인/회원/관리자 사전조건 도구와 별도 확인 문구를 사용한다.
+5. 허용/미승인 가입, 로그인·Editor, 취소·로그아웃을 확인한 뒤 실행 콘솔의 Enter로 종료한다. 결과만 기록하고 토큰/개인정보를 복사하지 않는다.
 
 이 절차는 아직 실행하지 않았다. GitHub 외부 통신은 필요하나 서비스 수신 포트는 loopback만 사용한다. [GitHub Auth 공식 안내](https://supabase.com/docs/guides/auth/social-sign-in/auth-github), [로컬 provider 환경 설정](https://supabase.com/docs/guides/local-development/managing-config).
 
@@ -103,7 +103,7 @@ Settings → Environment Variables의 **Production scope만** 아래와 대조�
 | NEXT_PUBLIC_SUPABASE_KEY | 같은 Main anon/publishable 공개키. service_role/secret 금지 |
 | NEXT_PUBLIC_OAZ_PRIVACY_V2 | 호환 단계 false / 보호 단계 true. 미설정 금지 |
 | NEXT_PUBLIC_OAZ_OAUTH_TEST_ORIGIN | 비어 있어야 함 |
-| NEXT_PUBLIC_PROJECT_STORAGE_URL 및 연결 alias | 사용 중이면 같은 Main public Storage 경로. 다른 대상/원시 DB 연결값은 중단 |
+| NEXT_PUBLIC_PROJECT_STORAGE_URL 및 연결 alias | 공개 URL은 같은 Main public Storage 경로. 서버 전용 연동 변수는 별도 allowlist와 대상 검사 |
 | VERCEL / VERCEL_ENV / VERCEL_GIT_COMMIT_REF | 자동값 1 / production / main. 임의 위조 금지 |
 
 `check-production-release.mjs environment compatibility` 또는 `environment protected`는 네트워크 없이 값·stage를 검사하고 고정 코드만 출력한다. 키 서명/opaque key 소속은 오프라인 증명이 불가능하므로 Dashboard 대조 필수. 정상 출력도 배포 승인/DB postcheck를 대신하지 않는다.

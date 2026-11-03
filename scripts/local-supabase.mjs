@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import { readFileSync, existsSync } from 'node:fs';
+import { localExecutable } from './local-executable.mjs';
 
 export const CLI_VERSION = '2.54.11';
 export const PROJECT = 'oaz-privacy-local';
@@ -62,11 +63,18 @@ export function safeCommandFailure(stderr = '') {
   if (/dependent objects still exist|cannot drop extension.*other objects depend/i.test(stderr ?? '')) return 'LOCAL_EXTENSION_DEPENDENCY';
   return 'LOCAL_STACK_COMMAND_FAILED';
 }
-export function run(command, args, input) {
-  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/SUPABASE|^PG|^DATABASE|^POSTGRES|^OAZ_|^NEXT_PUBLIC_|^DOCKER_HOST$|^DOCKER_CONTEXT$/.test(key)));
+export function run(command, args, input, oauth = false) {
+  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/SUPABASE|^PG|^DATABASE|^POSTGRES|^OAZ_|^NEXT_PUBLIC_|^DOCKER_HOST$|^DOCKER_CONTEXT$|^GITHUB_TEST_/.test(key)));
+  if (oauth) {
+    if (command !== 'supabase' || args[0] !== 'start') throw Error('LOCAL_OAUTH_START_ONLY');
+    for (const name of ['GITHUB_TEST_CLIENT_ID', 'GITHUB_TEST_CLIENT_SECRET']) {
+      if (!process.env[name]) throw Error('LOCAL_OAUTH_CREDENTIAL_REQUIRED');
+      env[name] = process.env[name];
+    }
+  }
   const before = Date.now();
   const timeout = command === 'supabase' && args[0] === 'start' ? 600000 : 120000;
-  const r = spawnSync(command, args, { cwd: root, env, input, encoding: 'utf8', timeout, maxBuffer: 16 * 1024 * 1024, windowsHide: true });
+  const r = spawnSync(localExecutable(command), args, { cwd: root, env, input, encoding: 'utf8', timeout, maxBuffer: 16 * 1024 * 1024, windowsHide: true });
   if (r.error || r.status !== 0) {
     const diagnostic = commandDiagnostic(command, args, r, Date.now() - before);
     console.error('LOCAL_COMMAND_DIAGNOSTIC ' + JSON.stringify(diagnostic));
@@ -206,7 +214,7 @@ export function stop() {
   const running = run('docker', ['ps', '-q', '--filter', `label=com.supabase.cli.project=${PROJECT}`]);
   if (running) throw Error('LOCAL_CONTAINERS_STILL_RUNNING');
 }
-export function start() {
+export function start(oauth = false, afterStart = () => {}) {
   if (run('git', ['branch', '--show-current']) !== 'hotfix/privacy-p0') throw Error('HOTFIX_BRANCH_REQUIRED');
   if (existsSync(new URL('../supabase/.temp/project-ref', import.meta.url))) throw Error('LINKED_PROJECT_FORBIDDEN');
   if (cli(['--version']) !== CLI_VERSION) throw Error('PINNED_CLI_REQUIRED');
@@ -216,7 +224,8 @@ export function start() {
   if (!names) run('docker', ['network', 'create', '-o', 'com.docker.network.bridge.host_binding_ipv4=127.0.0.1', NETWORK]);
   verifyNetwork(JSON.parse(run('docker', ['network', 'inspect', NETWORK]))[0]);
   try {
-    cli(['start', '--network-id', NETWORK]);
+    run('supabase', ['start', '--network-id', NETWORK], undefined, oauth);
+    afterStart(); // OAuth launcher restores the secret-free default config before status/stop.
     localStatus();
   } catch {
     // Shut down this project only if exposure/readiness verification fails.

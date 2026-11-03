@@ -1,5 +1,7 @@
 # 개인정보 Hotfix 운영 실행 순서
 
+독립 OAuth Test App 생성은 완료됐다. 실제 브라우저 검증과 서버 연동 환경변수의 최신 검사 규칙은 [LOCAL_OAUTH_BROWSER.md](LOCAL_OAUTH_BROWSER.md)를 따른다. Production privacy flag는 아직 없으며 승인된 첫 배포 전에 false 설정이 필요하다.
+
 2026-11-03 갱신. 상세 근거는 [PRODUCTION_RC.md](PRODUCTION_RC.md). **현재 운영 NO-GO이며 실행 승인이 아니다.** Preview/main/운영 SQL 변경을 이번에 수행하지 않았다. 기존 CI는 실제 3 job 통과, 실제 GitHub OAuth 왕복은 미검증이다.
 
 ## 단계별 성공과 중단 조건

@@ -7,7 +7,7 @@ import { API, assertLocalUrl, localStatus } from './local-supabase.mjs';
 export function localDevelopmentEnvironment(status, inherited) {
   assertLocalUrl(status.API_URL);
   if (!status.ANON_KEY) throw Error('LOCAL_ANON_KEY_REQUIRED');
-  const env = Object.fromEntries(Object.entries(inherited).filter(([name]) => !/SUPABASE|^PG|^POSTGRES|^DATABASE|^OAZ_|^NEXT_PUBLIC_|^VERCEL|^NODE_OPTIONS$/.test(name)));
+  const env = Object.fromEntries(Object.entries(inherited).filter(([name]) => !/SUPABASE|^PG|^POSTGRES|^DATABASE|^OAZ_|^NEXT_PUBLIC_|^VERCEL|^NODE_OPTIONS$|^GITHUB_TEST_/.test(name)));
   return { ...env, NODE_ENV: 'development', VERCEL_ENV: 'development', NEXT_TELEMETRY_DISABLED: '1',
     NEXT_PUBLIC_SUPABASE_URL: API, NEXT_PUBLIC_SUPABASE_KEY: status.ANON_KEY,
     NEXT_PUBLIC_OAZ_PRIVACY_V2: 'true', NEXT_PUBLIC_OAZ_OAUTH_TEST_ORIGIN: 'http://127.0.0.1:3000' };

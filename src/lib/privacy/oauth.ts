@@ -4,6 +4,11 @@ const production = 'https://www.oazkorea.co.kr'
 export function privacyOAuthRedirect(callback: 'login_callback' | 'oauth_callback', origin?: string) {
   let approved: string | undefined
   try { approved = process.env.NEXT_PUBLIC_OAZ_OAUTH_TEST_ORIGIN } catch { /* fixed production default */ }
+  // The independent local harness must never fall back to a live website when
+  // someone opens localhost or a different host instead of its exact origin.
+  if (approved === 'http://127.0.0.1:3000' && origin !== approved) {
+    throw new Error('LOCAL_OAUTH_ORIGIN_MISMATCH')
+  }
   if (origin && approved === origin) {
     try {
       const url = new URL(origin)
