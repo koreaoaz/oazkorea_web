@@ -74,6 +74,9 @@ export async function integration() {
   // Bind approvals to this synthetic catalog only. No operational seal is imported.
   const fingerprint = sql('BEGIN READ ONLY; SET LOCAL search_path=pg_catalog;\n' + reviewedSql('010-catalog-fingerprint.sql') + '\nROLLBACK;');
   ok(/^[a-f0-9]{64}$/.test(fingerprint));
+  // Fake local metadata only. Do not emit function sources, keys or policy text.
+  const metadata = JSON.parse(sql("SELECT json_build_object('postgres_version',current_setting('server_version'),'pg_graphql_version',(SELECT extversion FROM pg_extension WHERE extname='pg_graphql'),'wrapper_language',(SELECT l.lanname FROM pg_proc p JOIN pg_language l ON l.oid=p.prolang WHERE p.oid=to_regprocedure('graphql_public.graphql(text,text,jsonb,jsonb)')),'wrapper_definer',(SELECT prosecdef FROM pg_proc WHERE oid=to_regprocedure('graphql_public.graphql(text,text,jsonb,jsonb)')),'wrapper_source_hash',(SELECT encode(sha256(convert_to(regexp_replace(prosrc,'\\s','','g'),'UTF8')),'hex') FROM pg_proc WHERE oid=to_regprocedure('graphql_public.graphql(text,text,jsonb,jsonb)')));"));
+  console.log('LOCAL_FAKE_STACK_METADATA ' + JSON.stringify(metadata));
   const approval = `SET oaz.approve_privacy_v3='yes'; SET oaz.privacy_surface_review_approved='yes'; SET oaz.privacy_exposed_schemas='["public","graphql_public"]'; SET oaz.privacy_extra_search_path='["public","extensions"]'; SET oaz.privacy_auto_expose_new_tables='on'; SET oaz.privacy_expected_catalog_sha256='${fingerprint}';`;
   phase = 'sql-preflight';
   sql(approval + reviewedSql('010-preflight.sql'));
@@ -139,5 +142,5 @@ export async function integration() {
   console.log(`LOCAL_SUPABASE_INTEGRATION_PASS checks=${checks}`);
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  integration().catch(() => { console.error(`LOCAL_SUPABASE_INTEGRATION_STOP phase=${phase}`); process.exitCode = 1; });
+  integration().catch(error => { const guard = /^LOCAL_SQL_GUARD_[a-f0-9]{12}$/.test(error.message) ? ` guard=${error.message}` : ''; console.error(`LOCAL_SUPABASE_INTEGRATION_STOP phase=${phase}${guard}`); process.exitCode = 1; });
 }

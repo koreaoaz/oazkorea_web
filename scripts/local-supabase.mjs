@@ -9,10 +9,14 @@ export const PROJECT = 'oaz-privacy-local';
 export const NETWORK = 'oaz-privacy-loopback';
 export const API = 'http://127.0.0.1:56321';
 const root = fileURLToPath(new URL('../', import.meta.url));
+export function safeCommandFailure(stderr = '') {
+  const guard = (stderr ?? '').match(/ERROR:\s+(P0_STOP:[^\r\n]+)/i)?.[1];
+  return guard ? 'LOCAL_SQL_GUARD_' + createHash('sha256').update(guard).digest('hex').slice(0, 12) : 'LOCAL_STACK_COMMAND_FAILED';
+}
 export function run(command, args, input) {
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !/SUPABASE|^PG|^DATABASE|^POSTGRES|^OAZ_|^NEXT_PUBLIC_|^DOCKER_HOST$|^DOCKER_CONTEXT$/.test(key)));
   const r = spawnSync(command, args, { cwd: root, env, input, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, windowsHide: true });
-  if (r.error || r.status !== 0) throw Error('LOCAL_STACK_COMMAND_FAILED');
+  if (r.error || r.status !== 0) throw Error(safeCommandFailure(r.stderr));
   return r.stdout.trim(); // never print command output: status contains local credentials
 }
 export function cli(args) { return run('supabase', args); }

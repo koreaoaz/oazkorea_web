@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { createClient } from '@supabase/supabase-js';
-import { API, NETWORK, assertLocalUrl, assertDockerEndpoint, verifyNetwork, verifyBindings, verifyRelease } from '../scripts/local-supabase.mjs';
+import { API, NETWORK, assertLocalUrl, assertDockerEndpoint, verifyNetwork, verifyBindings, verifyRelease, safeCommandFailure } from '../scripts/local-supabase.mjs';
 import { localFetch, requireGraphqlData, requirePrivacyDenial } from '../scripts/test-local-supabase.mjs';
 import { assertNoEnvironmentFiles, localDevelopmentEnvironment } from '../scripts/local-dev.mjs';
 
@@ -93,4 +93,21 @@ test('CI cannot count broken GraphQL or authentication as successful privacy pro
   }
   assert.doesNotThrow(() => requirePrivacyDenial({ error: { code: '42501' } }));
   for (const code of ['401', 'PGRST202', '42703', undefined]) assert.throws(() => requirePrivacyDenial({ error: { code } }));
+});
+test('SQL guard diagnostics preserve failure without printing stderr or policy text', () => {
+  const result = safeCommandFailure('ERROR: P0_STOP: fake guard failure\nCONTEXT: fake private policy and credentials');
+  assert.match(result, /^LOCAL_SQL_GUARD_[a-f0-9]{12}$/);
+  assert.doesNotMatch(result, /fake|private|credentials|P0_STOP/);
+  assert.equal(safeCommandFailure('password rejected: fake-private'), 'LOCAL_STACK_COMMAND_FAILED');
+});
+test('Fresh-install lock retains chalk dependencies and integrity metadata', () => {
+  const lock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
+  const chalk = lock.packages['node_modules/chalk'];
+  assert.ok(chalk.dependencies['ansi-styles']);
+  assert.ok(chalk.dependencies['supports-color']);
+  for (const name of ['chalk', 'ansi-styles', 'supports-color', 'color-convert', 'color-name', 'has-flag']) {
+    const entry = lock.packages[`node_modules/${name}`];
+    assert.match(entry.resolved, /^https:\/\/registry\.npmjs\.org\//);
+    assert.match(entry.integrity, /^sha512-/);
+  }
 });
