@@ -1,6 +1,6 @@
 // Explicit opt-in integration test. Executes writes only in the verified local fake stack.
 import assert from 'node:assert/strict';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHmac } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
@@ -35,6 +35,7 @@ export async function integration() {
   const password = randomBytes(32).toString('base64url'); // ephemeral synthetic password; never persisted
   let checks = 0;
   const ok = condition => { assert.ok(condition); checks++; };
+  const passed = () => console.log(`LOCAL_INTEGRATION_STAGE_PASS phase=${phase} checks=${checks}`);
   // Refuse an existing application schema. Never reset or reuse other local data.
   ok(sql("SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p');") === '0');
   const users = [];
@@ -55,6 +56,10 @@ export async function integration() {
     ok(!(await c.auth.signInWithPassword({ email: emails[i], password })).error);
     clients.push(c);
   }
+  ok((await clients[1].auth.getUser()).data.user?.id === users[1]);
+  ok((await clients[2].auth.getUser()).data.user?.id === users[2]);
+  ok(users[1] !== users[2]);
+  passed();
   phase = 'fake-schema';
   const fixture = readFileSync(new URL('../tests/fixtures/privacy.sql', import.meta.url), 'utf8');
   const schema = fixture.slice(fixture.indexOf('CREATE TABLE public.supervisor_id'), fixture.indexOf('INSERT INTO auth.users'));
@@ -74,6 +79,7 @@ export async function integration() {
   const baselineGraphql = await graphql(clients[1], privateQuery);
   const baselineMembers = requireGraphqlData(baselineGraphql.response, baselineGraphql.body, 'registeredMemberCollection');
   ok(baselineMembers.edges.some(edge => edge.node.email === emails[2]));
+  passed();
   // Bind approvals to this synthetic catalog only. No operational seal is imported.
   const fingerprint = sql('BEGIN READ ONLY; SET LOCAL search_path=pg_catalog;\n' + reviewedSql('010-catalog-fingerprint.sql') + '\nROLLBACK;');
   ok(/^[a-f0-9]{64}$/.test(fingerprint));
@@ -87,6 +93,7 @@ export async function integration() {
   sql(approval + reviewedSql('010-privacy-minimal.sql'));
   phase = 'sql-postcheck';
   ok(sql(reviewedSql('010-postcheck.sql')).includes('P0_V3_POSTCHECK_PASS_METADATA_ONLY'));
+  passed();
   sql("NOTIFY pgrst, 'reload schema';");
   // The catalog notification is local-only. Wait for PostgREST's asynchronous schema reload.
   phase = 'rpc-schema-ready';
@@ -99,6 +106,8 @@ export async function integration() {
   }
   ok(ready);
   phase = 'rest-privacy-and-signup';
+  const own = await clients[1].from('registered_member').select('uuid').eq('uuid', users[1]);
+  ok(!own.error && own.data.length === 1);
   for (const c of [anon, clients[1], clients[2]]) {
     for (const table of ['registered_member', 'allowed_user', 'supervisor_id']) {
       const r = await c.from(table).select('email');
@@ -107,10 +116,12 @@ export async function integration() {
   }
   const b = await clients[1].from('registered_member').select('uuid').eq('uuid', users[2]);
   ok(!b.error && b.data.length === 0);
-  const own = await clients[1].from('registered_member').select('uuid').eq('uuid', users[1]);
-  ok(!own.error && own.data.length === 1);
   const boss = await clients[1].from('who_is_boss').select('uuid');
   requirePrivacyDenial(boss); checks++;
+  // Auth user_metadata is user-controlled and must never grant editor access.
+  ok(!(await clients[1].auth.updateUser({ data: { role: 'admin', is_manager: true } })).error);
+  requirePrivacyDenial(await clients[1].rpc('oaz_privacy_editor_list_v3', { board: 'registered_member' })); checks++;
+  requirePrivacyDenial(await clients[3].from('registered_member').insert({ uuid: users[3], email: emails[3], name: 'fake escalation', is_manager: true })); checks++;
   const approved = await clients[3].from('registered_member').insert({ uuid: users[3], email: emails[3], name: 'fake new', is_manager: false });
   ok(!approved.error);
   const unapproved = await clients[7].from('registered_member').insert({ uuid: users[7], email: emails[7], name: 'fake unapproved' });
@@ -122,6 +133,7 @@ export async function integration() {
   const donors = await anon.from('editor_5_donators').select('id,name');
   ok(!donors.error && donors.data.length === 1);
   requirePrivacyDenial(await anon.from('editor_5_donators').select('uuid')); checks++;
+  passed();
   phase = 'graphql-after-protection';
   for (const c of [anon, clients[1]]) {
     const positive = await graphql(c, '{ editor5DonatorsCollection { edges { node { id name } } } }');
@@ -129,6 +141,7 @@ export async function integration() {
     const { response, body } = await graphql(c, privateQuery);
     ok(response.status === 200 && Array.isArray(body.errors) && body.errors.length > 0 && body.data == null);
   }
+  passed();
   // Exercise real private Storage transport and owner isolation with disposable fake content.
   phase = 'private-storage';
   const bucket = 'privacy-fake-private';
@@ -140,8 +153,28 @@ export async function integration() {
   ok(!downloaded.error && await downloaded.data.text() === 'synthetic fixture');
   ok(!!(await clients[2].storage.from(bucket).download(object)).error);
   ok(!!(await anon.storage.from(bucket).download(object)).error);
+  passed();
+  phase = 'expired-session';
+  const session = (await clients[1].auth.getSession()).data.session;
+  // Create a correctly signed but expired synthetic JWT in RAM only. This is
+  // the verified disposable stack's signing secret, never an operational key.
+  const [header, payload] = session.access_token.split('.');
+  ok(JSON.parse(Buffer.from(header, 'base64url')).alg === 'HS256' && !!status.JWT_SECRET);
+  const claims = JSON.parse(Buffer.from(payload, 'base64url'));
+  const expiredPayload = Buffer.from(JSON.stringify({ ...claims, iat: 1, exp: 2 })).toString('base64url');
+  const unsigned = `${header}.${expiredPayload}`;
+  const expired = `${unsigned}.${createHmac('sha256', status.JWT_SECRET).update(unsigned).digest('base64url')}`;
+  const expiredResponse = await fetcher(`${API}/rest/v1/rpc/oaz_member_self_v3`, { method: 'POST', headers: { apikey: status.ANON_KEY, Authorization: `Bearer ${expired}`, 'Content-Type': 'application/json' }, body: '{}' });
+  ok(expiredResponse.status === 401);
+  passed();
   phase = 'signout';
-  for (const c of clients) ok(!(await c.auth.signOut()).error);
+  for (const c of clients) {
+    ok(!(await c.auth.signOut()).error);
+    ok((await c.auth.getSession()).data.session === null);
+  }
+  const revokedRefresh = await client(status.ANON_KEY).auth.refreshSession({ refresh_token: session.refresh_token });
+  ok(!!revokedRefresh.error && revokedRefresh.data.session === null);
+  passed();
   console.log(`LOCAL_SUPABASE_INTEGRATION_PASS checks=${checks}`);
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

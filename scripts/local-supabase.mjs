@@ -101,7 +101,7 @@ export function assertDockerEndpoint(endpoint) {
 }
 export function inspectStack() {
   assertDockerEndpoint(JSON.parse(run('docker', ['context', 'inspect']))[0]?.Endpoints?.docker?.Host);
-  const ids = run('docker', ['ps', '-q', '--filter', `label=com.supabase.cli.project=${PROJECT}`]).split(/\s+/).filter(Boolean);
+  const ids = run('docker', ['ps', '-aq', '--filter', `label=com.supabase.cli.project=${PROJECT}`]).split(/\s+/).filter(Boolean);
   if (!ids.length) throw Error('LOCAL_CONTAINERS_MISSING');
   const containers = JSON.parse(run('docker', ['inspect', ...ids]));
   verifyBindings(containers);
@@ -115,6 +115,78 @@ export function localStatus() {
   catch (error) { reportStack(); throw error; }
   assertLocalUrl(status.API_URL);
   if (!status.ANON_KEY || !status.SERVICE_ROLE_KEY) throw Error('LOCAL_KEYS_MISSING');
+  return status;
+}
+export function readiness(containers, scope) {
+  if (!['database', 'services'].includes(scope)) throw Error('LOCAL_READINESS_SCOPE');
+  const required = scope === 'database' ? ['db'] : ['db', 'auth', 'rest', 'storage', 'kong'];
+  const states = containerDiagnostics(containers);
+  const pending = [];
+  for (const service of required) {
+    const c = states.find(c => c.service === service);
+    if (c.state === 'missing') throw Error('LOCAL_REQUIRED_SERVICE_MISSING');
+    if (!c.loopbackNetwork) throw Error('LOCAL_NETWORK_REQUIRED');
+    if (c.oom || ['dead', 'exited', 'paused', 'unknown'].includes(c.state)) throw Error('LOCAL_SERVICE_TERMINATED');
+    if (c.health === 'unhealthy') throw Error('LOCAL_SERVICE_UNHEALTHY');
+    if (service !== 'rest' && c.health === 'none') throw Error('LOCAL_HEALTHCHECK_REQUIRED');
+    if (c.state !== 'running' || c.health === 'starting') pending.push(service);
+  }
+  return { ready: pending.length === 0, pending };
+}
+export async function waitForReadiness(probe, { scope, timeoutMs = 60000, now = Date.now,
+  delay = ms => new Promise(resolve => setTimeout(resolve, ms)), emit = console.log } = {}) {
+  if (!['database', 'services'].includes(scope)) throw Error('LOCAL_READINESS_SCOPE');
+  const since = now();
+  let attempts = 0;
+  while (true) {
+    const state = await probe();
+    attempts++;
+    if (!state || typeof state.ready !== 'boolean' || !Array.isArray(state.pending) ||
+        state.pending.some(s => !['db', 'auth', 'rest', 'storage', 'kong'].includes(s))) throw Error('LOCAL_READINESS_RESULT');
+    if (state.ready && state.pending.length === 0) {
+      emit('LOCAL_READINESS_PASS ' + JSON.stringify({ scope, attempts, elapsedMs: now() - since }));
+      return;
+    }
+    if (now() - since >= timeoutMs) throw Error('LOCAL_READINESS_TIMEOUT');
+    // Poll actual state; elapsed sleep alone never authorizes the next step.
+    await delay(Math.min(500, timeoutMs - (now() - since)));
+  }
+}
+export async function waitForDatabase() {
+  await waitForReadiness(() => {
+    const state = readiness(inspectStack(), 'database');
+    if (state.ready && sql('SELECT 1;') !== '1') throw Error('LOCAL_DATABASE_PROBE_FAILED');
+    return state;
+  }, { scope: 'database' });
+}
+export async function serviceProbe(status, fetcher = globalThis.fetch) {
+  assertLocalUrl(status.API_URL);
+  const pending = [];
+  for (const [service, path] of [['auth', '/auth/v1/health'], ['rest', '/rest/v1/'], ['storage', '/storage/v1/status']]) {
+    try {
+      const response = await fetcher(API + path, { headers: { apikey: status.ANON_KEY, Authorization: `Bearer ${status.ANON_KEY}` },
+        redirect: 'error', signal: AbortSignal.timeout(3000) });
+      await response.body?.cancel();
+      if (response.status === 200) continue;
+      if ([502, 503, 504].includes(response.status)) { pending.push(service); continue; }
+      throw Error('LOCAL_SERVICE_PROBE_REJECTED');
+    } catch (error) {
+      if (error.message === 'LOCAL_SERVICE_PROBE_REJECTED') throw error;
+      if (['TimeoutError', 'AbortError'].includes(error.name) || ['ECONNREFUSED', 'ECONNRESET', 'UND_ERR_SOCKET'].includes(error.cause?.code)) pending.push(service);
+      else throw Error('LOCAL_SERVICE_PROBE_FAILED');
+    }
+  }
+  return { ready: pending.length === 0, pending };
+}
+export async function waitForServices() {
+  let status;
+  await waitForReadiness(async () => {
+    const state = readiness(inspectStack(), 'services');
+    if (!state.ready) return state;
+    status = localStatus();
+    return serviceProbe(status);
+  }, { scope: 'services' });
+  reportStack();
   return status;
 }
 export function sql(text) {

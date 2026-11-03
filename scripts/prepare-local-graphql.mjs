@@ -4,7 +4,7 @@ import { zstdDecompressSync } from 'node:zlib';
 import { mkdtempSync, writeFileSync, rmSync, realpathSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname, basename } from 'node:path';
-import { localStatus, run, sql, PROJECT, inspectStack } from './local-supabase.mjs';
+import { localStatus, run, sql, PROJECT, NETWORK, inspectStack, waitForDatabase, waitForServices, reportStack } from './local-supabase.mjs';
 
 export const GRAPHQL_ASSET = 'https://github.com/supabase/pg_graphql/releases/download/v1.6.3/pg_graphql-v1.6.3-pg17-amd64-linux-gnu.deb';
 export const GRAPHQL_SHA = 'e827939c60bd1e0b861bf30206d04a274e354b1f8942d36fe4b7cd8889f4dc84';
@@ -57,7 +57,7 @@ export async function prepareLocalGraphql() {
   if (sql("SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p');") !== '0' ||
       sql('SELECT count(*) FROM auth.users;') !== '0') throw Error('FRESH_FAKE_STACK_REQUIRED');
   const version = sql("SELECT extversion FROM pg_extension WHERE extname='pg_graphql';");
-  if (version === '1.6.3') return;
+  if (version === '1.6.3') { await waitForServices(); preparationPhase = 'complete'; return; }
   if (version !== '1.5.11') throw Error('UNREVIEWED_LOCAL_GRAPHQL_VERSION');
   const container = `supabase_db_${PROJECT}`;
   if (run('docker', ['exec', container, 'uname', '-m']) !== 'x86_64') throw Error('LOCAL_AMD64_REQUIRED');
@@ -82,20 +82,26 @@ export async function prepareLocalGraphql() {
       run('docker', ['exec', '--user', 'root', container, 'mv', '-f', `${target}.oaz-new`, target]);
     }
     preparationPhase = 'restart-local-db';
+    const before = inspectStack().find(c => c.Name === `/${container}`);
+    const restartAt = Date.now();
     run('docker', ['restart', container]);
-    let ready = false;
-    for (let attempt = 0; attempt < 60; attempt++) {
-      try { if (sql('SELECT 1;') === '1') { ready = true; break; } } catch { /* local startup only */ }
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-    if (!ready) throw Error('LOCAL_DB_RESTART_FAILED');
+    preparationPhase = 'database-readiness';
+    await waitForDatabase();
+    const after = inspectStack().find(c => c.Name === `/${container}`);
+    if (before.Id !== after.Id || before.NetworkSettings.Networks[NETWORK].NetworkID !== after.NetworkSettings.Networks[NETWORK].NetworkID) throw Error('LOCAL_RESTART_IDENTITY_CHANGED');
+    console.log('LOCAL_RESTART_DIAGNOSTIC ' + JSON.stringify({ restartsIssued: 1, identityStable: true, elapsedMs: Date.now() - restartAt }));
     // Fresh synthetic DB only: replace the old extension with the reviewed real engine.
     // No CASCADE and no application data/schema exist at this point.
     preparationPhase = 'create-reviewed-extension';
     sql("DROP EXTENSION pg_graphql; CREATE EXTENSION pg_graphql WITH SCHEMA graphql VERSION '1.6.3'; GRANT USAGE ON SCHEMA graphql,graphql_public TO anon,authenticated; GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA graphql TO anon,authenticated;");
     if (sql("SELECT extversion FROM pg_extension WHERE extname='pg_graphql';") !== '1.6.3') throw Error('LOCAL_GRAPHQL_VERSION_MISMATCH');
     console.log('LOCAL_GRAPHQL_1_6_3_OFFICIAL_ASSET_VERIFIED');
+    preparationPhase = 'service-readiness';
+    await waitForServices();
     preparationPhase = 'complete';
+  } catch (error) {
+    reportStack();
+    throw error;
   } finally {
     // Only the freshly-created host staging directory, never database volumes/backups.
     const resolved = realpathSync(stage);

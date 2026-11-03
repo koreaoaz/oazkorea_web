@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { createClient } from '@supabase/supabase-js';
-import { API, NETWORK, PROJECT, commandDiagnostic, containerDiagnostics, assertLocalUrl, assertDockerEndpoint, verifyNetwork, verifyBindings, verifyRelease, safeCommandFailure } from '../scripts/local-supabase.mjs';
+import { API, NETWORK, PROJECT, readiness, waitForReadiness, serviceProbe, commandDiagnostic, containerDiagnostics, assertLocalUrl, assertDockerEndpoint, verifyNetwork, verifyBindings, verifyRelease, safeCommandFailure } from '../scripts/local-supabase.mjs';
 import { localFetch, requireGraphqlData, requirePrivacyDenial } from '../scripts/test-local-supabase.mjs';
 import { assertNoEnvironmentFiles, localDevelopmentEnvironment } from '../scripts/local-dev.mjs';
 import { unpackReviewedGraphql, validateContainerPgPath, GRAPHQL_ASSET, GRAPHQL_SHA } from '../scripts/prepare-local-graphql.mjs';
@@ -151,4 +151,50 @@ test('Container diagnostic cannot leak environment, logs, arbitrary names or ima
   assert.equal(states[0].imageVersion, '17.6.1.029');
   assert.equal(states[1].state, 'missing');
   assert.ok(!JSON.stringify(states).includes(secret));
+});
+
+function fakeStack(dbHealth = 'healthy') {
+  return ['db', 'auth', 'rest', 'storage', 'kong'].map(service => ({ Name: `/supabase_${service}_${PROJECT}`,
+    State: { Status: 'running', Health: service === 'rest' ? undefined : { Status: service === 'db' ? dbHealth : 'healthy' } },
+    NetworkSettings: { Networks: { [NETWORK]: {} } } }));
+}
+test('Regression: SQL-ready database with Docker starting cannot advance to CLI status', async () => {
+  let now = 0, attempts = 0;
+  const messages = [];
+  await waitForReadiness(() => {
+    attempts++;
+    // Exact observed runner state: SQL already responded, Docker health still starting.
+    const state = readiness(fakeStack(attempts < 3 ? 'starting' : 'healthy'), 'database');
+    if (attempts < 3) assert.deepEqual(state, { ready: false, pending: ['db'] });
+    return state;
+  }, { scope: 'database', now: () => now, delay: async ms => { now += ms; }, emit: m => messages.push(m) });
+  assert.equal(attempts, 3);
+  assert.equal(now, 1000);
+  assert.equal(messages.length, 1);
+});
+test('Readiness times out without ignoring health and fails immediately on fatal state', async () => {
+  let now = 0;
+  await assert.rejects(waitForReadiness(() => readiness(fakeStack('starting'), 'database'), {
+    scope: 'database', timeoutMs: 1000, now: () => now, delay: async ms => { now += ms; }, emit: () => assert.fail('not ready'),
+  }), /TIMEOUT/);
+  assert.equal(now, 1000);
+  for (const change of [c => { c[0].State.Health.Status = 'unhealthy'; }, c => { c[1].State.Status = 'exited'; },
+    c => { c[1].State.OOMKilled = true; }, c => { c[4].NetworkSettings.Networks = {}; }, c => { c.pop(); }]) {
+    const stack = fakeStack(); change(stack);
+    await assert.rejects(waitForReadiness(() => readiness(stack, 'services'), { scope: 'services', delay: () => assert.fail('fatal state retried') }));
+  }
+  assert.equal(readiness(fakeStack(), 'services').ready, true);
+});
+test('Service probes require actual HTTP success and never retry auth or configuration failures', async () => {
+  const status = { API_URL: API, ANON_KEY: 'fake-local-only' };
+  let count = 0;
+  assert.deepEqual(await serviceProbe(status, async (url, options) => {
+    assert.equal(new URL(url).origin, API); assert.equal(options.redirect, 'error'); count++;
+    return new Response(null, { status: 200 });
+  }), { ready: true, pending: [] });
+  assert.equal(count, 3);
+  assert.deepEqual(await serviceProbe(status, async () => new Response(null, { status: 503 })), { ready: false, pending: ['auth', 'rest', 'storage'] });
+  for (const code of [301, 401, 403, 404, 500]) await assert.rejects(serviceProbe(status, async () => new Response(null, { status: code })), /PROBE_REJECTED/);
+  await assert.rejects(serviceProbe({ ...status, API_URL: 'https://example.invalid' }, () => assert.fail('remote fetch')), /LOCAL_TARGET/);
+  await assert.rejects(serviceProbe(status, async () => { throw Error('fake-private'); }), /LOCAL_SERVICE_PROBE_FAILED/);
 });
