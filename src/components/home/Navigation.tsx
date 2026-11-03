@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Github, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from '@/lib/supabaseClient';
+import { privacyOAuthRedirect } from '@/lib/privacy/oauth';
 import Link from "next/link";
 
 export default function Navigation() {
@@ -15,63 +16,61 @@ export default function Navigation() {
   const hoverTimer = useRef<NodeJS.Timeout | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isSupervisor, setIsSupervisor] = useState(false);
+  const authGeneration = useRef(0);
   
 
   const handleGithubLogin = async () => {
-    await supabase.auth.signInWithOAuth({
+    try {
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: 'https://www.oazkorea.co.kr/login_callback',
+        redirectTo: privacyOAuthRedirect('login_callback', window.location.origin),
       },
     });
+    if (error) alert('GitHub 로그인을 시작하지 못했습니다. 다시 시도해 주세요.');
+    } catch { alert('GitHub 로그인을 시작하지 못했습니다. 연결 상태를 확인해 주세요.'); }
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    // Revoke visible access immediately, even if remote sign-out fails.
+    authGeneration.current++;
     setIsLoggedIn(false);
+    setIsSupervisor(false);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) alert('로그아웃을 완료하지 못했습니다. 다시 시도해 주세요.');
+    } catch { alert('로그아웃을 완료하지 못했습니다. 다시 시도해 주세요.'); }
   };
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsLoggedIn(!!user);
-
-
-    if (user) {
-      // supervisor_id 테이블 확인
-      const { data, error} = await supabase
-        .from("supervisor_id")
-        .select("uuid")
-        .eq("uuid", user.id)
-        .maybeSingle();
-
-      setIsSupervisor(!!data);
-    } else {
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const checkUser = async (request: number) => {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (!active || request !== authGeneration.current) return;
+      setIsLoggedIn(!authError && !!user);
       setIsSupervisor(false);
-    }
-
+      if (authError || !user) return;
+      const { data, error } = await supabase.from('supervisor_id')
+        .select('uuid').eq('uuid', user.id).maybeSingle();
+      if (active && request === authGeneration.current) setIsSupervisor(!error && !!data);
     };
-
-    checkUser();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsLoggedIn(!!session?.user);
-
-      if (session?.user) {
-        supabase
-          .from("supervisor_id")
-          .select("uuid")
-          .eq("uuid", session.user.id)
-          .maybeSingle()
-          .then(({ data }) => setIsSupervisor(!!data));
-      } else {
-        setIsSupervisor(false);
-      }
+    const verify = () => {
+      const request = ++authGeneration.current;
+      void checkUser(request).catch(() => {
+        if (active && request === authGeneration.current) { setIsLoggedIn(false); setIsSupervisor(false); }
+      });
+    };
+    verify();
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      authGeneration.current++;
+      setIsLoggedIn(false);
+      setIsSupervisor(false);
+      if (timer) clearTimeout(timer);
+      // Do not call Auth methods inside its synchronous state-change callback.
+      if (session?.user) timer = setTimeout(verify, 0);
     });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+    return () => { active = false; if (timer) clearTimeout(timer); authListener.subscription.unsubscribe(); };
   }, []);
 
   useEffect(() => {

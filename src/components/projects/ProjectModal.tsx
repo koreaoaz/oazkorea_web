@@ -4,15 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Project } from "@/types/project";
-import { 
-  Calendar, 
-  Users, 
-  Trophy, 
-  Github, 
-  ExternalLink,
-  Code2,
-  Target
-} from "lucide-react";
+import { Calendar, Users, Trophy, Github, Code2, Target } from "lucide-react";
 
 const categoryColors: Record<string, string> = {
   "AI/ML": "bg-blue-100 text-blue-800 border-blue-200",

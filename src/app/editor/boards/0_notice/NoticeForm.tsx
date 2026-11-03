@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { deletePost, fetchPosts, insertPost } from "../../services/board.service"
+import { useCallback, useEffect, useRef, useState } from "react";
+import { deletePost, fetchPosts, insertPost, type EditorPost } from "../../services/board.service";
 import { persistOrder } from "../../services/order.service"
 import { useDragAndDrop } from "../../hooks/useDragAndDrop"
 import { BOARD_TABLE_MAP } from "../../constants"
@@ -16,37 +16,43 @@ export function NoticeForm() {
   const [body, setBody] = useState("")
   const [postType, setPostType] = useState<NoticeFilter>("공지")
   const [loading, setLoading] = useState(false)
+  const saving = useRef(false)
+  const [error, setError] = useState("")
 
-  const [posts, setPosts] = useState<any[]>([])
+  const [posts, setPosts] = useState<EditorPost[]>([])
   const [listLoading, setListLoading] = useState(false)
   const [filter, setFilter] = useState<NoticeFilter>("공지")
 
-  const loadPosts = async () => {
+  const loadPosts = useCallback(async () => {
     setListLoading(true)
-    const data = await fetchPosts(BOARD_TABLE_MAP["공지"])
-    setPosts(data)
-    setListLoading(false)
-  }
+    try {
+      const data = await fetchPosts(BOARD_TABLE_MAP["공지"])
+      setPosts(data)
+    } catch { setPosts([]) } finally { setListLoading(false) }
+  }, [])
 
   useEffect(() => {
-    loadPosts()
-  }, [])
+    let active = true
+    void Promise.resolve().then(() => { if (active) return loadPosts() })
+    return () => { active = false }
+  }, [loadPosts])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (saving.current) return
+    saving.current = true
     setLoading(true)
-
-    await insertPost(BOARD_TABLE_MAP["공지"], {
-      text: title,
-      description: body,
-      created_at: new Date().toISOString(),
-      is_noti: postType === "공지",
-    })
-
-    setTitle("")
-    setBody("")
-    setLoading(false)
-    loadPosts()
+    setError("")
+    try {
+      await insertPost(BOARD_TABLE_MAP["공지"], {
+        text: title, description: body,
+        created_at: new Date().toISOString(), is_noti: postType === "공지",
+      })
+      setTitle("")
+      setBody("")
+      await loadPosts()
+    } catch { setError("공지사항을 저장하지 못했습니다. 다시 시도해 주세요.") }
+    finally { saving.current = false; setLoading(false) }
   }
 
   const handleDelete = async (id: number) => {
@@ -59,7 +65,7 @@ export function NoticeForm() {
     filter === "공지" ? !!post.is_noti : !post.is_noti,
   )
 
-  const matchesFilter = (post: any) =>
+  const matchesFilter = (post: EditorPost) =>
     filter === "공지" ? !!post.is_noti : !post.is_noti
 
   const drag = useDragAndDrop({
@@ -67,7 +73,7 @@ export function NoticeForm() {
     onReorder: async (reorderedFiltered) => {
       const queue = [...reorderedFiltered]
       const reorderedAll = posts.map((post) =>
-        matchesFilter(post) ? queue.shift() : post,
+        matchesFilter(post) ? (queue.shift() ?? post) : post,
       )
 
       setPosts(reorderedAll)
@@ -78,6 +84,7 @@ export function NoticeForm() {
 
   return (
     <div className="space-y-6">
+      {error && <p role="alert">{error}</p>}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex gap-2 mb-2">
             {(["공지", "홍보"] as NoticeFilter[]).map((type) => (
@@ -182,8 +189,8 @@ export function NoticeForm() {
                   )}
                 >
                   <td className="border p-2 text-center text-gray-400 select-none">⠿</td>
-                  <td className="border p-2">{post.text}</td>
-                  <td className="border p-2">{post.description}</td>
+                  <td className="border p-2">{String(post.text ?? "")}</td>
+                  <td className="border p-2">{String(post.description ?? "")}</td>
                   <td className="border p-2 text-center">
                     <button
                       onClick={() => handleDelete(post.id)}

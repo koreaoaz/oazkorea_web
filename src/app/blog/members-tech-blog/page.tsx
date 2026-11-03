@@ -15,7 +15,7 @@ type FeedItem = {
   link: string;
   image?: string | null;
 };
-type FeedResponse = { total: number; items: FeedItem[]; _debug?: any };
+type FeedResponse = { total: number; items: FeedItem[]; _debug?: unknown };
 
 /** ===== UI Const ===== */
 const PAGE_SIZE = 10;
@@ -124,7 +124,7 @@ function FeedCard({ item }: { item: FeedItem }) {
     return stripHtml(decoded);
   }, [item.description]);
   const time = useMemo(() => fmtRelative(item.date), [item.date]);
-  const imgUrl = item.image?.startsWith("//") ? `https:${item.image}` : item.image ?? null;
+
 
   return (
     <Link
@@ -289,15 +289,15 @@ export default function FeedPage() {
 
         if (!res.ok) {
           // 실패 원문 로그
-          console.error("FEEDS_FETCH_FAIL", res.status, text);
+          console.error("FEEDS_FETCH_FAIL", res.status);
           throw new Error("피드를 불러오지 못했습니다.");
         }
 
         let data: FeedResponse;
         try {
           data = JSON.parse(text);
-        } catch (e) {
-          console.error("FEEDS_PARSE_FAIL", text);
+        } catch {
+          console.error("FEEDS_PARSE_FAIL");
           throw new Error("피드 응답 파싱 실패");
         }
 
@@ -308,15 +308,12 @@ export default function FeedPage() {
         setTotal(data.total ?? 0);
         if (resetPage) setPage(0);
 
-        if (data._debug) {
-          // 필요 시 개발자도구에서 확인
-          console.debug("FEEDS_DEBUG", data._debug);
-        }
-      } catch (err: any) {
-        if (err?.name === "AbortError") return; // 취소된 요청은 무시
+
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === "AbortError") return; // 취소된 요청은 무시
         setItems([]);
         setTotal(0);
-        setErrMsg(err?.message || "알 수 없는 오류");
+        setErrMsg("피드를 불러오지 못했습니다.");
       } finally {
         if (reqIdRef.current === myReqId) setLoading(false);
       }
@@ -326,7 +323,10 @@ export default function FeedPage() {
 
   // 최초 & 페이지 이동 시
   useEffect(() => {
-    load();
+    let active = true;
+    void Promise.resolve().then(() => { if (active) return load(); });
+    return () => { active = false; };
+    // Search is submitted explicitly; page changes preserve that interaction.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
 

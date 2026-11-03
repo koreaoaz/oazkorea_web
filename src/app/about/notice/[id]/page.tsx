@@ -8,7 +8,7 @@ export const revalidate = 60;
 export default async function NoticeDetailPage({
       params,
     }: {
-      params: { id: string };
+      params: Promise<{ id: string }>;
     }) {
   const { id } = await params;
   const noticeId = Number.isNaN(Number(id)) ? id : Number(id);
@@ -23,7 +23,7 @@ export default async function NoticeDetailPage({
     return (
       <div className="max-w-3xl mx-auto p-6">
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          오류: {error.message}
+          정보를 불러오지 못했습니다.
         </div>
       </div>
     );
@@ -76,7 +76,7 @@ export default async function NoticeDetailPage({
 export async function generateMetadata({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
   const noticeId = Number.isNaN(Number(id)) ? id : Number(id);

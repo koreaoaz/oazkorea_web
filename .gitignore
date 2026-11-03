@@ -39,3 +39,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Private operational evidence and backups never belong in this repository.
+catalog-check-*/
+p0-preflight-*/
+run-*/
+storage-backup-*/
+rls-risk-*.json
+verification-*.txt
+**/seal.json
+**/surface.json
+*.dump
+*.backup
+*.pgpass
+*.key
+__pycache__/
+*.pyc

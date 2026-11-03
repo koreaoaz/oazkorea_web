@@ -6,7 +6,7 @@ import ProjectGrid from "../../../components/projects/ProjectGrid";
 // import ProjectFilters from "../components/projects/ProjectFilters";
 import ProjectModal from "../../../components/projects/ProjectModal";
 // import ProjectStats from "../components/projects/ProjectStats";
-import { Search } from "lucide-react";
+
 import { supabase } from '@/lib/supabaseClient';
 // import { Input } from "@/components/ui/input";
 import { Project } from "@/types/project";
@@ -15,103 +15,107 @@ import { Project } from "@/types/project";
 
 export default function Projects() {
   // const [projects, setProjects] = useState([]);
-  const [filteredProjects, setFilteredProjects] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("전체");
-  const [searchTerm, setSearchTerm] = useState("");
+
+
+
   const [Projects, setProjects] = useState<Project[]>([]);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const proj_baseUrl = process.env.NEXT_PUBLIC_PROJECT_STORAGE_URL;
+
+
+
 
   useEffect(() => {
-    loadProjects();
-  }, []);
+    let active = true
+    const loadProjects = async () => {
 
-   const loadProjects = async () => {
-    setIsLoading(true);
+      // 필요한 컬럼만 선택
+      const { data, error } = await supabase
+        .from("editor_1_projects")
+        .select(`
+          id,
+          project_name,
+          category,
+          duration,
+          team_size,
+          members,
+          description,
+          created_at,
+          year,
+          semester,
+          detailed_description,
+          tech_stack,
+          achievements,
+          filename,
+          image_url,
+          github_url
+        `)
+        .order("created_at", { ascending: false });
 
-    // 필요한 컬럼만 선택
-    const { data, error } = await supabase
-      .from("editor_1_projects")
-      .select(`
-        id,
-        project_name,
-        category,
-        duration,
-        team_size,
-        members,
-        description,
-        created_at,
-        year,
-        semester,
-        detailed_description,
-        tech_stack,
-        achievements,
-        filename,
-        image_url,
-        github_url
-      `)
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("프로젝트 로딩 실패:", error.message);
-      setIsLoading(false);
-      return;
-    }
-
-    const BUCKET = "project_img";
-
-    const mapped: Project[] = data?.map((p: any) => {
-      let techStack: string[] = [];
-
-      if (Array.isArray(p.tech_stack)) {
-        techStack = p.tech_stack;
-      } else if (typeof p.tech_stack === "string" && p.tech_stack) {
-        try {
-          const parsed = JSON.parse(p.tech_stack);
-          if (Array.isArray(parsed)) {
-            techStack = parsed;
-          } else if (Array.isArray(parsed?.stack)) {
-            techStack = parsed.stack;
-          }
-        } catch (e) {
-          console.error("tech_stack 파싱 실패:", e);
-        }
+      if (!active) return
+      if (error) {
+        console.error("프로젝트 로딩 실패");
+        setIsLoading(false);
+        return;
       }
 
-      return {
-        id: p.id,
-        title: p.project_name,
-        description: p.description || "",
-        category: p.category || "기타",
-        duration: p.duration || "",
-        team_size: p.team_size || 0,
-        members: p.members || "",
-        year: p.year || undefined,
-        semester: p.semester || undefined,
-        detailed_description: p.detailed_description || "",
-        created_at: p.created_at,
-        tech_stack: techStack,
-        achievements: [], // 마찬가지로 achievements도 JSON이면 파싱 필요
-        image_url: supabase.storage.from(BUCKET).getPublicUrl(p.image_url || p.filename).data.publicUrl,          
-        github_url: p.github_url || "", 
-      };
-    }) ?? [];
+      const BUCKET = "project_img";
 
-    const latest = mapped.reduce<Project | null>((latest, p) => {
-      if (!latest) return p;
-      if ((p.year ?? 0) > (latest.year ?? 0)) return p;
-      if ((p.year ?? 0) === (latest.year ?? 0) && (p.semester ?? 0) > (latest.semester ?? 0)) return p;
-      return latest;
-    }, null);
+      const mapped: Project[] = data?.map((p) => {
+        let techStack: string[] = [];
 
-    const latestOnly = latest
-      ? mapped.filter((p) => p.year === latest.year && p.semester === latest.semester)
-      : mapped;
+        if (Array.isArray(p.tech_stack)) {
+          techStack = p.tech_stack;
+        } else if (typeof p.tech_stack === "string" && p.tech_stack) {
+          try {
+            const parsed = JSON.parse(p.tech_stack);
+            if (Array.isArray(parsed)) {
+              techStack = parsed;
+            } else if (Array.isArray(parsed?.stack)) {
+              techStack = parsed.stack;
+            }
+          } catch {
+            console.error("tech_stack 파싱 실패");
+          }
+        }
 
-    setProjects(latestOnly);
-    setIsLoading(false);
-  };
+        return {
+          id: p.id,
+          title: p.project_name,
+          description: p.description || "",
+          category: p.category || "기타",
+          duration: p.duration || "",
+          team_size: p.team_size || 0,
+          members: p.members || "",
+          year: p.year || undefined,
+          semester: p.semester || undefined,
+          detailed_description: p.detailed_description || "",
+          created_at: p.created_at,
+          tech_stack: techStack,
+          achievements: [], // 마찬가지로 achievements도 JSON이면 파싱 필요
+          image_url: supabase.storage.from(BUCKET).getPublicUrl(p.image_url || p.filename).data.publicUrl,
+          github_url: p.github_url || "",
+        };
+      }) ?? [];
+
+      const latest = mapped.reduce<Project | null>((latest, p) => {
+        if (!latest) return p;
+        if ((p.year ?? 0) > (latest.year ?? 0)) return p;
+        if ((p.year ?? 0) === (latest.year ?? 0) && (p.semester ?? 0) > (latest.semester ?? 0)) return p;
+        return latest;
+      }, null);
+
+      const latestOnly = latest
+        ? mapped.filter((p) => p.year === latest.year && p.semester === latest.semester)
+        : mapped;
+
+      setProjects(latestOnly);
+      setIsLoading(false);
+    };
+    void loadProjects().catch(() => { if (active) setIsLoading(false) })
+    return () => { active = false }
+  }, [])
+
   // useEffect(() => {
   //   filterProjects();
   // }, [projects, selectedCategory, searchTerm]);
@@ -137,10 +141,10 @@ export default function Projects() {
 
   //   // 검색 필터
   //   // if (searchTerm) {
-  //   //   filtered = filtered.filter(project => 
+  //   //   filtered = filtered.filter(project =>
   //   //     project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
   //   //     project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //   //     project.tech_stack?.some(tech => 
+  //   //     project.tech_stack?.some(tech =>
   //   //       tech.toLowerCase().includes(searchTerm.toLowerCase())
   //   //     )
   //   //   );
@@ -159,7 +163,7 @@ export default function Projects() {
               프로젝트 포트폴리오
             </h1>
             <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
-              AI부터 하드웨어까지, 다양한 영역에서 진행한 혁신적인 프로젝트들을 
+              AI부터 하드웨어까지, 다양한 영역에서 진행한 혁신적인 프로젝트들을
               소개합니다. 각 프로젝트의 세부적인 내용은 성과 발표회를 통해 접할 수 있습니다.
             </p>
           </div>
@@ -173,12 +177,12 @@ export default function Projects() {
         {/* Filters and Search */}
         {/* <div className="mb-12">
           <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center justify-between">
-            <ProjectFilters 
+            <ProjectFilters
               selectedCategory={selectedCategory}
               onCategoryChange={setSelectedCategory}
               projects={projects}
             />
-            
+
             <div className="relative w-full lg:w-80">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
@@ -193,12 +197,12 @@ export default function Projects() {
         {/* </div> */}
 
         {/* Projects Grid */}
-        {/* <ProjectGrid 
+        {/* <ProjectGrid
           projects={filteredProjects}
           isLoading={isLoading}
           onProjectClick={setSelectedProject}
         /> */}
-        <ProjectGrid 
+        <ProjectGrid
           Projects={Projects}
           isLoading={isLoading}
           onProjectClick={setSelectedProject}
@@ -208,7 +212,7 @@ export default function Projects() {
         {/* {!isLoading && (
           <div className="mt-12 text-center">
             <p className="text-slate-600">
-              {searchTerm || selectedCategory !== "전체" 
+              {searchTerm || selectedCategory !== "전체"
                 ? `${filteredProjects.length}개의 프로젝트를 찾았습니다`
                 : `총 ${projects.length}개의 프로젝트`
               }
@@ -218,7 +222,7 @@ export default function Projects() {
       </div>
 
       {/* Project Detail Modal */}
-      <ProjectModal 
+      <ProjectModal
         project={selectedProject}
         onClose={() => setSelectedProject(null)}
       />

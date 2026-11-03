@@ -58,6 +58,8 @@ export default function StudyArchiveGrid() {
     }
   }, [expandedIndex])
 
+  useEffect(() => {
+  let active = true
   async function fetchList() {
   try {
     const { data: studyData, error: dbError } = await supabase
@@ -65,8 +67,9 @@ export default function StudyArchiveGrid() {
       .select("*")
       .order("created_at", { ascending: false })
 
+    if (!active) return
     if (dbError) {
-      setSupabaseError(`데이터베이스 오류: ${dbError.message}`)
+      setSupabaseError("스터디 정보를 불러오지 못했습니다.")
       return
     }
 
@@ -114,21 +117,20 @@ export default function StudyArchiveGrid() {
     setLatestLabel(latest?.year && latest?.semester ? `${latest.year}-${latest.semester}` : null)
     setFiles(latestItems)
     setCurrentPage(0)
-  } catch (err) {
+  } catch {
+    if (!active) return
     setSupabaseError("데이터 로딩 중 오류가 발생했습니다.")
   }
 }
 
-  useEffect(() => {
-    fetchList()
+    void fetchList()
+    return () => { active = false }
   }, [])
 
-  const goPrev = () => setCurrentPage((p) => Math.max(0, p - 1))
-  const goNext = () => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))
+  const goPrev = () => { setExpandedIndex(null); setCurrentPage((p) => Math.max(0, p - 1)) }
+  const goNext = () => { setExpandedIndex(null); setCurrentPage((p) => Math.min(totalPages - 1, p + 1)) }
 
-  useEffect(() => {
-    setExpandedIndex(null)
-  }, [currentPage])
+
 
   return (
     <div className="w-full px-10 py-8">

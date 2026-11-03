@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createClient } from "@supabase/supabase-js"
+
 import { Loader2, AlertCircle } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
 
@@ -28,93 +28,96 @@ export const TimetableDemo = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+
+
   useEffect(() => {
-    loadStudies()
-  }, [])
+    let active = true
+    const loadStudies = async () => {
+      try {
+        // console.log("[v0] Loading studies from time_table...")
 
-  const loadStudies = async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      // console.log("[v0] Loading studies from time_table...")
+        const { data, error } = await supabase.from("editor_3_study_timetable").select("*").order("start_time")
 
-      const { data, error } = await supabase.from("editor_3_study_timetable").select("*").order("start_time")
+        // console.log("[v0] Database query result:", { data, error })
 
-      // console.log("[v0] Database query result:", { data, error })
+        if (!active) return
+        if (error) {
+          console.error("시간표 조회 실패")
+          setError("시간표를 불러오지 못했습니다.")
+          setStudies([])
+          return
+        }
 
-      if (error) {
-        console.error("[v0] Database error:", error)
-        setError(`Database error: ${error.message}`)
+        if (data && data.length > 0) {
+          // console.log("[v0] Raw data from database:", data)
+
+          const validStudies: Study[] = []
+          const seenStudies = new Set<string>()
+
+          data.forEach((item, index: number) => {
+            // console.log("[v0] Processing item:", item)
+
+            // Check for required fields
+            if (!item.start_time || !item.end_time || !item.study_name) {
+              console.warn("시간표 필수 필드 누락")
+              return
+            }
+
+            const startParts = item.start_time.split(" ")
+            const endParts = item.end_time.split(" ")
+
+            if (startParts.length < 2 || endParts.length < 2) {
+              console.warn("시간표 형식 오류")
+              return
+            }
+
+            const day = startParts[0]
+            const startTime = startParts[1]
+            const endTime = endParts[1]
+
+            // Create unique identifier to prevent duplicates
+            const studyKey = `${item.study_name}-${item.leader}-${day}-${startTime}-${endTime}`
+            if (seenStudies.has(studyKey)) {
+              console.warn("시간표 중복 항목")
+              return
+            }
+            seenStudies.add(studyKey)
+
+            const converted = {
+              id: item.id?.toString() || `temp-${index}-${Date.now()}`,
+              name: item.study_name,
+              leader: item.leader || "Unknown",
+              color: item.color || "#6b7280",
+              day,
+              startTime,
+              endTime,
+              startSlot: timeToSlot(startTime),
+              endSlot: timeToSlot(endTime),
+            }
+
+            // console.log("[v0] Converted study:", converted)
+            validStudies.push(converted)
+          })
+
+          // console.log("[v0] Final converted studies:", validStudies)
+          setStudies(validStudies)
+          setError(null)
+        } else {
+          // console.log("[v0] No data in database")
+          setStudies([])
+        }
+      } catch {
+        if (!active) return
+        setError("시간표를 불러오지 못했습니다.")
         setStudies([])
-        return
+      } finally {
+        if (active) setIsLoading(false)
       }
-
-      if (data && data.length > 0) {
-        // console.log("[v0] Raw data from database:", data)
-
-        const validStudies: Study[] = []
-        const seenStudies = new Set<string>()
-
-        data.forEach((item: any, index: number) => {
-          // console.log("[v0] Processing item:", item)
-
-          // Check for required fields
-          if (!item.start_time || !item.end_time || !item.study_name) {
-            console.warn("[v0] Missing required data for item:", item)
-            return
-          }
-
-          const startParts = item.start_time.split(" ")
-          const endParts = item.end_time.split(" ")
-
-          if (startParts.length < 2 || endParts.length < 2) {
-            console.warn("[v0] Invalid time format for item:", item)
-            return
-          }
-
-          const day = startParts[0]
-          const startTime = startParts[1]
-          const endTime = endParts[1]
-
-          // Create unique identifier to prevent duplicates
-          const studyKey = `${item.study_name}-${item.leader}-${day}-${startTime}-${endTime}`
-          if (seenStudies.has(studyKey)) {
-            console.warn("[v0] Duplicate study detected, skipping:", studyKey)
-            return
-          }
-          seenStudies.add(studyKey)
-
-          const converted = {
-            id: item.id?.toString() || `temp-${index}-${Date.now()}`,
-            name: item.study_name,
-            leader: item.leader || "Unknown",
-            color: item.color || "#6b7280",
-            day,
-            startTime,
-            endTime,
-            startSlot: timeToSlot(startTime),
-            endSlot: timeToSlot(endTime),
-          }
-
-          // console.log("[v0] Converted study:", converted)
-          validStudies.push(converted)
-        })
-
-        // console.log("[v0] Final converted studies:", validStudies)
-        setStudies(validStudies)
-        setError(null)
-      } else {
-        // console.log("[v0] No data in database")
-        setStudies([])
-      }
-    } catch (error) {
-      console.error("[v0] Error loading studies:", error)
-      setError(`Failed to load studies: ${error instanceof Error ? error.message : "Unknown error"}`)
-      setStudies([])
-    } finally {
-      setIsLoading(false)
     }
-  }
+
+    void loadStudies().catch(() => { if (active) setIsLoading(false) })
+    return () => { active = false }
+  }, [])
 
   // const generateTimeSlots = () => {
   //   const slots = []

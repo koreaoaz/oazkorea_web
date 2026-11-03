@@ -1,0 +1,18 @@
+import type { DeploymentEnvironment } from './preview-environment.mjs';
+
+/** Literal public variable accesses are replaced by Next at build time. */
+export function publicDeploymentEnvironment(): DeploymentEnvironment {
+  return {
+    VERCEL: process.env.NEXT_PUBLIC_OAZ_VERCEL,
+    VERCEL_ENV: process.env.NEXT_PUBLIC_OAZ_DEPLOYMENT_ENV,
+    VERCEL_GIT_COMMIT_REF: process.env.NEXT_PUBLIC_OAZ_DEPLOYMENT_BRANCH,
+    VERCEL_BRANCH_URL: process.env.NEXT_PUBLIC_OAZ_PREVIEW_BRANCH_HOST,
+    VERCEL_URL: process.env.NEXT_PUBLIC_OAZ_PREVIEW_DEPLOYMENT_HOST,
+    OAZ_PREVIEW_ISOLATED_REF: process.env.NEXT_PUBLIC_OAZ_PREVIEW_ISOLATED_REF,
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_KEY: process.env.NEXT_PUBLIC_SUPABASE_KEY,
+    NEXT_PUBLIC_OAZ_OAUTH_TEST_ORIGIN: process.env.NEXT_PUBLIC_OAZ_OAUTH_TEST_ORIGIN,
+    NEXT_PUBLIC_PROJECT_STORAGE_URL: process.env.NEXT_PUBLIC_PROJECT_STORAGE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  };
+}

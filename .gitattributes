@@ -1,0 +1,3 @@
+# The reviewed SQL release/seal uses byte hashes. Preserve its original bytes
+# on Windows and Linux; never change production approval hashes through checkout.
+reports/main-safety/integration/sql/*.sql -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState } from "react";
 import { insertPost } from "../../services/board.service"
 import { BOARD_TABLE_MAP } from "../../constants"
 import { FormField } from "../../components/common/FormField"
 import { textareaBase } from "../../utils/inputformClasses"
-import { supabase } from "@/lib/supabaseClient"
+
 
 type AllowedUserRow = {
   id: number
@@ -40,20 +40,6 @@ export function Allowed_user({
       const trimmedName = title.trim()
       const trimmedEmail = body.trim()
 
-      // 기존 데이터와 동일한 이름 + 이메일 있는지 확인
-      const { data: existing } = await supabase
-        .from(BOARD_TABLE_MAP["승인email"])
-        .select("id")
-        .eq("email", trimmedEmail)
-        .maybeSingle()
-
-      if (existing) {
-        setErrorMsg("이미 등록된 계정입니다.")
-        alert("이미 등록된 계정입니다.")
-        setLoading(false)
-        return
-      }
-
       const newRow = await insertPost(BOARD_TABLE_MAP["승인email"], {
         name: trimmedName,
         email: trimmedEmail,
@@ -62,8 +48,8 @@ export function Allowed_user({
       setName("")
       setEmail("")
       onSuccess?.(newRow)
-    } catch (err: any) {
-      console.error(err)
+    } catch {
+      console.error("승인 등록 실패")
       setErrorMsg("등록에 실패했습니다.")
     } finally {
       setLoading(false)

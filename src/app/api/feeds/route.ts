@@ -158,8 +158,8 @@ export async function GET(req: Request) {
     const items = filtered.slice(start, start + limit);
 
     return NextResponse.json({ total, items });
-  } catch (e) {
-    console.error("FEEDS_API_ERROR", e);
+  } catch {
+    console.error("FEEDS_API_ERROR");
     return NextResponse.json({ total: 0, items: [] }, { status: 500 });
   }
 }

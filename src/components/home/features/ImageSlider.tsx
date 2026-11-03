@@ -19,6 +19,7 @@ export default function ImageSlider() {
   // 자동 슬라이드
   useEffect(() => {
     const interval = setInterval(() => {
+      setTransitioning(true)
       setIndex((prev) => prev + 1)
     }, 4000)
     return () => clearInterval(interval)
@@ -44,8 +45,7 @@ export default function ImageSlider() {
       return () => clearTimeout(timer)
     }
 
-    setTransitioning(true)
-  }, [index])
+  }, [index, images.length])
 
   return (
     <div className="relative w-full aspect-video overflow-hidden rounded-xl">

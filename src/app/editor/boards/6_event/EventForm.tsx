@@ -24,8 +24,8 @@ export function EventForm() {
           uploadImage("card_news", file)
         )
       )
-    } catch (err) {
-      console.error("이미지 업로드 실패:", err)
+    } catch {
+      console.error("이미지 업로드 실패")
       alert("이미지 업로드 실패")
       return
     }
@@ -103,7 +103,7 @@ export function EventForm() {
       {image.previews.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
           {image.previews.map((src, i) => (
-            <img
+            <img alt="행사 이미지 미리보기"
               key={i}
               src={src}
               className="w-full h-32 object-cover rounded border"

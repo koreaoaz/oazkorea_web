@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabaseClient";
 export default function Notification() {
   const [Notifications, setNotifications] = useState<string[]>([]);
 
+  useEffect(() => {
+  let active = true;
   const fetchNotifications = async () => {
     const {data, error} = await supabase
     .from("editor_0_noti")
@@ -18,13 +20,13 @@ export default function Notification() {
       return;
     }
 
-    if(data){
+    if(data && active){
       setNotifications(data.map((item) => item.text));
     }
   };
 
-  useEffect(() => {
-    fetchNotifications();
+    void fetchNotifications().catch(() => {});
+    return () => { active = false; };
   }, []);
 
   return (

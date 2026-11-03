@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 "use client";
 
 import React, { useState } from "react";
@@ -65,7 +65,7 @@ export default function ComponentShowcase() {
             Beautiful Components
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Over 50+ beautiful components built with Radix UI and Tailwind CSS. 
+            Over 50+ beautiful components built with Radix UI and Tailwind CSS.
             Copy, paste, and customize to your heart&apos;s content.
           </p>
         </motion.div>
@@ -80,26 +80,26 @@ export default function ComponentShowcase() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="border-b border-gray-200 bg-gray-50/50">
               <TabsList className="h-auto p-1 bg-transparent w-full justify-start">
-                <TabsTrigger 
-                  value="buttons" 
+                <TabsTrigger
+                  value="buttons"
                   className="data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-3 text-sm font-medium"
                 >
                   Buttons
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="cards" 
+                <TabsTrigger
+                  value="cards"
                   className="data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-3 text-sm font-medium"
                 >
                   Cards
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="badges" 
+                <TabsTrigger
+                  value="badges"
                   className="data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-3 text-sm font-medium"
                 >
                   Badges
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="icons" 
+                <TabsTrigger
+                  value="icons"
                   className="data-[state=active]:bg-white data-[state=active]:shadow-sm px-6 py-3 text-sm font-medium"
                 >
                   Icons

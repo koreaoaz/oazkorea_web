@@ -18,8 +18,8 @@ export async function GET() {
     .single();
 
   if (error) {
-    console.error("❌ GET error", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Visitor GET failed");
+    return NextResponse.json({ error: "방문자 정보를 처리하지 못했습니다." }, { status: 500 });
   }
 
   const todayKST = yyyymmddKST(new Date());
@@ -34,8 +34,8 @@ export async function GET() {
       .single();
 
     if (resetError) {
-      console.error("❌ Reset error", resetError.message);
-      return NextResponse.json({ error: resetError.message }, { status: 500 });
+      console.error("Visitor reset failed");
+      return NextResponse.json({ error: "방문자 정보를 처리하지 못했습니다." }, { status: 500 });
     }
 
     return NextResponse.json({ count: resetData.visitor, date: todayKST });
@@ -49,8 +49,8 @@ export async function POST() {
   const { data, error } = await supabase.rpc("increment_visit", { row_id: ROW_ID });
 
   if (error) {
-    console.error("❌ POST error", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Visitor POST failed");
+    return NextResponse.json({ error: "방문자 정보를 처리하지 못했습니다." }, { status: 500 });
   }
 
   return NextResponse.json({

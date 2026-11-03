@@ -1,0 +1,40 @@
+name: Privacy hotfix
+on:
+  push:
+    branches: [hotfix/privacy-p0]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: privacy-hotfix-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://offline.invalid
+      NEXT_PUBLIC_SUPABASE_KEY: sb_publishable_offline_fixture
+      NEXT_PUBLIC_OAZ_PRIVACY_V2: 'false'
+      NEXT_PUBLIC_OAZ_OAUTH_TEST_ORIGIN: ''
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run check:security
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run test:preview
+      - run: npm test
+      - run: npm run build:offline
+      - run: npm run test:runtime
+      - run: npm run build:offline -- --privacy-v3
+      - run: npm run typecheck
+      - run: git diff --check

@@ -53,7 +53,7 @@ export default function Calendar01() {
         .from("editor_4_schedules")
         .select("id, description, start_date, end_date")
         .order("start_date", { ascending: true })
-      if (error) setError(error.message)
+      if (error) setError("정보를 불러오지 못했습니다.")
       setSchedules(data || [])
       setLoading(false)
     }

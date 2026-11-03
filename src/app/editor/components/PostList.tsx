@@ -4,19 +4,19 @@ import { useState } from "react"
 import { BoardType, BOARD_TABLE_MAP } from "../constants"
 import { useDragAndDrop } from "../hooks/useDragAndDrop"
 import { persistOrder } from "../services/order.service"
-import { deletePost, fetchPosts, updatePost} from "../services/board.service"
+import { deletePost, fetchPosts, updatePost, type EditorPost } from "../services/board.service";
 import { ImageFromStorage } from "./ImageFromStorage"
 import { cx } from "../utils/cx"
 import { getFirstImageFilename } from "../utils/parsing_first"
 import * as XLSX from "xlsx"
-import { saveAs } from "file-saver"
+
 
 type Props = {
   board: BoardType
-  posts: any[]
+  posts: EditorPost[]
   loading: boolean
   reload: () => void
-  setPosts: React.Dispatch<React.SetStateAction<any[]>>
+  setPosts: React.Dispatch<React.SetStateAction<EditorPost[]>>
 }
 
 const BOARD_COLUMNS: Record<
@@ -85,14 +85,14 @@ export function PostList({ board, posts, setPosts, reload, loading }: Props) {
 
   const [editingCell, setEditingCell] = useState<{
     id: number
-    field: keyof any
+    field: string
   } | null>(null)
 
   const handleExcelDownload = async () => {
     const data = await fetchPosts(BOARD_TABLE_MAP[board])
 
     const formatted = data.map((row) => {
-      const obj: any = {}
+      const obj: Record<string, unknown> = {}
       BOARD_COLUMNS[board].forEach((col) => {
         obj[col.label] = row[col.field]
       })
@@ -109,7 +109,7 @@ export function PostList({ board, posts, setPosts, reload, loading }: Props) {
   const [editingValue, setEditingValue] = useState("")
 
   const handleSave = async (postId: number, field: string) => {
-    let value: any = editingValue
+    let value: string | number = editingValue
 
     // 숫자 필드 자동 변환
     if (!isNaN(Number(editingValue)) && editingValue.trim() !== "") {
@@ -123,8 +123,8 @@ export function PostList({ board, posts, setPosts, reload, loading }: Props) {
 
       setEditingCell(null)
       reload()
-    } catch (err) {
-      console.error("Update error:", err)
+    } catch {
+      console.error("업데이트 실패")
       alert("업데이트 실패")
     }
   }
@@ -190,7 +190,7 @@ export function PostList({ board, posts, setPosts, reload, loading }: Props) {
 
             {(board === "프로젝트" || board === "스터디") && (
               <td className="border p-2">
-                {post.filename ? (
+                {typeof post.filename === "string" && post.filename ? (
                   <ImageFromStorage
                     board={board}
                     filename={post.filename}
@@ -228,7 +228,7 @@ export function PostList({ board, posts, setPosts, reload, loading }: Props) {
                 className="border p-2 cursor-pointer"
                 onClick={() => {
                   setEditingCell({ id: post.id, field: col.field })
-                  setEditingValue(post[col.field] ?? "")
+                  setEditingValue(String(post[col.field] ?? ""))
                 }}
               >
                 {editingCell &&
@@ -247,7 +247,7 @@ export function PostList({ board, posts, setPosts, reload, loading }: Props) {
                     }}
                   />
                 ) : (
-                  post[col.field]
+                  String(post[col.field] ?? "")
                 )}
               </td>
             ))}

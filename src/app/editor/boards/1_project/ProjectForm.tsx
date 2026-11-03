@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { insertPost } from "../../services/board.service"
+import { insertPost, type EditorPost } from "../../services/board.service";
 import { uploadImage } from "../../services/storage.service"
 import { useImageUpload } from "../../hooks/useImageUpload"
 import { BOARD_TABLE_MAP, CategoryKey } from "../../constants"
@@ -9,7 +9,7 @@ import { CategorySelect } from "../../components/common/CategorySelect"
 import { FormField } from "../../components/common/FormField"
 import { textareaBase } from "../../utils/inputformClasses"
 
-export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
+export function ProjectForm({onSuccess,}: {onSuccess?: (post: EditorPost) => void}) {
   // 기존 폼에서 받던 것들 전부 복원
   const [title, setTitle] = useState("") // 프로젝트명
   const [duration, setDuration] = useState("") // 기간
@@ -37,12 +37,6 @@ export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
 
     // members/techStack는 문자열로 저장하거나, 서버에서 split 하도록 둘 수 있음
     // 여기서는 "입력 그대로(문자열)" 저장 + 필요하면 파싱해서 함께 저장하는 예시를 포함
-    const membersList =
-      members
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean) || []
-
     const techStackList =
       techStack
         .split(",")

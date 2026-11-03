@@ -3,18 +3,26 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import { hasOAuthCallbackError } from '@/lib/privacy/oauth';
 
 export default function LoginCallback() {
   const [status, setStatus] = useState<'checking' | 'allowed' | 'denied'>('checking');
   const router = useRouter();
 
   useEffect(() => {
+    let active = true;
     const verifyUser = async () => {
+      if (hasOAuthCallbackError(window.location)) {
+        await Promise.resolve();
+        if (active) setStatus('denied');
+        return;
+      }
       const {
         data: { user },
         error,
       } = await supabase.auth.getUser();
 
+      if (!active) return;
       if (!user || error) {
         setStatus('denied');
         return;
@@ -23,13 +31,14 @@ export default function LoginCallback() {
       const uuid = user.id;
 
       // registered_member 테이블에서 uuid 확인
-      const { data: registered } = await supabase
+      const { data: registered, error: memberError } = await supabase
         .from('registered_member')
         .select('uuid')
         .eq('uuid', uuid)
         .maybeSingle();
 
-      if (registered) {
+      if (!active) return;
+      if (!memberError && registered) {
         // 로그인 성공 → 대시보드나 메인 페이지로 이동
         setStatus('allowed');
         router.push('/'); // or your main page
@@ -40,8 +49,9 @@ export default function LoginCallback() {
       }
     };
 
-    verifyUser();
-  }, []);
+    void verifyUser().catch(() => { if (active) setStatus('denied'); });
+    return () => { active = false; };
+  }, [router]);
 
   if (status === 'checking') {
     return <p className="text-center mt-10">🔄 로그인 확인 중...</p>;

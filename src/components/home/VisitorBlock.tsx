@@ -10,7 +10,7 @@ export default function VisitorBlock() {
     const kstToday = new Date().toLocaleDateString("en-CA", {
       timeZone: "Asia/Seoul",
     });
-    setToday(kstToday);
+
 
     const hit = async () => {
       const lastVisited = localStorage.getItem("lastVisitDate");
@@ -50,13 +50,17 @@ export default function VisitorBlock() {
         const res = await fetch("/api/visitor");
         if (!res.ok) throw new Error(`GET /api/visitor ${res.status}`);
         const data = await res.json();
-        safeSet(data?.count) || safeSet(data?.visitor);
+        if (!safeSet(data?.count)) safeSet(data?.visitor);
       } catch {
         setCount(0); // 마지막 안전망
       }
     };
 
-    hit();
+    let active = true;
+    void Promise.resolve().then(() => {
+      if (active) { setToday(kstToday); return hit(); }
+    });
+    return () => { active = false; };
   }, []);
 
   return (

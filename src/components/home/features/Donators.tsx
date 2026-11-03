@@ -27,7 +27,7 @@ export default function Donators({ listBg = "transparent" }: Props) {
         .select("id, name")
         .order("id", { ascending: true })
 
-      if (error) setError(error.message)
+      if (error) setError("정보를 불러오지 못했습니다.")
       setDonators(data ?? [])
       setLoading(false)
     }
