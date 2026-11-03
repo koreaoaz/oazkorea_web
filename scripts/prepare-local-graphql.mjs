@@ -8,6 +8,8 @@ import { localStatus, run, sql, PROJECT, inspectStack } from './local-supabase.m
 
 export const GRAPHQL_ASSET = 'https://github.com/supabase/pg_graphql/releases/download/v1.6.3/pg_graphql-v1.6.3-pg17-amd64-linux-gnu.deb';
 export const GRAPHQL_SHA = 'e827939c60bd1e0b861bf30206d04a274e354b1f8942d36fe4b7cd8889f4dc84';
+let preparationPhase = 'fresh-check';
+export function graphqlPreparationPhase() { return preparationPhase; }
 const wanted = {
   './usr/lib/postgresql/lib/pg_graphql.so': 'pg_graphql.so',
   './var/lib/postgresql/extension/pg_graphql--1.6.3.sql': 'pg_graphql--1.6.3.sql',
@@ -41,10 +43,15 @@ export function unpackReviewedGraphql(bytes) {
   return files;
 }
 export function validateContainerPgPath(value) {
-  if (!/^\/(?:usr|opt)\/[a-zA-Z0-9_./-]+$/.test(value) || value.includes('/../')) throw Error('LOCAL_PG_PATH_REQUIRED');
+  // Official supabase/postgres:17.6.1.029 is Nix-based. pg_config returns
+  // absolute /nix/store paths rather than its compatibility /usr symlinks.
+  const normal = /^\/(?:usr|opt)\/[a-zA-Z0-9_./-]+$/.test(value);
+  const nix = /^\/nix\/store\/[a-z0-9]{32}-[a-zA-Z0-9+._-]+\/(?:lib|share)(?:\/postgresql)?$/.test(value);
+  if ((!normal && !nix) || value.split('/').some(part => part === '..' || part === '.')) throw Error('LOCAL_PG_PATH_REQUIRED');
   return value;
 }
 export async function prepareLocalGraphql() {
+  preparationPhase = 'fresh-check';
   localStatus(); // validates fixed loopback API, Docker context, network and container identity
   if (sql("SELECT current_setting('server_version_num')::integer/10000;") !== '17') throw Error('LOCAL_PG17_REQUIRED');
   if (sql("SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind IN ('r','p');") !== '0' ||
@@ -54,13 +61,16 @@ export async function prepareLocalGraphql() {
   if (version !== '1.5.11') throw Error('UNREVIEWED_LOCAL_GRAPHQL_VERSION');
   const container = `supabase_db_${PROJECT}`;
   if (run('docker', ['exec', container, 'uname', '-m']) !== 'x86_64') throw Error('LOCAL_AMD64_REQUIRED');
+  preparationPhase = 'official-download';
   const response = await fetch(GRAPHQL_ASSET, { signal: AbortSignal.timeout(60000) });
   if (!response.ok) throw Error('OFFICIAL_GRAPHQL_DOWNLOAD_FAILED');
   const files = unpackReviewedGraphql(Buffer.from(await response.arrayBuffer()));
+  preparationPhase = 'compiled-pg-paths';
   const library = validateContainerPgPath(run('docker', ['exec', container, 'pg_config', '--pkglibdir']));
   const shared = validateContainerPgPath(run('docker', ['exec', container, 'pg_config', '--sharedir']));
   const stage = mkdtempSync(join(tmpdir(), 'oaz-fake-graphql-'));
   try {
+    preparationPhase = 'copy-reviewed-files';
     for (const [name, bytes] of Object.entries(files)) {
       const host = join(stage, name);
       writeFileSync(host, bytes, { flag: 'wx', mode: 0o600 });
@@ -71,6 +81,7 @@ export async function prepareLocalGraphql() {
       run('docker', ['exec', '--user', 'root', container, 'chmod', name.endsWith('.so') ? '755' : '644', `${target}.oaz-new`]);
       run('docker', ['exec', '--user', 'root', container, 'mv', '-f', `${target}.oaz-new`, target]);
     }
+    preparationPhase = 'restart-local-db';
     run('docker', ['restart', container]);
     let ready = false;
     for (let attempt = 0; attempt < 60; attempt++) {
@@ -80,9 +91,11 @@ export async function prepareLocalGraphql() {
     if (!ready) throw Error('LOCAL_DB_RESTART_FAILED');
     // Fresh synthetic DB only: replace the old extension with the reviewed real engine.
     // No CASCADE and no application data/schema exist at this point.
+    preparationPhase = 'create-reviewed-extension';
     sql("DROP EXTENSION pg_graphql; CREATE EXTENSION pg_graphql WITH SCHEMA graphql VERSION '1.6.3'; GRANT USAGE ON SCHEMA graphql,graphql_public TO anon,authenticated; GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA graphql TO anon,authenticated;");
     if (sql("SELECT extversion FROM pg_extension WHERE extname='pg_graphql';") !== '1.6.3') throw Error('LOCAL_GRAPHQL_VERSION_MISMATCH');
     console.log('LOCAL_GRAPHQL_1_6_3_OFFICIAL_ASSET_VERIFIED');
+    preparationPhase = 'complete';
   } finally {
     // Only the freshly-created host staging directory, never database volumes/backups.
     const resolved = realpathSync(stage);

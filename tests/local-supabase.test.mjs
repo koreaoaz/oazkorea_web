@@ -119,6 +119,9 @@ test('Local GraphQL provisioning cannot accept an untrusted artifact or target p
   assert.throws(() => unpackReviewedGraphql(Buffer.from('fake untrusted package')), /INTEGRITY/);
   for (const value of ['/etc', '/usr/../etc', '/usr/lib;echo fake', 'https://remote.invalid/lib', 'C:/backups']) assert.throws(() => validateContainerPgPath(value));
   assert.equal(validateContainerPgPath('/usr/lib/postgresql/17/lib'), '/usr/lib/postgresql/17/lib');
+  assert.equal(validateContainerPgPath('/nix/store/' + 'a'.repeat(32) + '-postgresql-17.6/lib'), '/nix/store/' + 'a'.repeat(32) + '-postgresql-17.6/lib');
+  assert.equal(validateContainerPgPath('/nix/store/' + 'b'.repeat(32) + '-postgresql-and-plugins-17.6/share/postgresql'), '/nix/store/' + 'b'.repeat(32) + '-postgresql-and-plugins-17.6/share/postgresql');
+  for (const value of ['/nix/store/invalid/lib', '/nix/store/' + 'a'.repeat(32) + '-postgresql/../../etc', '/usr/lib/..', '/nix/var/nix/profiles/default/lib']) assert.throws(() => validateContainerPgPath(value));
 });
 test('Extension failure classification emits fixed safe categories only', () => {
   assert.equal(safeCommandFailure('could not load library: fake-sensitive-path'), 'LOCAL_EXTENSION_ABI');

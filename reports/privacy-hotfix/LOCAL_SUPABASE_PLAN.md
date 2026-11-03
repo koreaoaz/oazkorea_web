@@ -35,6 +35,8 @@ private Storage의 가짜 파일 업로드/다운로드와 타인·익명 차단
 
 실제 CI에서 고정 CLI의 기본 pg_graphql이 1.5.11인 것이 확인됐다. scripts/prepare-local-graphql.mjs는 테스트 시작 전에 빈 로컬 DB만 확인하고 공식 pg_graphql 1.6.3 pg17 amd64 배포 파일을 SHA-256 e827939c60bd1e0b861bf30206d04a274e354b1f8942d36fe4b7cd8889f4dc84로 검증한다. 아카이브의 정해진 일반 파일 3개만 사용하고, 일회성 DB 컨테이너의 확장을 준비한 뒤 재시작한다. PC에 PostgreSQL 패키지를 설치하지 않는다. 원격·다른 버전·다른 아키텍처·기존 가짜 계정/앱 데이터가 있는 DB는 거절한다. 운영 SQL 후보나 preflight의 버전 조건을 낮추지 않는다.
 
+해당 CLI의 공식 postgres:17.6.1.029 이미지는 Nix 기반이다. 공식 Dockerfile(https://github.com/supabase/postgres/blob/17.6.1.029/Dockerfile-17)과 대조해 pg_config가 반환하는 /nix/store/<32자리 해시>-패키지/lib 또는 share 경로도 컨테이너 내부의 허용된 경로로 검증한다. 임의 호스트 경로나 상위 디렉터리 이동은 허용하지 않는다. 실패 시 준비 하위 단계와 고정 코드만 출력한다.
+
 ## 최소 사용자 작업과 실행 순서
 
 1. 공식 Docker Desktop 설치 및 WSL2/Linux containers 준비. 필요 시 가상화 활성화 후 재부팅. RAM이 최소 수준이므로 다른 큰 작업을 종료하고 리소스를 확인한다.

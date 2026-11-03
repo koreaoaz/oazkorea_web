@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import { API, localStatus, sql, reviewedSql, verifyRelease } from './local-supabase.mjs';
-import { prepareLocalGraphql } from './prepare-local-graphql.mjs';
+import { prepareLocalGraphql, graphqlPreparationPhase } from './prepare-local-graphql.mjs';
 let phase = 'precheck';
 
 export function localFetch(fetcher = globalThis.fetch) {
@@ -145,5 +145,5 @@ export async function integration() {
   console.log(`LOCAL_SUPABASE_INTEGRATION_PASS checks=${checks}`);
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  integration().catch(error => { const guard = /^LOCAL_(?:SQL_GUARD_[a-f0-9]{12}|EXTENSION_ABI|SQL_PERMISSION|EXTENSION_DEPENDENCY)$/.test(error.message) ? ` guard=${error.message}` : ''; console.error(`LOCAL_SUPABASE_INTEGRATION_STOP phase=${phase}${guard}`); process.exitCode = 1; });
+  integration().catch(error => { const guard = /^LOCAL_[A-Z0-9_]+$/.test(error.message) || /^LOCAL_SQL_GUARD_[a-f0-9]{12}$/.test(error.message) ? ` guard=${error.message}` : ''; const detail = phase === 'reviewed-local-graphql' ? ` preparation=${graphqlPreparationPhase()}` : ''; console.error(`LOCAL_SUPABASE_INTEGRATION_STOP phase=${phase}${detail}${guard}`); process.exitCode = 1; });
 }
