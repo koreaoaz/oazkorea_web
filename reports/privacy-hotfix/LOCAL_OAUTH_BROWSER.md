@@ -6,7 +6,7 @@
 
 이후 사용자 지시로 테스트 공지 **LOCAL OAuth 편집 권한 테스트 (id=34)** 한 행만 로컬에서 삭제했다. 지정 제목 1→0, 전체 공지 3→2, 기존 synthetic fixture 2→2. 다른 공지·회원·GitHub identity·Auth 로그인 기록은 보존했다. 아래 공지 보존 안내는 삭제 전 이력이다. 계정은 여전히 등록/승인/로그인 상태이며 localEditorAssigned=false다.
 
-현재 서버와 콘솔은 종료하지 않았다. **기존 CMD의 메뉴 입력 대기 줄에서 Enter를 눌러 정상 종료**한다. Secret 재입력이나 메뉴 4의 재부여는 필요 없다. LOCAL_OAUTH_STOPPED_CONFIG_RESTORED 표시를 확인한 뒤 CMD 마지막 pause는 아무 키로 닫는다. 정상 종료는 이 실행기가 소유한 Next/컨테이너와 임시 환경을 정리하고, 회원·Auth 데이터가 든 볼륨은 보존한다. 실제 종료 성공 여부는 아직 확인하지 않았다. 정리 실패/비정상 종료 시 원래 owner가 완전히 끝난 뒤에만 Recover-Local-OAuth.cmd를 실행한다. Docker 전체 정리·볼륨 삭제는 하지 않는다.
+후속 확인: 사용자가 LOCAL_OAUTH_STOPPED_CONFIG_RESTORED를 확인한 뒤 실제 프로세스·포트·Docker를 조사했다. 해당 OAuth/Hotfix Next 프로세스와 테스트 포트 리스너, Docker 컨테이너가 없으며 원본 config 복구와 복구 잠금 부재를 확인했다. 회원·Auth 데이터가 든 볼륨 3개는 보존됐다. **종료 확인 완료이며 다시 Enter 종료·Secret 재입력·재시작할 필요가 없다.** 현재 브라우저 세션을 새로 검사한 것은 아니며 마지막 실제 DB 세션 검증 근거와 볼륨 보존을 구분한다. 자세한 결과와 다음 Vercel 확인 절차는 [최신 보고서](REMOTE_CI_READINESS_20261104.md)를 따른다. Docker 전체 정리·볼륨 삭제는 하지 않는다.
 
 이하 항목은 재시험이 필요한 경우의 도구 사용법과 이전 시점 이력이다. 현재 작업을 위해 OAuth 앱·Secret을 다시 만들거나 서버를 다시 시작할 필요가 없다.
 

@@ -1,5 +1,7 @@
 # 개인정보 Hotfix Production Release Candidate
 
+2026-11-04 종료 후 사전 준비: [원격 CI·Vercel·디스크 최신 결과](REMOTE_CI_READINESS_20261104.md). 실제 OAuth/Next/컨테이너 종료와 기본 설정 복구, 볼륨 보존을 확인했다. 경량 회귀62/SQL 무결성/비밀정보 검사를 통과했고 기능 코드·SQL·CI는 변경하지 않았다. **PREPARED_FOR_REMOTE_CI / NEEDS_VERCEL_CONFIRMATION / 운영 NO-GO**다. 최신 원격 CI는 미실행이며 Push 안전성을 확정하지 않았다. 아래 종료 준비 안내와 과거 CI 수치는 각 시점의 이력이다.
+
 2026-11-04 최종 로컬 확정: **LOCAL_COMPLETE / OAUTH_BROWSER_VERIFIED_USER_ATTESTED / 운영 NO-GO**. 사용자가 실제 인증·가입·세션 유지·관리자 편집/공지 표시·권한 회수 후 기존 세션 차단·공개 조회 유지를 직접 확인했다. 테스트 공지 id=34 한 행만 삭제했고 회원/identity/로그인 기록은 보존했다. 코드/SQL은 abd5e20의 검증 결과(실제 통합457/전체 회귀168)를 재사용하며 이번에는 문서만 확정한다. 최신 원격 CI·운영 상태·백업/복원·Storage 및 운영 변경 승인은 아직 없으며 아래 이전 시점의 숫자/미검증 기록과 구분한다.
 
 2026-11-04 콘텐츠 쓰기 보호 추가안은 [content-write/README.md](content-write/README.md)를 따른다. 기존 SQL 13개와 해시는 유지하며 운영에 추가 SQL을 실행하지 않았다. 기존 010 이후 별도 콘텐츠 RLS 적용·검증이 필요하고, 운영 정책 조사·대상 seal·변경 승인 전 **NO-GO**다. 아래 이전 결과와 이력을 구분한다.
@@ -133,11 +135,11 @@ Settings → Environment Variables의 **Production scope만** 아래와 대조�
 | 배포 필수 | 현재 Production 변수·domain·Redirect | 각 Dashboard 확인, Production precheck 성공 |
 | 배포 필수 | 최신 preflight·백업 | 사용자 check PASS, SQL13 일치, 새 백업 verify, drift 없음 |
 | 배포 필수 | 업무 제한·복구·점검 창·승인 | 담당자/중단 기간/정확한 SHA·SQL 승인 |
-| 재해복구 중요 | 실제 복원·Storage bytes | outbound 차단 VM 복원 연습·별도 파일 백업 |
+| 배포 필수 | 실제 복원·Storage bytes | 최신 백업의 outbound 차단 격리 복원·객체 파일/정책 복구 검증. 미검증 한계 수용만으로 이 gate를 통과하지 않음 |
 
 ## H 사용자가 지금 할 최소 작업
 
-1. 지금은 기존 CMD 메뉴 입력 대기 줄에서 Enter로 정상 종료한다. 완료 표시를 확인하고 마지막 pause만 닫는다. GitHub 회원/identity와 볼륨은 보존한다.
-2. 이후 별도 승인된 시점에 최종 hotfix/privacy-p0 SHA를 Push해 원격 CI 3개 작업을 확인한다. 이번에는 Push/PR을 하지 않았다.
+1. 정상 종료와 후속 확인은 완료됐다. 재시작·Secret 재입력은 필요 없다. GitHub 회원/identity가 저장된 볼륨은 보존했다.
+2. 위 최신 보고서의 Vercel 현재 설정부터 확인한다. 자동 배포 차단이 입증되고 별도 Push 승인을 받은 뒤에만 최종 hotfix/privacy-p0 SHA의 원격 CI 3개 작업을 실행한다. 이번에는 Push/PR을 하지 않았다.
 3. 운영 단계는 최신 대상·환경/preflight·새 백업·격리 복원·Storage·콘텐츠 추가 migration 및 점검 창을 별도로 검토한다. 지금 운영 도구를 실행하라는 뜻이 아니다.
 4. 조건 충족 후에도 **운영 코드 배포와 SQL 적용에는 별도 명시 승인**이 필요하다. 로컬 완료와 운영 NO-GO는 동시에 유지된다.

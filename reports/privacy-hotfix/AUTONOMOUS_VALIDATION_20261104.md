@@ -1,5 +1,11 @@
 # 개인정보 Hotfix 후속 리뷰·로컬 커밋 검증 — 2026-11-04
 
+## 정상 종료 후 원격 CI 사전 준비 — 2026-11-04
+
+최신 결과는 [REMOTE_CI_READINESS_20261104.md](REMOTE_CI_READINESS_20261104.md)를 따른다. OAuth/Next·Docker 컨테이너·테스트 포트가 정리됐고 원본 config/볼륨은 보존됐음을 실제 확인했다. 종료된 stack을 다시 실행하지 않았다. 이번 경량 검사62 성공/실패·건너뜀0, 원본13/추가2 SQL 무결성·비밀정보 검사 통과다. 기존 457/168 검증을 이번에 다시 실행한 것으로 표시하지 않는다. 코드/SQL/워크플로 변경 없이 문서와 운영 gate만 보완한다.
+
+시작 C 여유18,863,763,456B, 조사 후18,844,262,400B. 실제 삭제/직접 확보는0B다. Hotfix `.next` 삭제는 자동 승인 검토에서 정책 차단됐고 이전 SQL TEMP도 재시도하지 않았다. 원격 Hotfix=c7f6151/main=d95bc68을 읽기 전용 조회했으며 최신 로컬 SHA의 원격 CI는 실행하지 않았다. **PREPARED_FOR_REMOTE_CI / NEEDS_VERCEL_CONFIRMATION / 운영 NO-GO**다. 실제 Vercel 현재 설정, 최신 백업의 격리 DB/Storage 복원, 운영 대상 전용 콘텐츠 migration/seal·쓰기 동결/승인 없이는 Push 또는 운영 변경을 진행하지 않는다. 아래 서버 유지/Enter 종료 안내와 이전 CI 숫자는 과거 시점의 증거다.
+
 ## 로컬 OAuth 최종 확정·테스트 공지 정리 — 2026-11-04
 
 **LOCAL_COMPLETE / SECURITY_PASS(로컬) / 운영 NO-GO.** 사용자 직접 브라우저 확인과 자동 검사를 구분하여 확정했다. 이 단계 시작 HEAD는 abd5e20b5ffe7159a8331e481bf6295cfb58cfce, 브랜치는 hotfix/privacy-p0다. 앞선 계정 상세 조회 수정, OAuth 문서, 7개 테이블 콘텐츠 보호 SQL·테스트·CI 구성은 이미 이 커밋의 15개 파일에 반영되어 있었다. 중복 구현·중복 커밋하지 않는다. 시작 시 미추적 AGENTS.md만 있었고 사용자 파일로 보존한다. 이번에는 문서 확정 변경만 별도 로컬 커밋하며 최종 HEAD/상태는 build/privacy-review/OAUTH_LOCAL_COMPLETE_FINAL_STATE.md와 최종 응답에 기록한다.
