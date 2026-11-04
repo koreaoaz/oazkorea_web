@@ -1,5 +1,15 @@
 # 독립 GitHub OAuth 브라우저 검증
 
+## 최종 사용자 브라우저 확인 및 종료 준비 — 2026-11-04
+
+**OAUTH_BROWSER_VERIFIED_USER_ATTESTED / LOCAL_COMPLETE / 운영 NO-GO.** 사용자가 실제 독립 GitHub 인증·가입 승인/회원가입·세션 유지·일반 회원 Editor 거절·편집 권한 부여 후 관리자 화면·공지 등록/메인 표시·권한 회수·재로그인 없이 기존 세션의 Editor 거절·권한 회수 후 공지 조회를 모두 직접 확인했다. 자동 검사와 구분하며 Codex가 실제 브라우저 인증을 수행했다고 기록하지 않는다. 별도 보고되지 않은 취소/명시적 로그아웃 분기는 추가로 완료 처리하지 않는다. 서버 verify의 browserRoundTripAttested=false는 서버 검사의 증명 범위이며 사용자 직접 확인과 구분한다.
+
+이후 사용자 지시로 테스트 공지 **LOCAL OAuth 편집 권한 테스트 (id=34)** 한 행만 로컬에서 삭제했다. 지정 제목 1→0, 전체 공지 3→2, 기존 synthetic fixture 2→2. 다른 공지·회원·GitHub identity·Auth 로그인 기록은 보존했다. 아래 공지 보존 안내는 삭제 전 이력이다. 계정은 여전히 등록/승인/로그인 상태이며 localEditorAssigned=false다.
+
+현재 서버와 콘솔은 종료하지 않았다. **기존 CMD의 메뉴 입력 대기 줄에서 Enter를 눌러 정상 종료**한다. Secret 재입력이나 메뉴 4의 재부여는 필요 없다. LOCAL_OAUTH_STOPPED_CONFIG_RESTORED 표시를 확인한 뒤 CMD 마지막 pause는 아무 키로 닫는다. 정상 종료는 이 실행기가 소유한 Next/컨테이너와 임시 환경을 정리하고, 회원·Auth 데이터가 든 볼륨은 보존한다. 실제 종료 성공 여부는 아직 확인하지 않았다. 정리 실패/비정상 종료 시 원래 owner가 완전히 끝난 뒤에만 Recover-Local-OAuth.cmd를 실행한다. Docker 전체 정리·볼륨 삭제는 하지 않는다.
+
+이하 항목은 재시험이 필요한 경우의 도구 사용법과 이전 시점 이력이다. 현재 작업을 위해 OAuth 앱·Secret을 다시 만들거나 서버를 다시 시작할 필요가 없다.
+
 ## 최신 상태: 서버 쓰기 보호 수정·로컬 검증 완료 — 2026-11-04
 
 **SECURITY_PASS / 운영 NO-GO.** 아래 이전 단계의 공지 쓰기 차단 실패는 별도 콘텐츠 RLS 추가안으로 수정했다. 실제 Auth 회원의 동일 JWT를 편집 권한 회수 후 재사용하여 7개 테이블 REST/GraphQL 쓰기 차단을 확인했고, 일반 콘텐츠 정상 편집도 확인했다. 실제 통합 assertion 457개와 전체 회귀 168개는 별도 검증 묶음이며 합산하지 않는다. 상세 범위·명예의 전당 쓰기 스위치의 유지·운영 전 조건은 [추가안](content-write/README.md)과 AUTONOMOUS_VALIDATION_20261104.md 맨 위를 따른다.

@@ -1,5 +1,7 @@
 # 개인정보 Hotfix 운영 실행 순서
 
+2026-11-04 최종 확정: 로컬 브라우저 OAuth·가입·세션·권한 회수 후 거절은 사용자가 직접 완료 확인했다. 테스트 공지 1행은 정리했고 회원/identity/로그인 기록은 보존했다. 현재 사용자 행동은 기존 CMD 메뉴에서 Enter 정상 종료뿐이다. **운영 NO-GO**는 최신 운영 대상 조사·백업/복원·Storage·같은 SHA 원격 CI·별도 변경 승인이 남아 있기 때문이다. 아래 운영 명령은 지금 실행하라는 지시가 아니다.
+
 2026-11-04 후속 콘텐츠 쓰기 보호는 [추가 SQL 후보와 운영 전 검토](content-write/README.md)를 따른다. 기존 13개 SQL을 수정하지 않고 010 이후 별도 보호 단계가 필요하다. 로컬 대상 전용 선언을 운영에서 사용하지 않는다. 실제 운영 정책·RPC/뷰·GRANT 조사와 별도 변경 승인 전에는 실행 금지이며 **운영 NO-GO**다.
 
 독립 OAuth Test App 생성은 이전 사용자 확인 기록을 따른다. 실제 브라우저 검증과 서버 연동 환경변수의 검사 규칙은 [LOCAL_OAUTH_BROWSER.md](LOCAL_OAUTH_BROWSER.md)를 따른다. Production privacy flag가 없다는 설명은2026-11-03 기록이며 이번에는 운영 환경을 재조회하지 않았다. 승인된 호환 배포 전에 최신 환경과 명시적 false 설정을 별도로 확인해야 한다.
@@ -15,16 +17,20 @@
 | 1 | Codex: Hotfix 로컬 검사와 해당 SHA CI | assets/보안/타입/lint/회귀/두 build, 3 job 성공 | SHA 변경·skip·실패 중단 |
 | 2 | 사용자: 환경/두 callback/독립 OAuth | RC 환경 표 일치, 로컬 실제 GitHub 왕복 | Preview/운영 provider 변경으로 우회 금지 |
 | 3 | 사용자: 최신 백업과 복구 담당자 | 새 run verify, 안전 사본, 제한 복구·완전 복구 미검증 한계 수용 | 백업 불일치/담당자 없으면 중단 |
-| 4 | 사용자: 읽기 전용 preflight | SQL13 동일, Main PG17.6, seal drift 없음, PASS+ROLLBACK | P0_STOP 원인 검토. 지문 강제 교체 금지 |
+| 4 | 별도 승인된 담당자: 읽기 전용 preflight와 추가안 준비 | SQL13 동일, 최신 운영 대상·seal·백업 확인, 콘텐츠 테이블/관리자/ACL/뷰/함수·트리거 검토와 운영용 추가 migration 승인안 준비 | P0_STOP/drift/미검토 중단. 로컬 fixture 선언을 운영에서 모방 금지 |
 | 5 | 사용자: 별도 운영 승인 | exact code SHA·SQL hash·시간·담당자·업무 제한·복구 범위 승인 | PASS를 변경 승인으로 취급하지 않음 |
-| 6 | 승인 후 담당자: false 호환 코드 배포 | main 승인 SHA, 환경 precheck, Ready/domain/flag 확인 | SQL 보류, 코드 실패 해결. DB 위험 계속 남음 |
+| 6 | 승인 후 담당자: false 호환 코드 배포 | main 승인 SHA, 환경 precheck, Ready/domain/flag, DB 변경 창의 일반 콘텐츠 서버 쓰기 차단 보장 | 쓰기 공백 통제·정상 관리자 검증 계획이 없으면 이 단계 시작 금지 |
 | 7 | 승인 후 DB 담당자: 010 적용 | 최신 preflight, 세션 선언, SQL 전체 단일 transaction 성공 | 오류/lock timeout은 rollback 확인. 분할/자동 재시도 금지 |
-| 8 | DB 담당자: postcheck와 무행 API 검사 | 고정 PASS, 개인정보 권한 거절, 공개 donor 계약 유지 | 보호 유지, 필요시 승인된 010-recovery |
-| 9 | 담당자: true 보호 코드 새 빌드 | protected 환경 precheck, exact SHA/flag 확인 | false 호환 Hotfix 유지 가능. DB 보호는 복구 취소 금지 |
+| 7a | DB 담당자: 기존 010-postcheck | 고정 PASS, 기존 보호 SQL/계약 무결성 | 추가 SQL 진행 중단. 기존 보호 유지 |
+| 7b | DB 담당자: 별도 승인된 콘텐츠 쓰기 보호 적용 | 운영 대상 검증·seal을 갖춘 별도 파일/해시, 7개 테이블 제한 정책·읽기 유지·기존 관리자 호환 | 이 저장소의 로컬 전용 후보를 그대로 실행 금지. 실패 시 쓰기 차단 유지 |
+| 8 | DB 담당자: 두 보호 묶음 postcheck와 무행 API 검사 | 개인정보 및 콘텐츠 무권한 쓰기 차단, 공개 조회 유지, 승인된 테스트 자료의 정상 관리자 CRUD·기존 JWT 회수 검증 | 오류/잘못된 필드/5xx를 거절 성공으로 세지 않음. 기능 중단·복구 담당자 판단 |
+| 9 | 담당자: true 보호 코드 새 빌드 | 7a/7b/8 모두 완료, protected 환경 precheck, exact SHA/flag | 콘텐츠 추가 적용 미완료이면 ON 진행 금지. 제한 정책 제거 금지 |
 | 10 | 사용자/담당자: 로그인·기존 Editor | 본인 로그인/일반 콘텐츠/공개 donor, 무권한 거절 | 실제 회원 bulk 조회/쓰기 시험 금지 |
 | 11 | 별도 선택 업무 승인 | 후원 편집011, 승인 추가는 개별 capability+012 | 최초 설치와 자동 실행 금지 |
 
 호환 코드 단계에서 민감 명단·후원 편집·승인 추가는 제한된다. 일반 콘텐츠 경로는 유지한다. 코드와 SQL 간격을 점검 창 안에서 최소화한다. 열려 있던 구형 탭은 SQL 후 일부 기능이 실패할 수 있어 새로고침을 안내한다. 구형 코드+보호 DB를 최종 상태로 사용하지 않는다.
+
+기존 010과 콘텐츠 추가안은 자체 BEGIN/COMMIT을 가진 별도 트랜잭션이다. 기존 원문/해시를 수정하거나 외부 BEGIN으로 묶지 않는다. 두 적용 사이에는 승인된 서버 측 일반 콘텐츠 쓰기 동결을 유지해 보호 공백을 통제한다. 브라우저 버튼 숨김은 동결 증거가 아니다. 신규 정책 때문에 기존 합법 관리자 쓰기가 막힐 위험은 실제 운영 역할/정책 조사 및 격리 검증으로 해소하고, 이를 위해 무조건 GRANT나 privileged client key를 사용하지 않는다. 현재는 이런 운영 확인/승인이 없으므로 실행하지 않는다.
 
 ## 지금 실행 가능한 오프라인 명령
 
@@ -104,8 +110,9 @@ SET oaz.privacy_expected_catalog_sha256 = 'PRIVATE_REVIEWED_CATALOG_SHA256';
 010 파일 자체에 BEGIN/COMMIT·잠금 전후 사전 검사·사후 검사가 있다. 외부 BEGIN으로 중첩하지 않는다. body/api-guard fragment 단독 실행 또는 수작업 재조립 금지. Dashboard 연결 역할/권한이 preflight와 다르거나 timeout이면 중단한다. 실패 연결은 rollback 확인 후 닫는다.
 
 4. 새 SQL Editor 실행에서 010-postcheck.sql 전체를 실행한다. P0_V3_POSTCHECK_PASS_METADATA_ONLY 필요. 회원 행을 출력하지 않는다. RPC schema cache 미발견은 권한 차단 성공이 아니다. 필요하면 담당자 별도 승인 후 cache reload만 수행한다.
+4a. 점검 창의 서버 쓰기 동결을 유지한 상태에서 **별도 운영 대상 검증·승인을 마친 콘텐츠 쓰기 migration**을 적용한다. 로컬 content-write/011-content-write-guard.sql의 fixture 선언을 운영에 복사하지 않는다. 운영 전용 대상 계약이 없으면 중단한다. 기존/추가 postcheck, 읽기 유지, 기존 관리자 정상 편집, 일반/회수된 JWT의 REST·GraphQL 쓰기 차단을 점검한 뒤에만 다음 단계로 간다. 실패하면 ON 배포를 보류하고 추가 제한 정책과 쓰기 차단을 유지한다.
 5. 운영 익명 REST는 회원/승인 email·관리자 uuid·donor 비공개 컬럼을 **limit=0**으로 요청하여 권한 오류 확인. 본문/행은 기록하지 않는다. 공개 donor id/name limit=0의 정상 응답으로 서비스 상태를 교차 확인한다. GraphQL이 활성화됐다면 검증된 필드의 first=0 검사. inactive placeholder/잘못된 필드/401/5xx를 차단 성공으로 세지 않는다. 이 검사는 A/B 행 격리 자체의 증명이 아니므로 catalog와 격리 RLS 근거를 함께 사용한다.
-6. SQL/postcheck 후 flag=true, Build Command stage=protected로 같은 승인 코드의 새 Production 빌드. public flag는 환경만 바꿔도 기존 번들에 반영되지 않는다. 로그인/일반 Editor/공개 후원을 확인하고 선택 업무는 별도 승인한다.
+6. 기존 SQL과 **추가 콘텐츠 SQL의 적용/두 postcheck/API 검사 모두 완료한 후** flag=true, Build Command stage=protected로 같은 승인 코드의 새 Production 빌드. public flag는 환경만 바꿔도 기존 번들에 반영되지 않는다. 로그인/일반 Editor/공개 후원을 확인하고 선택 업무는 별도 승인한다.
 
 ## 개인정보 보호를 유지하는 복구
 
@@ -113,6 +120,7 @@ SET oaz.privacy_expected_catalog_sha256 = 'PRIVATE_REVIEWED_CATALOG_SHA256';
 - **010 commit 후 UI 문제:** SQL을 되돌리지 않는다. 단계6에서 기록한 검증된 **Hotfix false Production 배포 ID**를 별도 승인 후 Vercel Deployments에서 rollback 대상으로 선택한다. 구형 d95bc68은 가입/후원 Editor와 충돌하므로 전면 rollback 대상이 아니다.
 - **commit 후 권한/GraphQL 이상:** DB 담당자 별도 승인 후 `SET oaz.approve_privacy_v3_recovery='yes';`와 봉인된 010-recovery.sql 전체를 같은 배치로 실행, postcheck 확인. 선택 쓰기/민감 RPC/GraphQL 실행을 잠그므로 일부 기능은 의도적으로 중단. 공개 SELECT 권한 복구 금지.
 - **복구 후 재개:** 원인/catalog 재검토 후 013 읽기/015 GraphQL/011 후원/012 승인 쓰기를 각각 승인한다. capability 자동 재부여 금지. 보호를 약화하는 자동 rollback 금지.
+- **추가 콘텐츠 보호 적용 실패/회귀:** ON 빌드를 보류하고 서버 쓰기 동결과 기존/추가 제한 정책을 유지한다. broad 정책으로 되돌리거나 restrictive 정책을 삭제해 기능을 복구하지 않는다. 010-recovery는 추가 콘텐츠 정책을 제거하지 않으며 콘텐츠 REST 쓰기 전체를 동결하는 별도 장치도 아니다. 운영 점검 창과 담당자의 별도 차단·수정 계획이 필요하다.
 - **전체 데이터 복원:** 본 배포의 자동 rollback 수단이 아니다. 실제 복원·Storage bytes·관리 확장/역할 검증 미완료. 승인된 격리 복원 연습과 별도 재해복구 절차 필요.
 
 공식 [Vercel rollback 동작](https://vercel.com/docs/deployments/promoting-a-deployment): 기존 배포 rollback은 도메인 재지정이며 새 환경변수 재빌드와 다르다. 기록한 false 호환 배포의 빌드 설정을 확인한 뒤 사용한다.

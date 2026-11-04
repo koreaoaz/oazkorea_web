@@ -1,5 +1,55 @@
 # 개인정보 Hotfix 후속 리뷰·로컬 커밋 검증 — 2026-11-04
 
+## 로컬 OAuth 최종 확정·테스트 공지 정리 — 2026-11-04
+
+**LOCAL_COMPLETE / SECURITY_PASS(로컬) / 운영 NO-GO.** 사용자 직접 브라우저 확인과 자동 검사를 구분하여 확정했다. 이 단계 시작 HEAD는 abd5e20b5ffe7159a8331e481bf6295cfb58cfce, 브랜치는 hotfix/privacy-p0다. 앞선 계정 상세 조회 수정, OAuth 문서, 7개 테이블 콘텐츠 보호 SQL·테스트·CI 구성은 이미 이 커밋의 15개 파일에 반영되어 있었다. 중복 구현·중복 커밋하지 않는다. 시작 시 미추적 AGENTS.md만 있었고 사용자 파일로 보존한다. 이번에는 문서 확정 변경만 별도 로컬 커밋하며 최종 HEAD/상태는 build/privacy-review/OAUTH_LOCAL_COMPLETE_FINAL_STATE.md와 최종 응답에 기록한다.
+
+### 사용자 직접 확인으로 확정된 브라우저 결과
+
+사용자가 독립 GitHub Test App 인증, 승인 후 회원가입, 로그인 유지, 일반 회원 /editor 거절, 편집 권한 부여, 관리자 게시판 진입, 공지 등록과 메인 표시, 편집 권한 회수, **재로그인 없이 기존 세션의 /editor 거절**, 권한 회수 후 기존 공지 조회 유지를 모두 직접 확인했다고 보고했다. 이는 사용자 직접 관찰의 증거이며 Codex가 브라우저 인증을 대신 수행하거나 토큰을 수집한 결과가 아니다. 상태는 **OAUTH_BROWSER_VERIFIED_USER_ATTESTED**로 기록한다. 취소·명시적 로그아웃 등 별도 보고되지 않은 브라우저 분기까지 완료로 확대하지 않는다.
+
+기존 서버 검사의 browserRoundTripAttested=false는 서버 명령만으로 브라우저 화면을 자동 증명하지 않는다는 뜻이며, 위 사용자 확인을 부정하는 값이 아니다. 과거 OAUTH_BROWSER_NOT_VERIFIED와 공지 보존 지시는 각 시점의 이력으로 남긴다.
+
+### 테스트 공지 삭제: 정확히 1행
+
+로컬 API·프로젝트·fixture provenance·기존/추가 SQL 해시를 확인했다. 사용자 지정 제목 **LOCAL OAuth 편집 권한 테스트**, public.editor_0_noti의 **id=34**가 정확히 1개였고 공지 전체 내용 지문도 직전 보안 검증 근거와 같았다. 작성자 열은 없지만 사용자 직접 작성 확인과 이전 관측, 단일 제목·ID·행 내용 지문으로 대상을 확정했다. 중복이나 원인 불명 행을 일괄 삭제하지 않았다.
+
+사용자 지시에 따라 로컬 관리자 전용의 REPEATABLE READ 트랜잭션으로 id·제목·행 내용 지문이 모두 일치하는 1행만 삭제했다. 사용자 트리거·규칙·해당 공지를 참조하는 FK가 모두 0개임도 사전 확인했다. 삭제 건수가 1이 아니거나 다른 데이터 지문이 달라지면 전체 롤백하도록 했다. 보호 정책을 해제하거나 일반 회원 권한을 높이지 않았다.
+
+| 항목 | 삭제 전 | 삭제 후 |
+|---|---:|---:|
+| 지정 테스트 제목 | 1 | 0 |
+| 전체 공지 | 3 | 2 |
+| 기존 synthetic one/two fixture | 2 | 2 |
+
+같은 트랜잭션에서 다른 공지·Auth users/identities/sessions/audit_log_entries·회원·승인·supervisor 전체 행 지문이 동일함을 검증했다. 익명 REST 조회도 200/0행으로 제거를 재확인했다. **테스트 GitHub 회원, identity, 로그인 기록은 삭제하지 않았다.** 기존 테스트 공지를 남겨 둔다는 아래 과거 기록은 이번 명시적 삭제 지시로 변경됐다.
+
+### 기존 검증 재사용과 현재 재검사
+
+동일 기능 코드/SQL의 abd5e20 검증 기록을 확인했다. 실제 보안 통합 457 assertion·전체 회귀 168개·TypeScript 오류 0·ESLint 오류 0/기존 경고 12를 재사용한다. 이번 변경은 문서와 지정 테스트 행 삭제뿐이므로 무거운 전체 통합·OFF/ON 빌드·서버 시작/종료를 반복하지 않는다. 기존 코드/SQL/테스트/워크플로를 바꾸지 않았다.
+
+현재 실행 중인 DB에서 기존 010 및 추가 콘텐츠 postcheck, 원본 보호 SQL 13개와 추가 SQL 2개의 무결성, 비밀정보 검사(220개 텍스트/실패 0), 현재 계정 verify를 재확인했다. githubIdentity/serverSignInRecorded/serverSessionPresent/memberPresent/approvalPresent=true, localEditorAssigned=false다. 가벼운 콘텐츠/CI 회귀 5개는 통과(실패·건너뜀 0)했고 문서 diff 공백 검사도 통과했다. 최종 결과는 커밋 후 상태 기록에도 남긴다. 과거 457·168 결과를 이번 새 실행으로 계산하거나 합산하지 않는다.
+
+### 릴리스 계획 보완 및 CI
+
+RUNBOOK 단계표와 실제 담당자 순서에 **010 적용·postcheck 뒤, flag ON 빌드 전 콘텐츠 보호 적용·postcheck**를 명시했다. 추가안의 로컬 fixture 선언을 운영에서 흉내 내어 실행하는 것은 금지다. 운영 스키마/정책/ACL/역할/뷰/함수·트리거 조사와 별도 대상 seal·해시·승인을 갖춘 운영용 변경안이 먼저 필요하다.
+
+기존 010과 추가 SQL은 각각 자체 트랜잭션이므로 원문을 중첩 BEGIN으로 이어 붙이지 않는다. 두 적용 사이 일반 콘텐츠 쓰기 공백은 승인된 서버 측 쓰기 차단/점검 창으로 통제해야 한다. 이를 보장할 수 없거나 기존 관리자의 정상 CRUD를 검증할 수 없으면 OFF 호환 배포부터 시작하지 않는다. 추가 적용 실패 시 ON 빌드로 진행하지 않고 쓰기 차단을 유지한다. 기존 정책 삭제·GRANT 확대·privileged key로 우회하는 복구는 하지 않는다. 기존 010-recovery도 추가 제한 정책을 제거하는 복구가 아니다.
+
+원격 CI는 **실행하지 않았다**. 나중에 별도 승인된 hotfix/privacy-p0 Push 시 validate(정적/회귀/OFF·ON 빌드), isolated-postgres(가짜 SQL), local-supabase(95개 기존 실제 통합 뒤 콘텐츠 보호·457 assertion)를 예상한다. 지금 Push/PR/main 병합은 하지 않는다. 최신 최종 SHA의 원격 CI, 최신 백업·격리 복원, Storage bytes·정책, 운영 데이터 접근 통제, 업무 중단·복구 담당자와 별도 운영 승인이 남아 있으므로 NO-GO다.
+
+### 정상 종료 준비와 디스크
+
+현재 owner가 살아 있고 ready=true, Next의 PID·시작 시각·명령 해시가 소유 기록과 일치한다. 기록된 컨테이너 5개도 실행 중인 이 프로젝트와 일치한다. 기본 config는 이미 원본으로 복원돼 있다. 계정 조회 수정 전 8e7d3ae와 현재 소스의 closeUi/stopOAuthContainers 및 lifecycle 정리 코드는 동일하다. 기존 콘솔이 이전 계정 조회 함수를 사용하더라도 정상 종료 경로는 동일함을 확인했다.
+
+사용자가 현재 메뉴 입력란에서 **Enter**를 누르면 자기 Next 자식 트리와 저장된 소유 컨테이너만 종료·제거하고 기본 config/환경/복구 기록을 정리한다. Auth 데이터·회원·identity는 볼륨에 보존된다. Docker Desktop/이미지/볼륨은 삭제하지 않는다. PowerShell finally가 환경변수·BSTR·SecureString을 정리한다. 실제 Enter 종료와 그 후 확인은 **아직 실행하지 않았고 사용자에게 남긴다**. 정상 완료 표시는 LOCAL_OAUTH_STOPPED_CONFIG_RESTORED이며, CMD 마지막 pause는 아무 키로 닫을 수 있다. 비정상 종료/정리 실패 후에는 원래 owner가 종료된 다음 Recover-Local-OAuth.cmd를 사용한다. 현재 실행 중인 owner가 있는 상태에서 복구기를 실행하지 않는다.
+
+14:05 KST C드라이브 여유는 12,954,185,728 bytes(약 12.06GiB)였다. 삭제한 공지 1행이 NTFS 여유 공간을 늘렸다고 주장하지 않는다. 기존 C:\Users\yjcha\AppData\Local\Temp\oaz-privacy-autonomous-20261104는 존재를 확인했고 그대로 보존했다. 이전 측정 721,966,719 bytes(약 0.672GiB)의 가짜 SQL 클러스터·휴대용 공식 바이너리이며 이번에는 크기를 다시 재귀 측정하지 않았다. 이전 자동 승인 검토가 재귀 삭제를 blocked by policy로 거절했으므로 재시도·우회 삭제하지 않았다. Docker 일괄 정리·다운로드·설치는 없다.
+
+Production/Demo/Vercel/운영 OAuth·환경변수에 접속하거나 변경하지 않았다. Main·Demo·백업 및 관련 설정의 시작/종료 읽기 전용 비교 결과와 최종 Git/디스크/실행 상태는 커밋 후 최종 상태 기록에 남긴다. 서버는 실행 중인 채로 최종 보고한다.
+
+---
+
 ## 서버 콘텐츠 쓰기 취약점 수정 최종 검증 — 2026-11-04 11:41 KST
 
 **SECURITY_PASS (실제 로컬 DB 기준) / 운영 NO-GO.** 아래 권한 회수 단계의 쓰기 차단 실패는 이 단계에서 수정·재검증했다. 기존 기록은 이력으로 보존한다. 작업 브랜치는 hotfix/privacy-p0, 시작 HEAD는 8e7d3aef76dfa0224dcde790336ef56d37cc461e다. 최종 로컬 커밋 SHA와 작업 상태는 Git에서 제외되는 build/privacy-review/CONTENT_SECURITY_FINAL_STATE.md 및 최종 응답에 기록한다. Push·PR·배포는 없다.
