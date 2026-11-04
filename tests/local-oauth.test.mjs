@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { renderOAuthConfig, openOAuthConfig, restoreOAuthConfig, oauthLifecycle, validateOAuthCredentials, recordOAuthUi, recordOAuthContainers, oauthSession } from '../scripts/local-oauth-config.mjs';
-import { selectOAuthTestUser, reviewedOAuthFixture, oauthMenuAction, sameUiIdentity, selectOwnedOAuthContainers } from '../scripts/local-oauth.mjs';
+import { selectOAuthTestUser, loadOAuthTestUser, reviewedOAuthFixture, oauthMenuAction, sameUiIdentity, selectOwnedOAuthContainers } from '../scripts/local-oauth.mjs';
 import { localDevelopmentEnvironment } from '../scripts/local-dev.mjs';
 import { createClient } from '@supabase/supabase-js';
 import { loadSource } from './helpers/react-dom.mjs';
@@ -139,6 +139,61 @@ test('Only exactly one real local GitHub identity can be selected; app metadata 
   for (const users of [[], [user, user], [{ ...user, identities: [], app_metadata: { provider: 'github' } }], [{ ...user, email_confirmed_at: null }]]) {
     assert.throws(() => selectOAuthTestUser(users));
   }
+});
+test('OAuth inventory hydrates null listUsers identities and ignores synthetic GitHub metadata', async () => {
+  const ids = ['00000000-0000-4000-8000-000000000098', '00000000-0000-4000-8000-000000000099'];
+  const calls = [];
+  const admin = {
+    listUsers: async options => {
+      assert.deepEqual(options, { page: 1, perPage: 100 });
+      return { error: null, data: { users: ids.map(id => ({ id, identities: null, app_metadata: { providers: ['github'] } })) } };
+    },
+    getUserById: async id => {
+      calls.push(id);
+      return { error: null, data: { user: { id, email: 'test@example.invalid', email_confirmed_at: '2026-01-01',
+        identities: [{ provider: id === ids[1] ? 'github' : 'email' }] } } };
+    },
+  };
+  assert.equal((await loadOAuthTestUser(admin)).id, ids[1]);
+  assert.deepEqual(calls, ids);
+});
+test('OAuth inventory does not trust a misleading list identity or app metadata', async () => {
+  const id = '00000000-0000-4000-8000-000000000099';
+  await assert.rejects(loadOAuthTestUser({
+    listUsers: async () => ({ data: { users: [{ id, identities: [{ provider: 'github' }] }] } }),
+    getUserById: async () => ({ data: { user: { id, identities: [{ provider: 'email' }], app_metadata: { providers: ['github'] } } } }),
+  }), /LOCAL_NO_GITHUB_TEST_ACCOUNT/);
+});
+test('OAuth inventory fails closed on incomplete, failed or mismatched detail responses', async () => {
+  const id = '00000000-0000-4000-8000-000000000099';
+  for (const detail of [{ error: new Error('synthetic') }, { data: { user: { id } } },
+    { data: { user: { id: '00000000-0000-4000-8000-000000000098', identities: [] } } }]) {
+    await assert.rejects(loadOAuthTestUser({ listUsers: async () => ({ data: { users: [{ id }] } }),
+      getUserById: async () => detail }), /LOCAL_ACCOUNT_INVENTORY_FAILED/);
+  }
+});
+test('OAuth inventory rejects failed, capped and malformed lists before requesting user details', async () => {
+  for (const result of [{ error: new Error('synthetic') }, { data: { users: null } },
+    { data: { users: Array(100).fill({}) } }, { data: { users: [{ id: 'invalid' }] } }]) {
+    await assert.rejects(loadOAuthTestUser({ listUsers: async () => result,
+      getUserById: async () => assert.fail('untrusted list must not select an account') }), /LOCAL_ACCOUNT_INVENTORY_FAILED/);
+  }
+});
+test('OAuth inventory distinguishes zero and multiple canonical GitHub accounts without choosing one', async () => {
+  for (const count of [0, 2]) {
+    const users = Array.from({ length: count }, (_, i) => ({ id: `00000000-0000-4000-8000-00000000009${i}`,
+      email: 'test@example.invalid', email_confirmed_at: '2026-01-01', identities: [{ provider: 'github' }] }));
+    await assert.rejects(loadOAuthTestUser({ listUsers: async () => ({ data: { users: users.map(({ id }) => ({ id })) } }),
+      getUserById: async id => ({ data: { user: users.find(u => u.id === id) } }) }),
+    count ? /LOCAL_MULTIPLE_GITHUB_TEST_ACCOUNTS/ : /LOCAL_NO_GITHUB_TEST_ACCOUNT/);
+  }
+});
+test('OAuth inventory cannot select a first match when another account detail cannot be read', async () => {
+  const ids = ['00000000-0000-4000-8000-000000000098', '00000000-0000-4000-8000-000000000099'];
+  await assert.rejects(loadOAuthTestUser({ listUsers: async () => ({ data: { users: ids.map(id => ({ id })) } }),
+    getUserById: async id => id === ids[0] ? ({ data: { user: { id, email: 'test@example.invalid',
+      email_confirmed_at: '2026-01-01', identities: [{ provider: 'github' }] } } }) : ({ error: new Error('synthetic') }),
+  }), /LOCAL_ACCOUNT_INVENTORY_FAILED/);
 });
 test('An existing volume is resumable only with this reviewed fixture provenance', () => {
   const receipt = { version: 1, project: 'oaz-privacy-local', syntheticAppFixture: true,

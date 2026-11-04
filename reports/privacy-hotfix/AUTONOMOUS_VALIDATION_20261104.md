@@ -1,5 +1,164 @@
 # 개인정보 Hotfix 후속 리뷰·로컬 커밋 검증 — 2026-11-04
 
+## 서버 콘텐츠 쓰기 취약점 수정 최종 검증 — 2026-11-04 11:41 KST
+
+**SECURITY_PASS (실제 로컬 DB 기준) / 운영 NO-GO.** 아래 권한 회수 단계의 쓰기 차단 실패는 이 단계에서 수정·재검증했다. 기존 기록은 이력으로 보존한다. 작업 브랜치는 hotfix/privacy-p0, 시작 HEAD는 8e7d3aef76dfa0224dcde790336ef56d37cc461e다. 최종 로컬 커밋 SHA와 작업 상태는 Git에서 제외되는 build/privacy-review/CONTENT_SECURITY_FINAL_STATE.md 및 최종 응답에 기록한다. Push·PR·배포는 없다.
+
+### 1. 정확한 원인과 취약 범위
+
+공지 public.editor_0_noti는 id(bigint identity), text, description, is_noti, created_at으로 구성된다. 기존 합성 fixture는 RLS를 켰지만 synthetic_legacy_write를 permissive ALL 정책으로 만들고 authenticated에 USING(true)/WITH CHECK(true)와 광범위한 테이블 GRANT를 부여했다. 따라서 INSERT/UPDATE/DELETE를 로그인 여부만으로 허용했다. 공지·프로젝트·스터디·시간표·일정·행사 6개 테이블에 같은 패턴이 있었다. 명예의 전당은 기존 restrictive donor 정책과 donor_writes=false로 별도 보호 중이었다. 익명에도 일반 콘텐츠 테이블의 DML·TRUNCATE 등 불필요한 ACL이 남아 있었다.
+
+UI는 본인의 supervisor_id 존재 여부로 Editor 진입을 차단하지만, 일반 콘텐츠 서비스는 REST 테이블 DML을 직접 호출한다. REST PATCH /rest/v1/editor_0_noti 및 GraphQL updateEditor0NotiCollection도 같은 DB 역할·RLS를 사용한다. UI 차단은 해당 API를 보호하지 못했다. 기존 010 보호 SQL은 민감 테이블 5개에 집중했으며 일반 콘텐츠 6개의 쓰기 정책은 보호 범위 밖이었다. 기존 95개 통합·이전 회귀가 통과한 사실만으로 일반 콘텐츠의 서버 권한 회수까지 검증된 것은 아니었다.
+
+**특권 계정 오탐을 배제했다.** 새 가짜 회원을 Auth에 생성하고 비밀번호 로그인으로 실제 발급된 JWT를 사용했다. role=authenticated, 주체·만료·서명·session_id·getUser를 검증한 후, 보호 전 일반 회원의 REST UPDATE와 GraphQL UPDATE가 각각 실제 1행을 변경하는 것을 재현했다. 이때 검사 요청의 apikey는 anon, Authorization은 일반 회원 JWT였다. service_role은 가짜 계정 준비·정리에만 사용했다. 재현은 난수 표식의 가짜 행만 사용했고 기존 공지에는 쓰지 않았다.
+
+### 2. 최소 수정
+
+- 기존 보호 SQL 13개·RC_SQL_HASHES.json을 먼저 검증했고 수정하지 않았다. 별도 content-write/011-content-write-guard.sql과 012-content-write-postcheck.sql, HASHES.json을 추가했다.
+- 7개 테이블의 INSERT/UPDATE/DELETE에 restrictive 정책 21개를 추가했다. 기존 permissive 정책과 AND로 결합되며, 현재 DB의 oaz_privacy_v3.content_editor()가 true여야 한다. 공개 SELECT 정책·SELECT ACL은 그대로다.
+- 기존 함수는 active_user 및 현재 supervisor/기존 관리자 상태를 읽는다. JWT의 is_admin/role 메타데이터나 요청자가 보낸 UUID를 권한 원천으로 사용하지 않는다. STABLE 문장 평가이므로 새 요청에서 DB의 권한 회수가 반영되고 토큰 재발급이 필요 없다.
+- 익명 테이블/열 DML을 회수하고 PUBLIC/anon/authenticated의 TRUNCATE·TRIGGER·REFERENCES·MAINTAIN 등 우회성 ACL을 제한했다. authenticated의 정상 DML GRANT는 기존 범위에서 유지하고 RLS로 통제한다. 민감정보 capability나 업무 활성화 스위치는 부여하지 않았다.
+- 신규 postcheck는 정책의 명령·역할·제한 속성·조건식·RLS·ACL을 검사한다. 기존 010-postcheck도 변경 없이 함께 통과했다. 현재 public 뷰/물질화 뷰는 0개이고, public의 SECURITY DEFINER 3개는 기존 계약으로 검증되는 세션/본인 프로필/권한별 디렉터리 읽기 함수다. GraphQL wrapper는 SECURITY INVOKER다. 새로운 owner 권한 쓰기 RPC를 만들지 않았다.
+- local-content-guard.mjs는 Hotfix 브랜치·고정 localhost API·Docker 프로젝트·검토된 fixture provenance·연결 표식 부재·두 SQL 묶음 해시를 확인한다. 로컬 DB에만 적용했다. OAuth 실행기의 다음 새 시작/재개도 이 보호를 적용한다. 현재 켜진 콘솔을 재시작하지 않았다.
+- CI는 기존 실제 Supabase 95개 검사에 성공한 뒤에만 disposable fixture 표식을 만들고 새 보호·실제 콘텐츠 검사를 실행하도록 추가했다. YAML 구조·순서·조건·실패 처리 검사를 통과했다. 원격 CI를 실제 실행하거나 Push하지는 않았다.
+
+정책 결합 및 GraphQL의 DB 권한 적용 근거: [PostgreSQL 17 RLS](https://www.postgresql.org/docs/17/ddl-rowsecurity.html), [Supabase GraphQL 보안](https://supabase.com/docs/guides/graphql/security). 구체적 적용·제한·운영 전 순서는 [추가안 문서](content-write/README.md)를 따른다.
+
+### 3. 최종 실제 로컬 검증 결과
+
+최종 코드의 test-local-content-security.mjs verify가 **457개 assertion, 종료 코드 0**으로 완료됐다. 숫자는 HTTP 요청 수나 독립 취약점 수가 아니라 준비·Auth·HTTP·DB 불변·정상 CRUD·회수·위조 검사의 assertion 수다. 전체 Node 회귀 숫자와 합산하지 않는다.
+
+| 상태/경로 | 실제 결과 |
+|---|---|
+| 익명 | 7개 테이블의 허용된 REST/GraphQL 조회 유지, 생성·수정·삭제 차단, 각 시도 후 전체 테이블 행 내용 지문 동일 |
+| 일반 회원 | 유효한 Auth JWT로 7개 테이블 REST/GraphQL 쓰기 차단. user_metadata의 가짜 관리자 값이 들어간 Auth 발급 JWT도 동일하게 차단 |
+| 편집 회원 | 일반 콘텐츠 6개 테이블에서 REST와 GraphQL 각각 생성·수정·삭제 성공, DB의 해당 행 상태를 각 단계에서 확인 |
+| 명예의 전당 | 실제 donor_writes=false 유지하므로 편집자도 HTTP 쓰기 거절. 별도 미커밋 SQL 연결에서만 스위치를 켜고 동일한 Auth 발급 claims/역할로 RPC CRUD·회수 후 거절을 확인한 뒤 전체 롤백. 실제 다른 요청의 스위치와 기존 후원 자료는 변경하지 않음 |
+| 회수된 편집 회원 | 권한 부여 전부터 보관한 **동일 JWT 문자열**로 검사. supervisor 행 회수 후 getUser 성공·기존 Auth session 존재를 확인하면서 7개 테이블의 REST/GraphQL 생성·수정·삭제 모두 차단 |
+| 민감 관리 | 편집 권한만 있는 회원 및 회수된 회원의 회원/승인/관리자 명단 RPC 3개 각각 403/42501. 별도 capability는 빈 상태 유지 |
+| 역할/주체 위조 | JWT role/sub/추가 claim을 재서명 없이 변조하면 REST/GraphQL 401. 가짜 역할/다른 사용자 ID 헤더는 RLS 차단. 잘못된 role/user_id 본문은 스키마 거절이며 RLS 성공으로 세지 않음 |
+| 우회 | GraphQL alias mutation도 변경 행 0, 비공개 schema 프로필 요청은 406/PGRST106, DB 행 내용 불변 |
+
+REST UPDATE/DELETE의 200·빈 배열 및 GraphQL affectedCount=0은 허용 성공으로 보지 않고, 존재하는 표적 가짜 행 및 전체 테이블 지문 불변과 함께 확인했다. 익명 GraphQL은 ACL에 따라 Mutation 타입이 사라지는 것을 introspection으로 확인하고, 편집자에게 실제 작동하는 canonical mutation과 대조했다. 스키마 오타나 임의 오류·500·통신 오류를 권한 거절로 인정하지 않는다.
+
+검증기 작성 중 신규 postcheck의 CASE 괄호 오류, GraphQL 자동 ID 입력 제외·camelCase·익명 Mutation 타입 부재에 대한 처리 오류를 발견해 수정했다. 실패한 실행은 성공으로 기록하지 않았고, 가짜 자료 정리·기존 데이터 보존을 확인한 뒤 최종 소스로 457개 전체를 재검증했다.
+
+### 4. 회귀·무결성·보존
+
+- 전체 Node 회귀 **168개 통과, 실패/건너뜀 0**. 그 안에 신규 콘텐츠 검증 보조/CI 방어 5개와 앞선 계정 상세 조회 회귀가 포함된다. 실제 457 assertion과는 별도 결과다.
+- TypeScript 오류 0, ESLint 오류 0/기존 이미지 경고 12. 기존 JSX DOM 속성 경고는 테스트 실패와 구분한다.
+- 비밀정보 검사 220개 텍스트 파일, 실패 0. git diff 공백 검사 통과. 앱 src·package/lock·기본 Supabase config·Vercel 설정도 기존 커밋과 동일하다.
+- 기존 SQL 13개 해시와 새 SQL 2개 해시, 기존/신규 DB postcheck 모두 통과. 추가 SQL의 Git checkout 줄바꿈 변환을 막는 .gitattributes 규칙도 추가했다.
+- 실제 기존 GitHub 계정은 1명, 테스트 공지는 1개 유지됐다. Auth users/identities 전체 행·회원·승인·공지·capability·다른 supervisor 행의 지문 및 기존 session ID 집합이 시작과 동일하다. 최종 verify는 githubIdentity/serverSignInRecorded/serverSessionPresent/memberPresent/approvalPresent=true, localEditorAssigned=false다. 실제 GitHub 브라우저 토큰은 읽지 않았다.
+- 기존 공지의 익명 REST 조회 200/1행, Next 홈페이지 HTTP 200. Next PID 50596 및 같은 Docker 컨테이너 5개를 유지했다. 현재 서버·콘솔을 종료하거나 재시작하지 않았다.
+- 각 검사에서 만든 난수 표식의 콘텐츠/회원/supervisor와 해당 가짜 Auth 계정만 정리했다. 기존 OAuth 회원·세션·공지·다른 계정은 삭제하지 않았다. 가짜 Auth 감사 기록과 일반적인 시퀀스 번호 공백은 남을 수 있다.
+- Main/Demo의 HEAD·Git 상태·변경 파일 내용, 백업 목록·크기·수정 시각, Docker 등 관련 설정의 시작/종료 비교가 모두 동일했다. Production/Demo DB·OAuth·환경변수·Vercel에 접속하거나 변경하지 않았다.
+- 11:41 KST C드라이브 여유 13,029,208,064 bytes(약 12.13GiB). 추가 다운로드·대규모 빌드·전역 정리를 하지 않았다. 이번에는 실제 서버 보존을 위해 기존 전체 fixture 95개/Storage 38개/가짜 provider 시작·종료 검사와 Next OFF/ON 빌드를 재실행하지 않았다. 해당 과거 결과를 이번 실행으로 중복 계산하지 않는다.
+
+검증된 코드·SQL·테스트·문서와 앞선 동일 Hotfix 계정 탐지 수정만 선택적으로 로컬 커밋한다. 기존 미커밋 변경을 되돌리지 않았고 자동 생성 AGENTS.md는 보존·제외한다. 커밋 후 최종 SHA/작업 상태·보안 검사 결과는 별도 최종 상태 기록과 최종 응답을 따른다.
+
+### 5. 남은 사용자 확인 및 운영 전 조건
+
+현재 로그인한 같은 시크릿 창에서 **http://127.0.0.1:3000/editor 를 새로고침**하여 접근 거절·홈 이동을 확인하고 메인에서 기존 테스트 공지가 계속 표시되는지 확인한다. 현재 계정은 회수 상태 그대로 유지한다. Secret 재입력·서버 재시작은 필요 없다. 이 단계의 실제 브라우저 새로고침 결과는 아직 사용자가 확인해야 한다.
+
+기존 OAuth 왕복·가입·관리자 화면/공지 등록 성공은 사용자가 직접 확인한 이전 결과다. 이번에는 실제 세션·회원 보존 및 가짜 Auth/DB/API 검사를 확인했으며, 브라우저 전체 OAuth를 자동으로 다시 수행했다고 주장하지 않는다.
+
+운영에서는 최신 정책/GRANT/뷰/함수·트리거/역할 상속 조사, 새 백업·복원 검증, 승인된 대상 seal·추가 migration·같은 SHA 원격 CI·무행 API 점검·별도 변경 승인이 필요하다. 로컬 fixture 정책을 운영 취약점이라고 단정하지 않으며 로컬 전용 선언을 운영에서 흉내 내어 적용하지 않는다. 기존 010 이후 별도 콘텐츠 보호 단계를 검토하고 기존 선택 업무 활성화 승인을 유지한다. 010-recovery는 함수·정책을 삭제하지 않고 업무/GraphQL을 차단하는 방식이므로 새 restrictive 정책을 제거하지 않는다. **운영 NO-GO 유지.**
+
+---
+
+## 최종 후속 권한 회수 검증 — 2026-11-04: 부분완료
+
+사용자가 실제 관리자 편집 화면에서 **LOCAL OAuth 편집 권한 테스트** 공지를 등록하고 메인 화면에서 표시됨을 확인했다고 보고했다. 이번에는 기존 OAuth 콘솔·서버·로그인을 유지하면서 편집 권한 회수와 기존 로그인 계정의 쓰기 차단을 검사했다.
+
+### 대상 확인과 실제 변경
+
+- localhost API, Docker 프로젝트, 검토된 fixture provenance와 실행 중 OAuth owner를 확인했다. Docker DB/Auth/REST/Storage/Kong 5개와 Next 3000 포트가 계속 실행 중이다. 공개 바인딩은 127.0.0.1 및 ::1뿐이다.
+- auth.identities의 실제 GitHub 계정 1명, 해당 계정의 supervisor 행 1개, 위 제목 공지 1개를 확인했다. 변경 전 verify는 githubIdentity/serverSignInRecorded/serverSessionPresent/memberPresent/approvalPresent/localEditorAssigned 모두 true였다.
+- 최신 상세 계정 조회로 선택한 UUID와 DB의 유일한 GitHub identity가 일치하는지 다시 확인했다. 트랜잭션 안에서 회원·현재 세션·supervisor 1개 조건을 재검사한 뒤 **해당 UUID의 public.supervisor_id 행 1개만 삭제하여 편집 권한을 회수했다.** Auth 계정·회원·승인·공지 및 다른 supervisor 행은 삭제하거나 수정하지 않았다. 실제 UUID·이메일·Secret·JWT는 기록하지 않았다.
+- 회수 후 별도 최신 verify에서 githubIdentity/serverSignInRecorded/serverSessionPresent/memberPresent/approvalPresent=true, **localEditorAssigned=false**를 확인했다. browserRoundTripAttested=false는 서버 검사 자체가 브라우저 관찰을 자동 증명하지 않는다는 뜻이다.
+
+### 중요한 실패: 공지의 서버 측 쓰기 차단은 확인되지 않음
+
+실제 로컬 공지 테이블 public.editor_0_noti에는 permissive 정책 legacy_select(SELECT USING true)와 **synthetic_legacy_write(ALL TO authenticated USING true WITH CHECK true)**가 있다. 이는 tests/fixtures/privacy.sql의 기존 합성 fixture 정책과 일치하며, 기존 개인정보 Hotfix SQL의 5개 민감 테이블 보호 범위와 일반 공지 쓰기 정책은 구분해야 한다. 운영 정책 상태는 조회하거나 추론하지 않았다.
+
+대상 GitHub UUID의 authenticated 요청 claims를 SQL 세션에서 시뮬레이션하고, 공지의 사용자 트리거·규칙이 각각 0개임을 확인한 뒤 `UPDATE editor_0_noti SET text=text`를 정확한 테스트 제목에 한정하여 검사했다. 전체 트랜잭션은 **ROLLBACK**했다. 결과:
+
+```json
+{"editorRevoked":true,"noticeUpdateDenied":false,"noticeAffectedRows":1,"donorWriteDenied":true}
+```
+
+즉 content_editor()는 false지만 **공지 UPDATE 1행은 허용**됐다. 이는 실제 PostgreSQL RLS 검사이며, 브라우저의 기존 JWT를 읽거나 HTTP 요청을 재전송한 검사는 아니다. 공지 내용은 변경하지 않았고 최종 전체 행 지문도 동일하다. 별도 보호가 있는 donor 쓰기 RPC는 42501로 거절됐다. 공지 쓰기 차단 실패를 전체 권한 검증 통과라고 보고하지 않는다.
+
+사용자가 다른 계정의 권한 수정을 금지했으므로 다른 로그인 계정에도 영향을 주는 공지 공통 정책을 임의로 변경하지 않았다. 대상 UUID만 예외 처리하는 임시 정책이나 하드코딩도 추가하지 않았다. **회수·데이터 보존은 완료, 브라우저 차단은 사용자 확인 대기, 공지 서버 측 쓰기 차단 검증은 실패**다. 추후 별도 범위에서 로컬 일반 콘텐츠 정책과 운영 정책의 일치 여부를 검토해야 하며 운영 NO-GO는 유지한다.
+
+### 회귀와 보존 확인
+
+오프라인 네트워크 제한 하에 local-oauth.test.mjs, release-readiness.test.mjs, hotfix.test.mjs를 실행하여 64개 통과, 실패·건너뜀 0. 기존 JSX 속성 경고 1개를 실패와 구분했다. 이 회귀 묶음 통과는 위 실제 공지 UPDATE 허용을 검증하거나 해소하지 않는다.
+
+회수 전후 전체 행 내용 지문을 메모리에서 비교하여 Auth 사용자·identity·회원·승인·공지·capability·다른 supervisor 데이터가 동일함을 확인했고, 로그인 session ID 집합도 동일하다. 공지는 여전히 1개, 대상 supervisor는 1→0이며 동일 Docker 컨테이너 5개를 유지했다. Next의 3000 포트 소유 PID도 그대로다. 기존 미커밋 코드·테스트와 자동 생성 AGENTS.md를 보존했다. 서버 종료·재시작, Secret 재입력, 운영/Demo 접속, Push·배포는 하지 않았다.
+
+다음 사용자 행동: **현재 로그인한 동일 시크릿 창에서 http://127.0.0.1:3000/editor 를 새로고침**하여 권한 없는 페이지 안내와 홈 이동을 확인한다. 재로그인하거나 서버를 재시작하지 않는다. UI 차단 확인과 DB 쓰기 차단 실패를 별개 결과로 기록해야 한다. 현재 서버와 테스트 공지는 그대로 유지한다.
+
+---
+
+## 후속 관리자 편집 권한 부여 — 2026-11-04
+
+사용자는 실제 GitHub 인증·가입·로그인 유지 성공과 일반 회원의 `/editor` 차단을 직접 보고했다. 최신 verify에서도 githubIdentity/serverSignInRecorded/serverSessionPresent/memberPresent/approvalPresent=true, localEditorAssigned=false를 확인했다. 기존 콘솔의 메뉴 4 오류는 수정 전 계정 탐지 모듈을 이미 불러온 상태와 일치한다.
+
+최신 CLI에는 이미 `node scripts/local-oauth.mjs administrator`가 구현되어 있어 코드 추가 없이 기존 명령을 사용했다. 먼저 localhost API·Docker 프로젝트·검토된 fixture provenance를 확인하고 DB의 실제 GitHub 계정이 정확히 1명, 해당 계정의 supervisor 행이 0개임을 확인했다. 사용자의 명시적 권한 부여 요청에 따라 기존 확인 문구 LOCAL-TEST-ACCOUNT-ONLY를 전달하여 이 계정의 public.supervisor_id 행만 1개 추가했다. 사용자 UUID·이메일·Secret·JWT는 출력하거나 문서화하지 않았다.
+
+명령 완료 후 별도 `verify` 결과는 githubIdentity/serverSignInRecorded/serverSessionPresent/memberPresent/approvalPresent/localEditorAssigned 모두 true였다. browserRoundTripAttested=false는 서버 검사 자체가 브라우저 관찰을 자동 증명하지 않는다는 기존 의미를 유지한다. 가입·로그인 브라우저 성공은 사용자 보고이며, 관리자 화면 진입은 아직 사용자가 확인해야 한다.
+
+권한 회귀 테스트 `local-oauth.test.mjs`, `release-readiness.test.mjs`, `hotfix.test.mjs`를 오프라인 네트워크 제한 상태로 실행하여 **64개 통과, 실패·건너뜀 0**을 확인했다. 기존 JSX 속성 경고 1개는 실패와 구분한다. 실제 로컬 DB에서도 BEGIN READ ONLY/ROLLBACK 안에서 authenticated 역할과 대상 UUID의 요청 claims를 시뮬레이션하여 다음을 확인했다. 이는 브라우저 JWT 재사용 검사가 아니다.
+
+- 본인 supervisor UUID 행 1개 조회 가능, 다른 편집자 UUID 행은 보이지 않음.
+- content_editor()=true.
+- 별도 개인정보 capability는 빈 배열, approvalWrite=false.
+- registered_member/allowed_user/supervisor_id 명단 RPC 3개는 모두 insufficient_privilege로 거절됨.
+
+비교 결과 Auth 사용자·identity의 전체 행 내용, 로그인 session ID 집합, 회원·승인 전체 행 내용, 대상 이외 supervisor 행이 변경 전과 동일하다. 대상 supervisor 행만 0→1로 변경됐다. 동일 컨테이너 5개가 유지되며 서버·콘솔 종료, 재시작, Secret 재입력, 데이터 삭제, 운영/Demo 접속, Push·배포는 수행하지 않았다. 기존 코드와 미커밋 변경을 보존했다.
+
+다음 사용자 행동: 같은 시크릿 창에서 http://127.0.0.1:3000/editor 를 새로 열거나 새로고침하여 편집 화면 진입을 확인한다. DB를 다시 조회하는 방식이므로 우선 재로그인 없이 확인한다. 개인정보 명단·가입 승인 쓰기는 별도 권한을 부여하지 않았으므로 계속 거절되는 것이 정상이다. 브라우저 관리자 접근 및 이후 로그아웃 차단 결과는 아직 미확인이다. 운영 NO-GO는 유지한다.
+
+---
+
+## 10:32 KST 후속 실인증 진단 — 메뉴 1 계정 탐지 수정
+
+이번 단계는 실행 중인 서버·세션을 종료하지 않고 로컬만 읽기 전용으로 조사했다. 시작 HEAD는 8e7d3aef76dfa0224dcde790336ef56d37cc461e이며, 이 후속 수정은 미커밋 상태로 남긴다. 아래 04:40 및 이전 보고서는 당시 검증 이력이다.
+
+### 실제 원인 및 관측
+
+- Docker의 DB/Auth/REST/Storage/Kong 5개가 실행 중이며 healthcheck가 있는 서비스는 healthy였다. API/DB는 127.0.0.1 및 ::1, Next 3000은 127.0.0.1에서 수신한다. 종료·재시작·새 스택 생성은 하지 않았다.
+- auth.users 총 9개, auth.identities는 email 8개·github 1개. GitHub 계정의 확인 상태와 마지막 로그인 기록이 있고, 해당 계정으로 범위를 한정한 login/logout 감사 기록도 있다. 현재 해당 계정의 auth.sessions·registered_member·allowed_user는 없다. 계정 식별자·이메일·자격증명·토큰·코드는 기록하지 않았다.
+- 로컬 `/auth/v1/settings`에서 GitHub provider 활성화를 확인했다. 계정 목록 API는 9개를 반환하지만 모두 identities=null이라 선택되는 후보는 0개였다. 같은 계정의 상세 API에서는 실제 GitHub identity가 1개 존재했다. **listUsers의 null identity를 계정 부재로 오인한 것이 메뉴 1 오류의 정확한 원인이다.**
+- 모든 계정의 app_metadata에 github 표시가 있어 metadata 대체는 합성 계정을 오선택할 수 있다. 이 방법은 사용하지 않았다.
+- 원문을 출력하지 않고 Auth 컨테이너 로그를 메모리에서 집계했다. 최근 40분 범위에 callback 302 3회, user 200 18회, logout 204 3회가 있었다. 요청 횟수를 서로 다른 계정 수나 독립 인증 성공 횟수로 해석하지 않는다.
+- 사용자가 **등록되지 않은 사용자입니다. 관리자에게 문의하세요.** 화면을 직접 확인했다. 코드상 홈페이지 로그인→GitHub→로컬 Auth callback→`/login_callback`→getUser→본인 회원 UUID 조회→회원 부재 시 signOut 순서와 일치한다. GitHub identity·로그인 기록·사용자 조회 성공·사용자의 복귀 화면을 함께 보면 **GitHub 인증 및 로컬 callback 도달 후 미등록 회원 차단은 확인된다.** 현재 로그인 세션 유지나 등록 회원 로그인 성공을 주장하지 않는다.
+- 가입은 별도 `/signin`→`/oauth_callback` 흐름이다. 로그인 버튼은 신규 회원 행을 만들지 않는다. 미등록 차단을 인증 provider 실패로 해석하거나 이를 없애기 위해 정책을 완화하지 않는다.
+
+### 최소 수정과 관련 검증
+
+`scripts/local-oauth.mjs`가 목록 각 항목을 getUserById로 상세 조회하여 실제 identity로만 선택하도록 수정했다. 계정 조회 실패·목록 100개 이상·상세 ID 불일치·identity 누락은 안전하게 중단한다. 0명과 여러 명 오류를 구분하고 과거 서버 로그인 기록을 현재 세션과 별도로 표시한다. 회원/승인/관리자 변경 메뉴도 같은 선택 함수를 재사용한다. 기존 읽기 전용 verify의 DB 처리는 BEGIN READ ONLY/ROLLBACK을 유지했다.
+
+`tests/local-oauth.test.mjs`에 목록 identity 누락, 위조성 metadata, 상세 실패·불완전 응답, 잘못된 목록, 0명·여러 명, 일부 계정만 읽힌 경우에 대한 회귀 6개를 추가했다. OAuth 28개와 기존 callback/릴리스 19개가 각각 통과했다. 후자에서 기존 JSX DOM 속성 경고가 있었으며 실패는 없다. TypeScript 및 수정 코드 ESLint 오류 0, diff 공백 검사 통과. 기존 157개 전체·실제 Supabase 95개·Storage 38개·가짜 provider 19개를 이번 단계에서 재실행한 것으로 주장하지 않는다. 실제 서버에 가짜 provider 테스트를 실행하면 컨테이너가 변경되므로 실행하지 않았다.
+
+수정된 `node scripts/local-oauth.mjs verify`를 현재 실행 중인 로컬 서버에 직접 실행하여 다음 boolean 출력을 확인했다.
+
+```json
+{"githubIdentity":true,"serverSignInRecorded":true,"serverSessionPresent":false,"memberPresent":false,"approvalPresent":false,"localEditorAssigned":false,"browserRoundTripAttested":false}
+```
+
+browserRoundTripAttested는 서버 검사만으로 브라우저 화면을 자동 증명하지 않기 때문에 false로 유지한다. 이번 화면 증거는 사용자의 직접 확인이다. 최종 판정은 **메뉴 결함 수정·실제 읽기 전용 재검증 완료 / GitHub 인증·미등록 차단 확인 / 가입 및 등록 회원 전체 흐름 미검증 / 운영 NO-GO**다. Production/Demo·GitHub 설정·Client Secret·인증 정책은 접근하거나 변경하지 않았다. DB의 승인·회원·관리자 행을 추가하지 않았고 사용자 데이터 삭제도 하지 않았다.
+
+최종 비교에서 Auth 사용자·identity·세션·회원·승인 테이블의 전체 행 내용을 메모리 내 지문으로 대조하여 모두 동일함을 확인했다. 실행 중인 컨테이너 5개의 ID가 동일하고 Next의 3000 포트 소유 프로세스도 동일하다. 비밀정보 검사 213개 텍스트 파일, 실패 0. 수정 파일은 실행기·관련 테스트·이 보고서·OAuth 가이드의 4개이며 미커밋으로 보존했다. 기존 자동 생성 AGENTS.md도 그대로 남겼다.
+
+### 지금 사용자가 할 일
+
+현재 실행기를 그대로 유지하고 **새 터미널**에서 Hotfix 폴더로 이동한 뒤 `node scripts/local-oauth.mjs verify`를 실행한다. 이미 실행 중인 메뉴는 이전 모듈을 불러온 상태라 같은 오류가 남을 수 있다. 새 명령은 Secret 재입력·서버 재시작 없이 수정 코드를 사용한다. 신규 가입까지 계속 시험하려는 경우에만 별도 명령 `node scripts/local-oauth.mjs approve`와 확인 문구로 로컬 테스트 승인을 한 뒤 시크릿 창의 `/signin`에서 가짜 프로필로 가입한다. 세부 순서와 승인 명령의 쓰기 동작은 LOCAL_OAUTH_BROWSER.md에 기록했다.
+
+---
+
 검증 기준: 2026-11-04 04:40 KST. 브랜치 hotfix/privacy-p0. 이 단계 시작 HEAD는 c7f6151ac87b26966f9748d368a4a8bea1e219b5다. 코드 리뷰와 필수 검증을 완료했다. **커밋 후 최종 판정·HEAD·git status는 [최종 Git 기록](../../build/privacy-review/FINAL_STATE.md)과 최종 사용자 응답에 기록한다.** 아래 03:39 단계 보고서는 과거 검증 이력으로 보존한다.
 
 **OAUTH_BROWSER_NOT_VERIFIED / 운영 NO-GO 유지.** 이번에는 실제 Client ID/Secret을 찾거나 입력하지 않았고 GitHub 브라우저 로그인·운영 OAuth·Production/Demo DB·Vercel·원격 Git 변경을 수행하지 않았다. 숨김 입력 검사는 고정된 합성 문자열만 사용했다.

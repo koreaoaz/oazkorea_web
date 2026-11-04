@@ -1,5 +1,7 @@
 # 개인정보 Hotfix 운영 실행 순서
 
+2026-11-04 후속 콘텐츠 쓰기 보호는 [추가 SQL 후보와 운영 전 검토](content-write/README.md)를 따른다. 기존 13개 SQL을 수정하지 않고 010 이후 별도 보호 단계가 필요하다. 로컬 대상 전용 선언을 운영에서 사용하지 않는다. 실제 운영 정책·RPC/뷰·GRANT 조사와 별도 변경 승인 전에는 실행 금지이며 **운영 NO-GO**다.
+
 독립 OAuth Test App 생성은 이전 사용자 확인 기록을 따른다. 실제 브라우저 검증과 서버 연동 환경변수의 검사 규칙은 [LOCAL_OAUTH_BROWSER.md](LOCAL_OAUTH_BROWSER.md)를 따른다. Production privacy flag가 없다는 설명은2026-11-03 기록이며 이번에는 운영 환경을 재조회하지 않았다. 승인된 호환 배포 전에 최신 환경과 명시적 false 설정을 별도로 확인해야 한다.
 
 2026-11-04 후속 로컬 리뷰·커밋 검증은 [자율 통합 검증 기록](AUTONOMOUS_VALIDATION_20261104.md)을 따른다. localhost·실제 GraphQL 로딩·가짜 provider 검증은 운영 승인이나 실제 GitHub 로그인 완료를 뜻하지 않는다. 아래 원격 main SHA와 운영 상태 설명은 과거 기준이며 배포 직전 최신 검토·별도 승인 없이 적용하지 않는다. 이 단계에서 배포 순서나 보호 SQL은 바꾸지 않았다.

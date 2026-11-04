@@ -14,6 +14,7 @@ import { integration } from './test-local-supabase.mjs';
 import { checkReleaseAssets } from './check-production-release.mjs';
 import { reviewedOAuthFixture } from './local-supabase.mjs';
 import { prepareLocalGraphql } from './prepare-local-graphql.mjs';
+import { applyLocalContentGuard } from './local-content-guard.mjs';
 export { reviewedOAuthFixture } from './local-supabase.mjs';
 export function oauthMenuAction(value) {
   if (value === '') return 'stop';
@@ -160,10 +161,26 @@ function stopOAuthContainers() {
 }
 export function selectOAuthTestUser(users) {
   const candidates = users.filter(user => user.identities?.some(identity => identity.provider === 'github'));
-  if (candidates.length !== 1) throw Error('LOCAL_ONE_GITHUB_TEST_ACCOUNT_REQUIRED');
+  if (!candidates.length) throw Error('LOCAL_NO_GITHUB_TEST_ACCOUNT');
+  if (candidates.length !== 1) throw Error('LOCAL_MULTIPLE_GITHUB_TEST_ACCOUNTS');
   const user = candidates[0];
   if (!/^[a-f0-9-]{36}$/.test(user.id) || !user.email_confirmed_at || !user.email || user.banned_until && Date.parse(user.banned_until) > Date.now()) throw Error('LOCAL_VERIFIED_GITHUB_ACCOUNT_REQUIRED');
   return user;
+}
+export async function loadOAuthTestUser(admin) {
+  const result = await admin.listUsers({ page: 1, perPage: 100 });
+  if (result.error || !Array.isArray(result.data?.users) || result.data.users.length >= 100) throw Error('LOCAL_ACCOUNT_INVENTORY_FAILED');
+  const users = [];
+  // GoTrue's list can return null/omit identities even for a real GitHub user.
+  // Fetch canonical details for EVERY account: synthetic fixture metadata also
+  // says github, so neither list identities nor app_metadata is authoritative.
+  for (const listed of result.data.users) {
+    if (!/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(listed.id ?? '')) throw Error('LOCAL_ACCOUNT_INVENTORY_FAILED');
+    const detail = await admin.getUserById(listed.id);
+    if (detail.error || detail.data?.user?.id !== listed.id || !Array.isArray(detail.data.user.identities)) throw Error('LOCAL_ACCOUNT_INVENTORY_FAILED');
+    users.push(detail.data.user);
+  }
+  return selectOAuthTestUser(users);
 }
 async function accountAction(action) {
   const state = oauthSession(root);
@@ -175,9 +192,7 @@ async function accountAction(action) {
       if (new URL(input).origin !== API) throw Error('LOCAL_REQUEST_ONLY');
       return fetch(input, { ...init, redirect: 'error', signal: AbortSignal.timeout(10000) });
     } } });
-  const result = await admin.auth.admin.listUsers({ page: 1, perPage: 100 });
-  if (result.error || result.data.users.length >= 100) throw Error('LOCAL_ACCOUNT_INVENTORY_FAILED');
-  const user = selectOAuthTestUser(result.data.users);
+  const user = await loadOAuthTestUser(admin.auth.admin);
   const id = user.id;
   const email = "'" + user.email.replaceAll("'", "''") + "'";
   if (action !== 'verify') {
@@ -192,8 +207,9 @@ async function accountAction(action) {
       sql(`INSERT INTO public.supervisor_id(uuid,email,name) SELECT '${id}',${email},'Local OAuth test' WHERE NOT EXISTS(SELECT FROM public.supervisor_id WHERE uuid='${id}');`);
     }
   }
-  const evidence = JSON.parse(sql(`BEGIN READ ONLY; SELECT json_build_object('githubIdentity',true,'serverSessionPresent',EXISTS(SELECT FROM auth.sessions WHERE user_id='${id}'),'memberPresent',EXISTS(SELECT FROM public.registered_member WHERE uuid='${id}'),'approvalPresent',EXISTS(SELECT FROM public.allowed_user WHERE email=${email}),'localEditorAssigned',EXISTS(SELECT FROM public.supervisor_id WHERE uuid='${id}')); ROLLBACK;`));
+  const evidence = JSON.parse(sql(`BEGIN READ ONLY; SELECT json_build_object('githubIdentity',true,'serverSignInRecorded',EXISTS(SELECT FROM auth.users WHERE id='${id}' AND last_sign_in_at IS NOT NULL),'serverSessionPresent',EXISTS(SELECT FROM auth.sessions WHERE user_id='${id}'),'memberPresent',EXISTS(SELECT FROM public.registered_member WHERE uuid='${id}'),'approvalPresent',EXISTS(SELECT FROM public.allowed_user WHERE email=${email}),'localEditorAssigned',EXISTS(SELECT FROM public.supervisor_id WHERE uuid='${id}')); ROLLBACK;`));
   console.log('LOCAL_OAUTH_SERVER_EVIDENCE ' + JSON.stringify({ ...evidence, browserRoundTripAttested: false }));
+  if (evidence.serverSignInRecorded && !evidence.serverSessionPresent) console.log('로컬 Auth 로그인 기록은 있지만 현재 서버 세션은 없습니다. 미등록 회원 로그인 callback은 접근을 차단하고 로그아웃합니다. 브라우저 복귀 화면을 별도로 확인하세요.');
 }
 async function main(action) {
   if (action === 'prerequisites') return prerequisites();
@@ -238,6 +254,7 @@ async function main(action) {
         mkdirSync(`${root}/build/oauth`, { recursive: true });
         writeFileSync(provenancePath, JSON.stringify(provenance)); // No identities/keys/configuration values.
       }
+      applyLocalContentGuard(); // 새 fixture와 재개 fixture 모두 서버 쓰기 보호를 유지한다.
       if (cancelled) throw Error('LOCAL_OAUTH_CANCELLED');
     }, serve, closeUi: async child => {
       if (child) await closeUi(child);
@@ -268,7 +285,8 @@ async function main(action) {
           await accountAction(selected);
         } catch (error) {
           if (error.message === 'LOCAL_OAUTH_MENU_REQUIRED') console.log('1~4 또는 Enter를 입력하세요.');
-          else if (error.message === 'LOCAL_ONE_GITHUB_TEST_ACCOUNT_REQUIRED') console.log('검증할 GitHub 계정이 아직 없거나 여러 개입니다. 브라우저 로그인 상태를 확인하세요.');
+          else if (error.message === 'LOCAL_NO_GITHUB_TEST_ACCOUNT') console.log('로컬 Auth에 GitHub identity가 없습니다. 브라우저 인증 완료 여부를 확인하세요.');
+          else if (error.message === 'LOCAL_MULTIPLE_GITHUB_TEST_ACCOUNTS') console.log('로컬 Auth에 GitHub 계정이 여러 개여서 자동 선택하지 않았습니다. 기존 계정은 보존합니다.');
           else if (/^LOCAL_[A-Z0-9_]+$/.test(error.message)) console.error(error.message);
           else throw error;
         }

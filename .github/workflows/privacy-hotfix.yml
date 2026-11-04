@@ -89,6 +89,20 @@ jobs:
         run: npm run local:start
       - name: Actual SDK Auth, signup, RLS, REST, GraphQL and private Storage
         run: npm run test:local-supabase
+      - name: Mark only the successfully tested disposable fixture
+        run: |
+          node --input-type=module <<'NODE'
+          import { mkdirSync, writeFileSync } from 'node:fs';
+          mkdirSync('build/oauth', { recursive: true });
+          writeFileSync('build/oauth/fixture-provenance.json', JSON.stringify({
+            version: 1, project: 'oaz-privacy-local', syntheticAppFixture: true,
+            sqlSha256: 'bea86d888eea295c5ef092b2fa0f39955d494cf4b81a304615cf3079be57ed98'
+          }), { flag: 'wx' });
+          NODE
+      - name: Content RLS with actual ordinary JWTs, REST, GraphQL and same-token revocation
+        run: |
+          node scripts/local-content-guard.mjs apply
+          node scripts/test-local-content-security.mjs verify
       - name: Stop only the local test project
         if: always()
         run: npm run local:stop

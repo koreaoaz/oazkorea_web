@@ -1,5 +1,44 @@
 # 독립 GitHub OAuth 브라우저 검증
 
+## 최신 상태: 서버 쓰기 보호 수정·로컬 검증 완료 — 2026-11-04
+
+**SECURITY_PASS / 운영 NO-GO.** 아래 이전 단계의 공지 쓰기 차단 실패는 별도 콘텐츠 RLS 추가안으로 수정했다. 실제 Auth 회원의 동일 JWT를 편집 권한 회수 후 재사용하여 7개 테이블 REST/GraphQL 쓰기 차단을 확인했고, 일반 콘텐츠 정상 편집도 확인했다. 실제 통합 assertion 457개와 전체 회귀 168개는 별도 검증 묶음이며 합산하지 않는다. 상세 범위·명예의 전당 쓰기 스위치의 유지·운영 전 조건은 [추가안](content-write/README.md)과 AUTONOMOUS_VALIDATION_20261104.md 맨 위를 따른다.
+
+기존 GitHub 회원·세션·테스트 공지와 서버는 보존했고 현재 localEditorAssigned=false다. **현재 로그인한 같은 시크릿 창에서 http://127.0.0.1:3000/editor 를 새로고침**하여 접근 차단과 홈 이동을 확인한다. 메인에서는 기존 테스트 공지가 계속 보여야 한다. 재로그인·Secret 재입력·서버 재시작은 필요 없다. 지금 권한을 다시 부여하지 않는다. 이번 수정 후의 실제 브라우저 결과는 사용자가 확인해야 한다. 아래 기록들은 시간순 이전 이력이다.
+
+## 최신 상태: 편집 권한 회수 완료, 공지 DB 쓰기 차단은 실패 — 2026-11-04
+
+현재 로컬 GitHub 테스트 계정 한 명의 supervisor 행만 회수했다. 최신 verify에서 localEditorAssigned=false, serverSessionPresent/memberPresent/approvalPresent=true다. 기존 로그인 계정·세션·다른 계정·테스트 공지 **LOCAL OAuth 편집 권한 테스트**는 보존했고 서버·콘솔을 종료하지 않았다.
+
+**현재 로그인한 동일 시크릿 창에서 http://127.0.0.1:3000/editor 를 새로고침**하여 권한 없음 안내와 홈 이동을 확인한다. 재로그인이나 서버 재시작은 필요 없다.
+
+중요: 실제 DB의 authenticated 역할 검사에서 기존 synthetic_legacy_write 정책으로 공지 UPDATE가 허용됐다. 검사는 전체 롤백하여 공지 내용은 그대로다. UI 접근 차단과 서버 쓰기 차단을 같은 결과로 판단하면 안 된다. 회귀 64개는 통과했지만 실제 공지 쓰기 차단은 실패한 상태다. 다른 계정에 영향을 주는 공통 정책은 이 작업에서 수정하지 않았으며, 상세 증거는 AUTONOMOUS_VALIDATION_20261104.md 맨 위에 기록했다. 관리자 권한을 다시 부여하지 말고 현재 회수 상태로 브라우저 검증을 진행한다. 운영 NO-GO 유지. 아래 관리자 부여 기록은 회수 전의 이력이다.
+
+## 후속 상태: 로컬 테스트 편집 권한 부여 완료 — 2026-11-04
+
+사용자가 실제 가입·로그인 유지·일반 회원의 Editor 접근 차단을 확인한 뒤, 명시적으로 요청한 현재 GitHub 테스트 계정 한 명에게만 최신 `node scripts/local-oauth.mjs administrator` 명령으로 supervisor 행을 추가했다. 최신 verify에서 localEditorAssigned=true, serverSessionPresent/memberPresent/approvalPresent=true를 확인했다. 기존 콘솔을 종료하거나 서버를 재시작하지 않았다. 기존 메뉴 4는 이전 모듈을 계속 사용할 수 있지만 최신 명령은 이미 구현되어 있어 추가 코드 수정은 필요 없었다.
+
+같은 시크릿 창에서 **http://127.0.0.1:3000/editor**를 다시 열거나 새로고침하여 편집 화면이 표시되는지 확인한다. 우선 재로그인 없이 확인한다. 기존 로그인과 회원 정보는 보존됐다. 개인정보 명단 조회·가입 승인 쓰기의 별도 capability는 추가하지 않았으므로 해당 기능의 거절은 정상이다. 실제 DB 읽기 전용 역할 검사와 관련 회귀 64개는 통과했지만, 브라우저의 관리자 화면 진입 결과는 아직 사용자가 확인해야 한다. 운영 NO-GO는 유지한다. 아래 문단들은 앞선 단계의 이력이다.
+
+## 2026-11-04 실인증 중 메뉴 1 진단·수정
+
+사용자가 테스트 앱으로 직접 인증한 뒤 `/login_callback`에서 **등록되지 않은 사용자입니다. 관리자에게 문의하세요.** 화면을 확인했다. 로컬 DB에는 GitHub identity가 1개이고 해당 계정의 로그인·로그아웃 기록이 있다. 현재 회원 등록·가입 승인·서버 세션은 모두 없다. **GitHub 인증 및 미등록 회원 차단은 확인됐지만, 가입 완료·등록 회원 로그인 유지·권한별 접근·로그아웃 전체 검증 완료는 아니다. 운영 NO-GO를 유지한다.** 아래 과거 OAUTH_BROWSER_NOT_VERIFIED 표시는 그때의 이력이다. 실행기가 출력하는 browserRoundTripAttested=false는 서버 검사만으로 브라우저 화면을 자동 증명하지 않는다는 뜻이며, 이번 화면 확인은 사용자의 직접 관찰이다.
+
+메뉴 오류는 실제 계정 부재가 아니라 조회 방식의 결함이었다. 현재 GoTrue의 `listUsers` 응답에서는 9개 계정 모두 identities가 null이지만 `getUserById` 응답에는 실제 identity가 있다. app_metadata에 github가 표시되는 합성 계정도 있어 metadata로 대체하면 안 된다. 수정한 실행기는 목록의 각 계정을 상세 조회한 후 실제 GitHub identity가 정확히 한 명인 경우만 선택한다. 0명·여러 명·불완전 조회를 구분하고, 불완전 조회 시 추측하지 않는다. 로그인 과거 기록과 현재 서버 세션도 별도 표시한다. Auth/RLS/회원 접근 정책과 callback 코드는 변경하지 않았다.
+
+**현재 켜 둔 실행기는 이전 모듈을 메모리에 유지한다. 메뉴 1을 다시 눌러도 이전 오류가 남을 수 있다. 서버나 콘솔을 재시작할 필요는 없다.** 별도 터미널에서 다음 명령으로 현재 서버를 조회한다. Secret은 다시 입력하지 않는다.
+
+```powershell
+Set-Location 'C:\Users\yjcha\OAZ-Workspace\oazkorea_web-privacy-hotfix'
+node scripts/local-oauth.mjs verify
+```
+
+이번 실제 조회는 githubIdentity=true, serverSignInRecorded=true, serverSessionPresent=false, memberPresent=false, approvalPresent=false였다. 미등록 회원이 일반 로그인 버튼으로 다시 로그인하면 같은 차단·로그아웃이 정상이다. 이번 오류를 고치기 위해 계정을 삭제하거나 데이터를 초기화할 필요가 없다.
+
+신규 가입 성공까지 시험하려면 **사용자가 선택할 때만** 위 별도 터미널에서 `node scripts/local-oauth.mjs approve`를 실행하고 `LOCAL-TEST-ACCOUNT-ONLY`를 입력한다. 이는 현재 로컬 계정의 승인 행만 추가하는 기존 테스트 기능이며 읽기 전용 명령은 아니다. 그 뒤 같은 시크릿 창에서 `http://127.0.0.1:3000/signin`으로 가서 개인 자료 대신 가짜 프로필을 입력하고 같은 테스트 앱·같은 GitHub 계정으로 가입한다. `/oauth_callback`의 가입 결과를 확인하고 `verify`로 memberPresent·serverSessionPresent를 재확인한다. 이후 로그아웃→홈페이지 GitHub 로그인으로 `/login_callback`의 홈 복귀 및 세션 유지를 확인한다. 승인 명단 추가만으로 회원 행이 생기지는 않으므로 가입 화면을 거쳐야 한다. 기존 콘솔의 메뉴 2~4도 이전 선택 함수를 사용하므로 이번 실행 중에는 필요한 개별 명령을 사용한다. 이 진단에서는 승인·회원·관리자 행을 추가하지 않았다.
+
+검증: OAuth 관련 28개(추가 회귀 6개 포함), 기존 callback/릴리스 회귀 19개 통과. 실제 실행 중인 로컬 `verify` 성공. TypeScript 및 변경 코드 ESLint 오류 0. 현재 서버·컨테이너·로그인 기록을 보존했다. 상세 진단은 AUTONOMOUS_VALIDATION_20261104.md의 맨 위 후속 기록을 참고한다.
+
 ## 2026-11-04 현재 PC 재검증
 
 후속 코드 리뷰에서는 Windows의 실제 수신 주소도 실행기가 자동 확인하고, GraphQL은 살아 있는 PostgreSQL 백엔드의 /proc 매핑 경로·inode·공식 파일 해시를 비교한다. metadata 버전만으로 통과하지 않는다. host bind/다른 이미지·컨테이너·비로컬 Docker pipe도 거절한다. 전체 회귀157·분리된 새 프로젝트95·강화된 Storage38·가짜 provider19를 최종 재검증했다. 사용자의 Localhost only 설정은 유지한다.
