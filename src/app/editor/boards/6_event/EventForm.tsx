@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { EditorForm } from "../../components/common/EditorForm"
+import Image from "next/image"
 import { insertPost } from "../../services/board.service"
 import { uploadImage } from "../../services/storage.service"
 import { useMultiImageUpload } from "../../hooks/useImageUpload"
@@ -24,10 +26,8 @@ export function EventForm() {
           uploadImage("card_news", file)
         )
       )
-    } catch (err) {
-      console.error("이미지 업로드 실패:", err)
-      alert("이미지 업로드 실패")
-      return
+    } catch (error) {
+      throw error
     }
 
     await insertPost(BOARD_TABLE_MAP["행사"], {
@@ -46,7 +46,7 @@ export function EventForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <EditorForm onSubmit={handleSubmit} className="space-y-4">
       <FormField>
         <input
           value={Title}
@@ -103,11 +103,17 @@ export function EventForm() {
       {image.previews.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
           {image.previews.map((src, i) => (
-            <img
-              key={i}
-              src={src}
-              className="w-full h-32 object-cover rounded border"
-            />
+            <div key={i} className="relative w-full h-32">
+              <Image
+                src={src}
+                alt={`선택한 행사 이미지 ${i + 1}`}
+                fill
+                unoptimized
+                loading="eager"
+                decoding="auto"
+                className="w-full h-32 object-cover rounded border"
+              />
+            </div>
           ))}
         </div>
       )}
@@ -115,6 +121,6 @@ export function EventForm() {
       <button className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors rounded">
         등록
       </button>
-    </form>
+    </EditorForm>
   )
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { EditorForm } from "../../components/common/EditorForm"
 import { insertPost } from "../../services/board.service"
 import { BOARD_TABLE_MAP } from "../../constants"
 import { FormField } from "../../components/common/FormField"
@@ -27,7 +28,7 @@ export function ScheduleForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <EditorForm onSubmit={handleSubmit} className="space-y-4">
       <FormField >
         <input
           value={desc} 
@@ -58,6 +59,6 @@ export function ScheduleForm() {
       <button className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors rounded">
         등록
       </button>
-    </form>
+    </EditorForm>
   )
 }

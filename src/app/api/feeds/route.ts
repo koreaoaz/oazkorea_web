@@ -1,3 +1,4 @@
+import {readFeedDocument} from "@/lib/safe-feed";
 import { NextResponse } from "next/server";
 
 /** -------- helpers -------- */
@@ -49,8 +50,7 @@ function firstImageFromHtml(html = "") {
 
 async function fetchOgImage(pageUrl: string) {
   try {
-    const res = await fetch(pageUrl, { cache: "no-store" });
-    const html = await res.text();
+    const html = await readFeedDocument(pageUrl);
     const m1 = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i);
     if (m1) return normalizeUrl(m1[1]);
     const m2 = html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i);
@@ -80,11 +80,10 @@ const rssFeeds = [
 
 /** -------- core -------- */
 async function fetchRss(url: string): Promise<FeedItem[]> {
-  const res = await fetch(url, { cache: "no-store" });
-  const xml = await res.text();
+  const xml = await readFeedDocument(url);
 
   const items: FeedItem[] = [];
-  const blocks = xml.split("<item>").slice(1);
+  const blocks = xml.split("<item>").slice(1,101);
 
   for (const block of blocks) {
     const seg = block.split("</item>")[0];
@@ -99,7 +98,8 @@ async function fetchRss(url: string): Promise<FeedItem[]> {
 
     const author = decodeHtml(pickTag(seg, "author") || pickTag(seg, "dc:creator"));
     const pubDate = pickTag(seg, "pubDate");
-    const date = pubDate ? new Date(pubDate).toISOString() : new Date().toISOString();
+    const parsedDate = new Date(pubDate);
+    const date = Number.isFinite(parsedDate.getTime()) ? parsedDate.toISOString() : "";
 
     // ① HTML 내부에서 이미지 찾기
     let image =
@@ -138,6 +138,7 @@ export async function GET(req: Request) {
     const searchType = Number(searchParams.get("searchType") ?? 0);
     const q = (searchParams.get("q") ?? "").trim().toLowerCase();
 
+    if (!Number.isInteger(page) || page<0 || page>10000 || !Number.isInteger(limit) || limit<1 || limit>50 || ![0,1,2].includes(searchType) || q.length>200) return NextResponse.json({error:"INVALID_FILTER"},{status:400});
     const lists = await Promise.allSettled(rssFeeds.map(fetchRss));
     const all = lists.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
 
@@ -158,8 +159,8 @@ export async function GET(req: Request) {
     const items = filtered.slice(start, start + limit);
 
     return NextResponse.json({ total, items });
-  } catch (e) {
-    console.error("FEEDS_API_ERROR", e);
+  } catch {
+    console.warn("FEEDS_API_UNAVAILABLE");
     return NextResponse.json({ total: 0, items: [] }, { status: 500 });
   }
 }

@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source("../");
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
@@ -117,11 +117,32 @@
   * {
     @apply border-border outline-ring/50;
   }
-body {
-  cursor: url("/cursers/cursor-min.png"), auto;
 }
 
-a, button {
-  cursor: url("/cursers/cursor-max.png"), pointer;
+/* The original static OaZ cursors. Keep platform feedback for text, disabled
+   controls, touch input, and visitors who prefer reduced motion. */
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  html, body { cursor: url("/cursers/cursor-min.png"), auto; }
+  a[href], button:enabled, summary, [role="button"]:not([aria-disabled="true"]), .cursor-pointer {
+    cursor: url("/cursers/cursor-max.png"), pointer;
+  }
+  input:not([type="button"]):not([type="submit"]), textarea, [contenteditable="true"] { cursor: auto; }
+  :disabled, [aria-disabled="true"] { cursor: not-allowed; }
 }
+
+@media (min-width: 1024px) {
+  [data-home-block="honor"] { padding-bottom: .625rem; }
+  [data-home-block="honor"]:has([data-honor-fill]) {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+  }
+  [data-home-block="honor"] [data-honor-fill] {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  [data-home-block="honor"] [data-honor-fill] [data-honor-viewport] {
+    flex: 1 0 120px;
+  }
 }

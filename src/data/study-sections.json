@@ -1,0 +1,560 @@
+{
+  "26": {
+    "year": 2025,
+    "semester": 1,
+    "hash": "68f2173f861ced9049f80e60091af87b1a801081baae46e770bf5f2b7a6a9e35",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "Python 문법을 처음 배우려는 신입 학회원을 위한 기초 스터디입니다. 같은 주차의 자료를 각 분반에서 공부합니다.",
+        "en": "This introductory Python group is for new members learning the language for the first time. Each section works with the same weekly materials.",
+        "sourceHash": "80f469530dd77d327730b10822d5563b9c8210193c9011b1f09db76b807d08f4"
+      },
+      {
+        "kind": "activities",
+        "ko": "매주 제공되는 문법 자료를 읽고 배정된 과제를 제출합니다. 모임 시간은 분반별로 정해집니다.",
+        "en": "Members read the week's syntax notes and submit the assigned exercises. Meeting times depend on the section.",
+        "sourceHash": "725478927827558fa270e958d2a3a04cf1d60dfa91cc60ea2f5011005b5e62bd"
+      },
+      {
+        "kind": "implementation",
+        "ko": "문법 예제를 읽을 때는 변수에 어떤 값이 들어가는지 한 줄씩 따라가 볼 수 있습니다. 입력을 바꿔 결과를 예상해 보는 것이 과제를 풀 때 도움이 됩니다.",
+        "en": "Tracing a variable one line at a time makes a short program easier to follow. Changing an input and predicting the output is a useful way to approach an exercise.",
+        "sourceHash": "5035adde5c9bbeaf912bc495c8869b6cf27edd28a51721a304659f24a6caaa5a"
+      },
+      {
+        "kind": "results",
+        "ko": "예제의 출력과 자신의 풀이를 비교하면 문법을 이해한 부분과 다시 살펴볼 부분이 드러납니다.",
+        "en": "Comparing a solution with the example output helps identify which rules are clear and which deserve another look.",
+        "sourceHash": "087ea0002487a9684101187b8eba95c6a9ca0e769a49b932793bb9c7669ca8c4"
+      }
+    ]
+  },
+  "27": {
+    "year": 2025,
+    "semester": 1,
+    "hash": "0bb9b31659787b5a91cec72c27734e33adf04143fe17c467bfe095252be7a2f7",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "Java를 처음 배우는 사람을 대상으로 합니다. 교재는 김영한의 자바 입문 강의 「코드로 시작하는 자바 첫걸음」입니다.",
+        "en": "This group introduces Java through Younghan Kim's introductory course on learning Java through code.",
+        "sourceHash": "418035cd0888834c89a954ecf6fd743172bb0460df10ab8eccf180998cf9f44f"
+      },
+      {
+        "kind": "activities",
+        "ko": "주차별로 발표를 맡아 한 주 동안 공부한 부분을 설명하고 함께 복습합니다.",
+        "en": "Members take turns presenting their assigned topic and reviewing what they studied during the week.",
+        "sourceHash": "08b8e5a519a093903f5a6f9a6c8f97b24bbcc2ff014d783f4db9ccfa4b51fcab"
+      },
+      {
+        "kind": "implementation",
+        "ko": "예제에서 변수 선언과 값의 대입을 구별해 보면 자료형이 하는 역할을 알 수 있습니다. 작은 코드를 직접 읽고 실행 순서를 말로 설명하는 연습에 적합합니다.",
+        "en": "Distinguishing a declaration from an assignment helps explain what a variable's type does. A short example can be traced aloud in execution order.",
+        "sourceHash": "1cc03ddd148eb444b0992e7fa3d399bbd7f4c94e4de8f019ceb5dda10334e1d1"
+      },
+      {
+        "kind": "results",
+        "ko": "발표 뒤에는 같은 구문을 다른 입력에 적용해 봅니다. 예제에 나온 답을 외우는 것과 실행 규칙을 이해하는 것의 차이를 확인할 수 있습니다.",
+        "en": "Applying the same statement to a different input helps distinguish memorizing the answer from understanding the execution rule.",
+        "sourceHash": "23cc7e21aaed24eb36fb2cd2705dc1b3f298da43e18d4cef3d0772a42e409896"
+      }
+    ]
+  },
+  "28": {
+    "year": 2025,
+    "semester": 1,
+    "hash": "41bf216d442d2917d0fbf5485776385adf2b78da646996221c61908d2e0d79c5",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "자연어 처리와 대규모 언어모델에 관심 있는 학회원을 위한 스터디입니다. 「딥러닝을 이용한 자연어 처리 입문」을 바탕으로 진행합니다.",
+        "en": "This study is for members interested in natural language processing and large language models. It follows an introduction to natural language processing with deep learning.",
+        "sourceHash": "9e27d6aa38d953d0495310076898461e55f05446b767093ddf8270ca9a98caa5"
+      },
+      {
+        "kind": "activities",
+        "ko": "돌아가며 실습 코드와 적용된 이론을 설명합니다. 이해하기 어려웠던 부분은 질문과 답변으로 함께 짚습니다.",
+        "en": "Members take turns explaining code examples and the theory behind them. Questions about difficult passages become topics for group discussion.",
+        "sourceHash": "81751e66065d779dcb64d76f4509a9bccb8805d7d019012aed93f66f2a9ecbd7"
+      },
+      {
+        "kind": "implementation",
+        "ko": "문장이 모델에 입력될 때 텍스트가 어떤 단위와 숫자 표현으로 바뀌는지 따라가 봅니다. 코드 한 줄을 이론상의 어느 단계에 대응시킬 수 있는지가 읽기의 기준입니다.",
+        "en": "Following a sentence into the model reveals how text is divided into units and represented as numbers. Each line of a worked example can then be matched to a step in the theory.",
+        "sourceHash": "a2e109a3919d155a50937486cc598e14be524aacfae4c0438cc49963f7cfd49b"
+      },
+      {
+        "kind": "results",
+        "ko": "다음 예제를 읽을 때도 입력 표현과 모델 출력을 먼저 구분하면 서로 다른 처리 방식을 비교하기 쉽습니다.",
+        "en": "Identifying the input representation and output first makes it easier to compare different approaches to processing the same text.",
+        "sourceHash": "5ec9cce5f490d1a998f1d668c539fc3bc471e179da166dbcea785881f43e1297"
+      }
+    ]
+  },
+  "29": {
+    "year": 2025,
+    "semester": 1,
+    "hash": "0559075ce567a7e5d449bce67dd8f7293673e0646d3013e2f1072e8729e8bb8e",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "강화학습의 이론적 기반을 다지는 모임입니다. 스탠퍼드 CS234 Reinforcement Learning 강의를 사용합니다.",
+        "en": "This group builds a theoretical foundation in reinforcement learning using Stanford's CS234 course.",
+        "sourceHash": "53c4786615646e6ce5331cffe77403697f25dabaf793fedd53c4560ed12f7dae"
+      },
+      {
+        "kind": "activities",
+        "ko": "주차별 강의를 수강한 뒤 이론 문제와 실습 과제를 함께 풉니다.",
+        "en": "Members watch the assigned lectures and meet to work through theoretical problems and practical assignments.",
+        "sourceHash": "533764d67851544c34436074cc262483604cd6c1aded48756a3a9aa8b09cdf41"
+      },
+      {
+        "kind": "implementation",
+        "ko": "상태에서 행동을 택하고 보상을 받는 한 단계를 먼저 생각해 봅니다. 당장 받는 보상과 앞으로 누적될 보상을 구별하는 것이 정책을 해석하는 출발점입니다.",
+        "en": "Start with a single step in which an agent observes a state, chooses an action and receives a reward. Distinguishing immediate reward from cumulative future reward helps explain a policy.",
+        "sourceHash": "7d92e4c3e3c546394d3d43ec77d6e497b1f6db3d3b45431c9a1e1572d3a1fae5"
+      },
+      {
+        "kind": "results",
+        "ko": "과제 풀이를 검토할 때는 행동 선택 규칙과 그 규칙의 가치를 평가하는 방법을 따로 설명해 볼 수 있습니다.",
+        "en": "When reviewing a solution, it is useful to explain the rule for choosing an action separately from the method for evaluating that rule.",
+        "sourceHash": "044c39ac8ed73d09029da6eafa60567897ceb128b491038dba5a4daec854ea61"
+      }
+    ]
+  },
+  "30": {
+    "year": 2025,
+    "semester": 1,
+    "hash": "379c77cfd64b980a6cfb3b0be5f23cad23006bd514251e6a7c8cdc09051b312a",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "기본 Python 문법을 알고 코딩 테스트를 준비하는 사람을 위한 스터디입니다. 「세계 대회 진출자가 알려주는 코딩테스트 A to Z」를 참고합니다.",
+        "en": "This group prepares members who know basic Python for coding tests. It uses a guide to coding tests written by an international contest participant.",
+        "sourceHash": "c6750d142b3510c42d7809f0d2a7542a13e05b9a318c8f02394c2f39828f58d5"
+      },
+      {
+        "kind": "activities",
+        "ko": "주마다 발표자가 알고리즘 이론을 소개합니다. 모임 시간에는 실제 코딩 문제를 풀며 아이디어를 코드로 옮깁니다.",
+        "en": "Members take turns presenting algorithm theory and spend meeting time translating ideas into code by solving problems.",
+        "sourceHash": "158bebc33dcf6c9fde4d4ab30b54eb264259544f86a139ef191d29b438f08278"
+      },
+      {
+        "kind": "implementation",
+        "ko": "문제를 읽으며 입력 크기와 반복 횟수를 함께 살펴봅니다. 같은 답을 구하는 두 풀이도 입력이 커지면 실행 시간에 차이가 날 수 있습니다.",
+        "en": "Consider the input size alongside the number of iterations. Two solutions that return the same answer can take very different amounts of time as the input grows.",
+        "sourceHash": "429b1bd453c5d4bcc70a0bdc94806b3d982a29f3bb6ad7e8cd40f7c3c760de72"
+      },
+      {
+        "kind": "results",
+        "ko": "풀이를 되짚을 때에는 선택한 알고리즘이 맞는 이유와 주어진 시간 안에 실행되는 이유를 구분해 설명할 수 있습니다.",
+        "en": "A review can address two separate questions: why the algorithm gives the correct answer and why it finishes within the time limit.",
+        "sourceHash": "6af71c029894834cef30ee30ae9b9c483f5dfbe44b8b973882476a0e49170d42"
+      }
+    ]
+  },
+  "10": {
+    "year": 2025,
+    "semester": 1,
+    "hash": "787158f79ee7bcb7b34c5f36e43ee09c71c6dc62f56bf4b0ee9421b5f9967622",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "C 문법을 이미 알고 문제 풀이에 활용하려는 사람을 위한 심화 스터디입니다. 「독하게 되새기는 C프로그래밍」을 참고합니다.",
+        "en": "This advanced group is for members who already know C and want to apply it to programming problems. The group uses a C programming review text.",
+        "sourceHash": "4eaff49e8e1426dd1f88d2e1912c7acfb4578993d0f1a7dccd1047f004ed698b"
+      },
+      {
+        "kind": "activities",
+        "ko": "온라인으로 모여 카카오 신입 공채 코딩 테스트 등의 문제를 풉니다.",
+        "en": "Members meet online and work on problems such as those used in Kakao's entry-level recruitment coding tests.",
+        "sourceHash": "2edf768cdceb8ce099d04f38d9120703e9a08a8f805ebcf23701186e48444fcd"
+      },
+      {
+        "kind": "implementation",
+        "ko": "문제의 입력 조건을 C의 자료형과 배열의 범위로 옮겨 볼 수 있습니다. 경계에서 인덱스가 어떻게 바뀌는지 추적하면 정상 예제만으로 찾기 어려운 오류를 구별하기 쉽습니다.",
+        "en": "Translate the input constraints into C data types and array bounds. Tracing an index at the boundary can reveal errors that ordinary examples miss.",
+        "sourceHash": "333649be0c9792d8c2168e2c026d6c113a15cbb87172201c7f5db7aea4de2a48"
+      },
+      {
+        "kind": "results",
+        "ko": "풀이의 핵심은 의도한 알고리즘과 C 코드가 같은 범위의 값을 처리하는지 설명하는 데 있습니다.",
+        "en": "A useful test of a solution is whether the C implementation handles exactly the range of values the algorithm was designed for.",
+        "sourceHash": "ba69c8286fc0ceec189ef496d47ae23faace728bf7a8f0271291c77515d0c233"
+      }
+    ]
+  },
+  "11": {
+    "year": 2025,
+    "semester": 1,
+    "hash": "a1d18fe681935345381c0a241f762a075a490433c104aa294244884b87ce64c1",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "C언어를 처음 배우는 학회원을 대상으로 기본 문법을 익히는 스터디입니다.",
+        "en": "This introductory group teaches basic C syntax to members encountering the language for the first time.",
+        "sourceHash": "7b613c9fa9a3d21bdec4929dcd21805f39b9672068be454f8863be3576398190"
+      },
+      {
+        "kind": "activities",
+        "ko": "주차별로 맡은 부분을 발표하고 그 주의 문법을 사용하는 문제를 함께 풉니다.",
+        "en": "Members present the portion assigned to them each week and solve problems that use that week's syntax together.",
+        "sourceHash": "4e908c0da09886828ff7c66f59b1098ba687e2d92ef786b803e10123eed47c69"
+      },
+      {
+        "kind": "implementation",
+        "ko": "입력부터 출력까지 짧은 프로그램을 따라가며 조건에 따라 실행되는 문장을 구별합니다. 반복문에서는 종료 조건과 값이 달라지는 순서를 짚어 볼 수 있습니다.",
+        "en": "Trace a short program from input to output and identify which statements a condition selects. In a loop, follow the stopping condition and the order in which values change.",
+        "sourceHash": "26147f9594d4d103bcd0f48b2565907078f1c9443a5713a5d70a6b183a60a49a"
+      },
+      {
+        "kind": "results",
+        "ko": "학습한 문법을 다른 예제로 바꾸어 설명하면 발표 내용과 실제 문제 풀이를 연결할 수 있습니다.",
+        "en": "Explaining the same syntax through a different example connects a presentation to an actual problem.",
+        "sourceHash": "d26f7d56ec2400dd07c76c798a0777a84b1324036be00a0304733e59b53c86da"
+      }
+    ]
+  },
+  "18": {
+    "year": 2025,
+    "semester": 1,
+    "hash": "e4fc6d9fb778452c3db4e887d17e77fbbadc2e2b38066fd0ea3608a4934fdc32",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "데이터 분석의 기반을 다지고 싶은 사람을 위한 기초 모임입니다. 표의 숫자가 어떤 대상을 나타내는지 읽는 일에서 시작합니다.",
+        "en": "This group is for members building a foundation in data analysis. A starting point is to ask what each number in a table represents.",
+        "sourceHash": "8e284add6e06a5c48018c433b6eeab6b3876a367c4f308e817c76ab59513094d"
+      },
+      {
+        "kind": "activities",
+        "ko": "자료를 살필 때 한 행이 무엇을 뜻하고 각 열의 단위가 무엇인지 먼저 정리해 볼 수 있습니다. 같은 값도 관측 단위에 따라 다른 의미를 갖습니다.",
+        "en": "Identify what a row represents and the unit used by each column. The same number can mean different things when the unit of observation changes.",
+        "sourceHash": "8b80adc42f7684bb40ff5713159b218142f48f6fbfc11ba0c14310f941b50810"
+      },
+      {
+        "kind": "implementation",
+        "ko": "평균과 중앙값이 자료를 어떻게 요약하는지 비교할 수 있습니다. 값이 비어 있는 경우와 실제 값이 0인 경우를 구분하는 것도 중요합니다.",
+        "en": "Compare how the mean and median summarize a dataset. A missing observation also needs to be distinguished from an observed value of zero.",
+        "sourceHash": "473906fe3c7051049f5b16fd4b08792216dca9dfb2fdc4a43fa25c78e86b338e"
+      },
+      {
+        "kind": "results",
+        "ko": "요약값 하나와 원래 분포를 함께 살피면 숫자만 보고 놓치기 쉬운 관측값의 차이를 설명할 수 있습니다.",
+        "en": "Reading a summary statistic alongside the original distribution helps explain differences that a single number can hide.",
+        "sourceHash": "04e59540719002518826e554aa144beb46d8453de3bf610a87fe784d90336ec2"
+      }
+    ]
+  },
+  "16": {
+    "year": 2025,
+    "semester": 1,
+    "hash": "90845290de89b4e9426f350910cd4ad26f70e5865f48dd9deabffbba9823c972",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "컴퓨터 비전 모델을 직접 구현하는 데 관심 있는 사람을 위한 실전형 스터디입니다.",
+        "en": "This practical study is for members interested in implementing computer vision models.",
+        "sourceHash": "a48a1f15da686649829c1d6a72ebecbaf7b662c49303c9adb80db0e7db6c069b"
+      },
+      {
+        "kind": "activities",
+        "ko": "이미지를 입력으로 받아 결과를 내는 모델의 처리 단계를 나누어 살펴볼 수 있습니다. 무엇을 예측할지에 따라 비교할 정답도 달라집니다.",
+        "en": "An image model can be understood by following the stages between its input and output. The intended prediction determines what a reference answer should look like.",
+        "sourceHash": "3860d8d4659705bb6ec74015ee2f6f6d8fbb0b46f4f7d428b06310e03061daca"
+      },
+      {
+        "kind": "implementation",
+        "ko": "사진 한 장을 픽셀과 채널의 배열로 생각하면 모델의 입력 형상을 이해하기 쉽습니다. 해상도가 달라질 때 입력 크기와 남는 세부 정보도 달라집니다.",
+        "en": "Treating an image as an array of pixels and channels clarifies the input shape. A change in resolution affects both that shape and the level of detail available.",
+        "sourceHash": "7369d828d58c16ce6e5824191d3064a18cd1a393b672dc2d81b88cdb29ad023a"
+      },
+      {
+        "kind": "results",
+        "ko": "결과를 볼 때는 영상 전체의 범주를 맞히는 문제와 영상 속 대상의 위치를 찾는 문제를 구분하는 것이 유용합니다.",
+        "en": "Distinguish identifying the class of a whole image from locating an object inside it when interpreting a model's output.",
+        "sourceHash": "3fb0a1bacd59f60a5eaffb0dac58528918b55c2e27f0d8c5298162deae9f1bf3"
+      }
+    ]
+  },
+  "0": {
+    "year": 2025,
+    "semester": 1,
+    "hash": "f0515fb64c4c9ea3779247cab51a1cf82a56e4b9d91d922ad75a1c071027d4b1",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "4학년 VLSI 수강생이 전공 수업과 회로 설계를 함께 복습하는 스터디입니다. 「Verilog HDL: A Guide to Digital Design and Synthesis」를 참고합니다.",
+        "en": "This group reviews VLSI coursework and circuit design with fourth-year students. Its reference is Verilog HDL: A Guide to Digital Design and Synthesis.",
+        "sourceHash": "b0674dd76b230489e7f2b9642116a2af37c9fc77d28b03eba5751a94d1020347"
+      },
+      {
+        "kind": "activities",
+        "ko": "매주 ‘VLSI 설계 및 실험’ 수업을 복습하고 회로 설계 실습을 진행합니다. 디지털 회로에서 고려할 설계 조건도 함께 논의합니다.",
+        "en": "Members review their VLSI design and laboratory course each week, practise circuit design and discuss the constraints that affect digital circuits.",
+        "sourceHash": "1c178d9e17b55bc39b8c978f0725fdc4d26037e1342244682f2ca2439b716fd7"
+      },
+      {
+        "kind": "implementation",
+        "ko": "Verilog HDL로 기술한 동작이 어떤 논리 회로에 해당하는지 살펴봅니다. 입력에 즉시 반응하는 논리와 클록에 따라 상태가 바뀌는 논리를 구분할 수 있습니다.",
+        "en": "Trace a Verilog HDL description back to the logic it represents. Logic that responds to the current input can be distinguished from logic that changes state with the clock.",
+        "sourceHash": "3854f5593bfd8f0e3e88c7d0a5dd3538e705685bc3b1fedbad4ba8d49f911b8a"
+      },
+      {
+        "kind": "results",
+        "ko": "같은 기능을 설명하는 코드라도 신호가 언제 갱신되는지에 따라 동작이 달라집니다. 회로의 시간 관계를 설명하는 것이 복습의 기준입니다.",
+        "en": "Descriptions of the same function can behave differently depending on when signals update. Explaining those timing relationships is a useful review exercise.",
+        "sourceHash": "bdb858319cfbfd74b2ecddab22a3043638d93ace67e213113a9361d189140cb8"
+      }
+    ]
+  },
+  "31": {
+    "year": 2025,
+    "semester": 1,
+    "hash": "7459b8df8d7593fc2b013022906cce7f673f4ad23ec351b5ac3ec6310e4a936d",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "AI 관련 논문 한 편을 깊게 읽고 토론하는 스터디입니다. 연구자가 풀려는 질문과 제안한 방법을 연결해 읽습니다.",
+        "en": "This group reads and discusses one AI paper in depth at a time. The starting point is the connection between the research question and the proposed method.",
+        "sourceHash": "44d2510e949356dae27a3581d48b83199302cb87971ece73521b23b1676bf8cf"
+      },
+      {
+        "kind": "activities",
+        "ko": "주마다 발표조가 번갈아 논문을 선정하고 소개합니다. 발표 후에는 질의응답 시간을 갖습니다.",
+        "en": "A different team selects and presents a paper each week, followed by a question-and-answer session.",
+        "sourceHash": "fdc28fd3cb6021d88b2ee5c24463b1ea4146c05f904bf7c9246520fd191ee988"
+      },
+      {
+        "kind": "implementation",
+        "ko": "표와 그림을 볼 때 비교 대상, 평가 지표, 실험 조건을 구분해 볼 수 있습니다. 조건이 달라지면 같은 수치도 다른 의미를 가집니다.",
+        "en": "Read tables and figures by distinguishing the baseline, evaluation metric and experimental conditions. The same number can mean something different under different conditions.",
+        "sourceHash": "e106b6adbe55f1dc312ed8d6a608246ca01958fa746a22f938b2355ca29f186c"
+      },
+      {
+        "kind": "results",
+        "ko": "토론을 마무리할 때는 논문의 주장과 그 주장을 뒷받침하는 실험이 어떻게 연결되는지 한 문장으로 정리해 볼 수 있습니다.",
+        "en": "One way to close the discussion is to state how a particular experiment supports the paper's claim.",
+        "sourceHash": "d8c079e42ca42c9b44d35fc28aa7086dcc257d64f7a480a34a7ecfad281106cc"
+      }
+    ]
+  },
+  "19": {
+    "year": 2026,
+    "semester": 2,
+    "hash": "1fa9b66a13912fe225a042788b445538bd30315894f5beef8eb28cd23e520fc4",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "Python을 처음 접하거나 기초를 정리하고 싶은 학회원을 위한 2026년 2학기 세션입니다. 문법 학습에서 팀 프로젝트까지 이어지는 10주 과정입니다.",
+        "en": "This ten-week Python course in the second semester of 2026 is for beginners and members revisiting the basics. It moves from syntax to a team project.",
+        "sourceHash": "45e4f1814d45a98cd57dd080e2196ee932b251503b5ba420c7d4b2de1867703c"
+      },
+      {
+        "kind": "activities",
+        "ko": "사전 질문을 준비하고 돌아가며 발표하고 토의하는 방식입니다. 후반부에는 3~4인이 팀을 구성해 계획서를 작성하고 수정하도록 설계했습니다.",
+        "en": "The plan calls for advance questions, rotating presentations and discussion. Later, teams of three or four draft and revise a project plan.",
+        "sourceHash": "03592a606ed2ac915b3da5dc53ed24ec1dc0fcb41d3e53db7ebeda43dcbbb98a"
+      },
+      {
+        "kind": "implementation",
+        "ko": "첫 5주는 자료형과 연산자, 조건문과 반복문, 함수, 텍스트 파일과 pandas, 클래스와 모듈 순서입니다. 이어서 프로젝트 구조와 코드를 작성하고 디버깅합니다.",
+        "en": "The first five weeks cover data types and operators, conditionals and loops, functions, text files and pandas, then classes and modules. Project structure, coding and debugging follow.",
+        "sourceHash": "152599ae7386eb29657584549edff039f3f6d9efc6d5ec9608a2a48cc5d2a885"
+      },
+      {
+        "kind": "results",
+        "ko": "마지막 두 주는 결과 보고서 작성과 발표·평가에 배정되어 있습니다. 문법 예제가 팀의 프로그램 안에서 어떤 역할을 맡는지 설명하는 것이 학습 목표입니다.",
+        "en": "The final two weeks are reserved for reporting, presentations and evaluation. The goal is to explain how a small language example contributes to the team's program.",
+        "sourceHash": "217f6c06faf0054dc475639facbf65eedd8a06940e96034445205a968d05c533"
+      }
+    ]
+  },
+  "20": {
+    "year": 2026,
+    "semester": 2,
+    "hash": "19ad8f1fc95599517ccb5df9d420911f7e3020a28958716e0a92e142e7a9c3cc",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "2026년 2학기 VLSI 스터디는 Verilog로 디지털 회로를 기술하고 시계 설계로 연결하는 8회 과정입니다.",
+        "en": "The eight-session VLSI study in the second semester of 2026 links digital circuit descriptions in Verilog to a clock design.",
+        "sourceHash": "d4c85e9f9062897b6aa439422b1453a2b187b87f09288eada323f9d0a22f043a"
+      },
+      {
+        "kind": "activities",
+        "ko": "환경을 설정하고 프로젝트 주제를 논의한 뒤 클록을 생성합니다. 조합·순차회로와 D Flip-Flop, Reset을 차례로 살피는 계획입니다.",
+        "en": "The plan begins with setting up the environment, discussing project topics and generating a clock signal. Combinational and sequential circuits follow, including the D flip-flop and reset.",
+        "sourceHash": "3b226ac66e31a213894b6588fc6906a9c0d6537ab478f907b2a6485d07cbdcfe"
+      },
+      {
+        "kind": "implementation",
+        "ko": "연산과 Counter에서 출발해 Pipeline, FSM, BRAM을 다룹니다. 데이터의 흐름과 회로의 상태 변화를 구분하는 연습으로 이어집니다.",
+        "en": "Arithmetic and counters lead into pipelines, finite-state machines and block RAM. These topics distinguish how data flows from how circuit state changes.",
+        "sourceHash": "46e9ba222289060a0ccf921b897bec6f68e39ea8ccfcfefe0ec8bda6c7bdeaf6"
+      },
+      {
+        "kind": "results",
+        "ko": "마지막 회차의 주제는 시계 만들기입니다. 클록 신호와 카운터의 관계를 시간 표시 동작으로 설명하는 것이 과정의 마무리입니다.",
+        "en": "Building a clock is the topic of the last session. The aim is to connect clock signals and counters to the time shown on the display.",
+        "sourceHash": "de2e7a17f65878cc7373baff867a5cf347545359b20b0b6549d8b6328b6b3754"
+      }
+    ]
+  },
+  "21": {
+    "year": 2019,
+    "semester": 1,
+    "hash": "3490d6f09fa7c0a9cf6c78349e965a15d7cb4fa95bb4fa14efa13dfba8b123dc",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "2019년 1학기 C언어 정규 스터디는 삼성 SW 아카데미 강의를 바탕으로 진행했습니다.",
+        "en": "The regular C study in the first semester of 2019 followed Samsung SW Academy lectures.",
+        "sourceHash": "0ba41e0cb54e51d35c5b183f5dfa0fa6cf5e45a28655ae89e5e6f848aefb07a2"
+      },
+      {
+        "kind": "activities",
+        "ko": "강의 챕터를 나누어 맡고 종강 때 학습 과정과 부족했던 점을 공유했습니다.",
+        "en": "Members divided the chapters among themselves and discussed their progress and difficulties at the end of the semester.",
+        "sourceHash": "b13f02deca51d1ec26f210f89ca6574ac8c21a7532e0fb4dafb0d08bfa02230f"
+      },
+      {
+        "kind": "implementation",
+        "ko": "강의에서 이해한 문법을 직접 실행되는 코드로 옮기는 과정에 주목했습니다. 설명을 듣는 일과 스스로 풀이를 작성하는 일 사이에 어떤 연습이 필요한지 돌아보았습니다.",
+        "en": "Their review focused on turning syntax learned in lectures into executable code. They considered the practice needed to move from hearing an explanation to writing a solution independently.",
+        "sourceHash": "4cd1ffa1ca82c0daafb4eb32d2e53eeb650d1bf6b531922290d6ef9ba7ec8fcf"
+      },
+      {
+        "kind": "results",
+        "ko": "종강 발표에서는 실습과 구현 경험을 보완할 필요를 짚었습니다. 방학의 후속 학습 방향으로 알고리즘을 제시했습니다.",
+        "en": "The closing presentation identified a need for more implementation practice and proposed studying algorithms over the break.",
+        "sourceHash": "c980c8d3e839a3a1ddfe2477a402ea1e3d5da5bae75f765675c20e5d1e738a4a"
+      }
+    ]
+  },
+  "22": {
+    "year": 2019,
+    "semester": 1,
+    "hash": "798c1caaefcd6ad41a45019f4fa37fe48c2575659cbed666db2bc7ede28ee149",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "2019년 1학기에는 Python을 주제로 정규 스터디를 운영했습니다.",
+        "en": "Python was one of the society's regular study subjects in the first semester of 2019.",
+        "sourceHash": "488010ae0918044ef903f7c6e22baf174c1899da1e83b7aaae82a41618c578a7"
+      },
+      {
+        "kind": "activities",
+        "ko": "스터디원들이 챕터를 나누어 공부하고 학기 말에 활동 내용을 공유했습니다.",
+        "en": "Members divided the chapters among themselves and shared their work at the end of the semester.",
+        "sourceHash": "c183e10f7217a28e842e44ba1db4bf4b76e154d71c67276392b6c15062db9432"
+      },
+      {
+        "kind": "implementation",
+        "ko": "한 사람이 맡은 챕터의 예제를 이해하려면 앞 단원의 문법이 어떻게 쓰이는지 연결해 볼 수 있습니다. 예제를 작게 변형하는 것은 그 연결을 점검하는 방법입니다.",
+        "en": "Connecting a chapter's examples to syntax from earlier chapters can help explain how they work. A small change to an example is one way to test that connection.",
+        "sourceHash": "0f575f4fa7deb64ad6670c78a40fb732019e70bd2a2cf78cdd28b8b37d49eb25"
+      },
+      {
+        "kind": "results",
+        "ko": "종강 자료에는 챕터별 학습이 Python 정규 스터디의 활동으로 남아 있습니다. 단원별 설명을 한데 모으면 각 단원이 맡는 역할을 돌아볼 수 있습니다.",
+        "en": "The semester-end record describes a chapter-based Python study. Bringing those explanations together makes it possible to revisit the role of each chapter.",
+        "sourceHash": "5a41087c745eb61a5eef4a2111bae8c441eea13481df5b5ce106d34dbc3d632e"
+      }
+    ]
+  },
+  "23": {
+    "year": 2019,
+    "semester": 1,
+    "hash": "cadb7629d799b7b8f6b768c356601c4da8176acedd1a563ed91b8234eebf7154",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "2019년 1학기 웹 정규 스터디는 웹의 기초 이론과 따라 하기 실습을 함께 다뤘습니다.",
+        "en": "The regular web study in the first semester of 2019 combined introductory theory with guided practice.",
+        "sourceHash": "a39d872d5f7cfd8db3db81fc55321bea39679e7a56bd2ecde93f2a7785fdc2ee"
+      },
+      {
+        "kind": "activities",
+        "ko": "이론을 배운 뒤 예시를 따라 웹 실습을 진행했습니다. 학기 말에는 다음 프로젝트로 이어갈 방향도 공유했습니다.",
+        "en": "Members studied the concepts and then followed worked examples. At the end of the semester, they discussed ways to carry the work into a project.",
+        "sourceHash": "48ad68c7ef0bd3a6b9ce3cd61a0de708b242f394a6c2fc848685837b17855599"
+      },
+      {
+        "kind": "implementation",
+        "ko": "따라 만든 화면에서 한 요소만 바꾸고 결과를 보면 설명과 실제 화면 사이의 관계를 이해하기 쉽습니다. 입력과 표시가 어느 단계에서 연결되는지도 살펴볼 수 있습니다.",
+        "en": "Changing a single element on a page built from an example can clarify the link between the explanation and what appears on screen. Another useful question is where an input affects the display.",
+        "sourceHash": "61ee9002f2eaba18438044c093024c718f57a5a81a8d658b271a12735a1671eb"
+      },
+      {
+        "kind": "results",
+        "ko": "종강 발표에서 정리한 다음 과제는 배운 내용을 프로젝트로 확장하는 일이었습니다.",
+        "en": "The closing presentation identified applying the material to a project as the next step.",
+        "sourceHash": "6917e20bf8e5064b20aca6b5d6475202750c145fe914355c486fa040ad354131"
+      }
+    ]
+  },
+  "24": {
+    "year": 2026,
+    "semester": 2,
+    "hash": "009cc961f4f4fcf2b14a933fe2126db0ade89974e4971da2cf8abddfda174a08",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "2026년 2학기 딥러닝 스터디는 같은 8주 계획을 두 분반으로 운영합니다. A반은 화요일, B반은 금요일에 모입니다.",
+        "en": "The deep learning study in the second semester of 2026 runs the same eight-week plan in two sections. Section A meets on Tuesday and section B on Friday.",
+        "sourceHash": "cdc0bbafeaa61dd3c5c1e8c23d13d2233c7d1d94b18b3e9b506db3b5de9053ab"
+      },
+      {
+        "kind": "activities",
+        "ko": "처음에는 PyTorch 텐서를 다루고 신경망과 선형회귀로 넘어갑니다. 세 번째 주에는 이진 분류를 학습합니다.",
+        "en": "The plan starts with PyTorch tensors, followed by neural networks and linear regression. Week three introduces binary classification.",
+        "sourceHash": "d9c7b265cee55f0858a6a3669a7c516475a05d52e7da8ba883db8d74ceba731f"
+      },
+      {
+        "kind": "implementation",
+        "ko": "이후 다중 분류와 데이터 파이프라인, DNN과 모델 최적화, CNN과 미세 조정을 차례로 다룹니다. 분류 대상이 늘어날 때 출력과 학습 목표가 어떻게 달라지는지 연결해 볼 수 있습니다.",
+        "en": "Later topics include multiclass classification and data pipelines, deep neural networks and optimization, then convolutional networks and fine-tuning. The sequence connects the number of classes to the output and learning objective.",
+        "sourceHash": "cb881ce409b92fd1ef1deac8677d9184831c16cacaf03bbf159ae0c0e97d018e"
+      },
+      {
+        "kind": "results",
+        "ko": "마지막 두 주는 앞선 개념을 결합하는 프로젝트 실습을 위한 시간입니다. 훈련 과정과 모델의 예측을 나누어 설명하는 것이 정리의 기준입니다.",
+        "en": "The last two weeks are reserved for a project that combines the earlier concepts. A useful goal is to distinguish the training process from the predictions of the resulting model.",
+        "sourceHash": "6df4a2a5e8678e6bcaa96e7cfca6b63f1166344d0b05b6b2052b7b07909942b5"
+      }
+    ]
+  },
+  "25": {
+    "year": 2026,
+    "semester": 2,
+    "hash": "d52042f52e9fd4918fb183ea86f34de38984ecdfc4978fe141249c8d2f1042ae",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "2026년 2학기 웹개발 스터디는 목요일에 모이는 학회 과정입니다. 웹 화면이 사용자 조작에 응답하는 과정을 학습 주제로 볼 수 있습니다.",
+        "en": "The web development study in the second semester of 2026 meets on Thursdays. One way into the subject is to follow how a page responds to a user's actions.",
+        "sourceHash": "89a4da52904290f07e7f707d97471a3e37bd4cc7f8b80710d329da804ba71ea7"
+      },
+      {
+        "kind": "activities",
+        "ko": "웹페이지를 사용할 때 주소를 열거나 링크를 누른 뒤 무엇이 달라지는지 관찰해 볼 수 있습니다. 화면 이동과 한 화면 안의 변화는 구분되는 동작입니다.",
+        "en": "Observe what changes after opening an address or following a link. Moving to a new page and changing something within the current page are distinct interactions.",
+        "sourceHash": "36f1839dc0a4aea953d6236b99d4d99d5be2381fcf68a257d358107112e6df93"
+      },
+      {
+        "kind": "implementation",
+        "ko": "브라우저가 요청을 보내고 서버가 응답하는 순서를 따라가면 화면에 데이터가 나타나는 과정을 설명할 수 있습니다.",
+        "en": "Following a request from the browser to the server and the response back helps explain how data appears on screen.",
+        "sourceHash": "223bb15ae6c4907d4ab96671067f0a95d06dc7ccb10cf59a3875a6c8881dafd3"
+      },
+      {
+        "kind": "results",
+        "ko": "웹 기능을 정리할 때는 사용자가 보는 화면, 전달되는 요청, 돌아오는 응답을 순서대로 연결해 보는 것이 유용합니다.",
+        "en": "A web feature can be described by connecting the screen the user sees, the request it sends and the response it receives.",
+        "sourceHash": "b9e8939a106034fd7e95d95cd8768e98743ced01379aaa124261a19506277c5b"
+      }
+    ]
+  }
+}

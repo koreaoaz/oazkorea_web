@@ -1,9 +1,3 @@
-
-export default function Page() {
-  return (
-    <div>
-      임원진 (조직도?)
-      필요 없으면 다른 걸로 바꾸는 걸로 없애도 됨
-    </div>
-  );
-}
+import Link from 'next/link'
+import {LocalizedText} from '@/components/LocaleProvider'
+export default function Page(){return <main className="mx-auto max-w-4xl space-y-6 px-4 py-12"><h1 className="text-3xl font-bold"><LocalizedText ko="임원진" en="Executive team"/></h1><p className="rounded-xl border p-6"><LocalizedText ko="공개 승인이 확인된 임원 소개를 준비하고 있습니다. 기존 비공개 명단은 이 페이지에 표시하지 않습니다." en="Approved executive profiles are being prepared. Private membership records are not displayed here."/></p><Link className="underline" href="/alumni/former-execs"><LocalizedText ko="역대 임원 안내" en="Former executives"/></Link></main>}

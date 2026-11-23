@@ -1,285 +1,63 @@
-"use client"
-import { useEffect, useRef, useState } from "react"
-import Image from "next/image"
-import { supabase } from "@/lib/supabaseClient"
+'use client'
+import {recordCard,recordImage,recordTitle,recordGrid} from '@/lib/record-card'
 
-const BUCKET = "study-images"
-const CARD_COUNT = 6
+import {imageURL} from '@/lib/image-delivery'
+import {studyTopicCover} from '@/lib/study-cover'
+import {ContentTitle} from '@/components/ContentTitle'
+import {TranslatedContent} from '@/components/TranslatedContent'
 
-type StudyItem = {
-  id?: number
-  name: string
-  path: string
-  signedUrl: string
-  created_at?: string | null
-  studyName: string
-  studyDescription: string
-  studyLeader: string
-  year?: number
-  semester?: number
-}
-
-export default function StudyArchiveGrid() {
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
-  const expandedCardRef = useRef<HTMLDivElement>(null)
-  const [files, setFiles] = useState<StudyItem[]>([])
-  const [supabaseError, setSupabaseError] = useState<string | null>(null)
-  const [currentPage, setCurrentPage] = useState(0)
-  const [latestLabel, setLatestLabel] = useState<string | null>(null)
-
-  const totalCount = files.length
-  const totalPages = Math.max(1, Math.ceil(totalCount / CARD_COUNT))
-  const start = currentPage * CARD_COUNT
-  const end = Math.min(start + CARD_COUNT, totalCount)
-  const visibleItems = files.slice(start, end)
-
-  const handleCardClick = (index: number) => {
-    setExpandedIndex(expandedIndex === index ? null : index)
+import {T,useUIText,LocalizedText} from '@/components/LocaleProvider';
+import {Skeleton} from '@/components/ui/skeleton'
+import {useAsyncQuery} from '@/hooks/useAsyncQuery'
+import {useRef,useState} from 'react'
+import Link from 'next/link'
+import {PublicDetailDialog} from '@/components/PublicDetailDialog'
+import {ContentImage as Image} from '@/components/ContentImage'
+import {supabase} from '@/lib/supabaseClient'
+import {SemesterFilter} from '@/components/SemesterFilter'
+import {activityTermLabel,compareStudyTerms,filterSemester} from '@/lib/semester'
+type Study={_sections?:import('@/types/project').ProjectSection[];id:number;study_name:string|null;outline:string|null;leader:string|null;filename:string|null;year:number|null;semester:number|null;created_at:string|null}
+const failureMessage='스터디를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.'
+async function loadStudies(signal:AbortSignal):Promise<Study[]>{
+  const requestSignal = AbortSignal.any([signal, AbortSignal.timeout(20000)])
+  const rows: Study[] = []
+  let lastId: number | undefined
+  for (;;) {
+    let query = supabase.from('editor_2_studies')
+      .select('id,study_name,outline,leader,filename,year,semester,created_at', { count: 'exact' })
+      .order('id', { ascending: true })
+    if (lastId !== undefined) query = query.gt('id', lastId)
+    const { data, error, count } = await query.abortSignal(requestSignal)
+    if (error) throw error
+    const batch: Study[] = data ?? []
+    rows.push(...batch)
+    // The public data proxy limits each response to 1,000 rows.
+    if (!batch.length || (count == null ? batch.length < 1000 : batch.length >= count)) break
+    lastId = batch[batch.length - 1].id
   }
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setExpandedIndex(null)
-    }
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (expandedCardRef.current && !expandedCardRef.current.contains(e.target as Node)) {
-        setExpandedIndex(null)
-      }
-    }
-
-    if (expandedIndex !== null) {
-      document.addEventListener("keydown", handleKeyDown)
-      document.addEventListener("mousedown", handleClickOutside)
-      return () => {
-        document.removeEventListener("keydown", handleKeyDown)
-        document.removeEventListener("mousedown", handleClickOutside)
-      }
-    }
-  }, [expandedIndex])
-
-  async function fetchList() {
-  try {
-    const { data: studyData, error: dbError } = await supabase
-      .from("editor_2_studies")
-      .select("*")
-      .order("created_at", { ascending: false })
-
-    if (dbError) {
-      setSupabaseError(`데이터베이스 오류: ${dbError.message}`)
-      return
-    }
-
-    if (!studyData) {
-      setFiles([])
-      return
-    }
-
-    const items: StudyItem[] = studyData.map((record) => {
-      let imageUrl = "/placeholder.svg"
-
-      if (record.filename) {
-        const { data } = supabase.storage
-          .from(BUCKET)
-          .getPublicUrl(record.filename)
-
-        imageUrl = data.publicUrl
-      }
-
-      return {
-        id: record.id,
-        name: record.filename ?? "",
-        path: record.filename ?? "",
-        signedUrl: imageUrl,
-        created_at: record.created_at ?? null,
-        studyName: record.study_name ?? "스터디",
-        studyDescription: record.outline ?? "설명이 없습니다.",
-        studyLeader: record.leader ?? "미정",
-        year: record.year ?? undefined,
-        semester: record.semester ?? undefined,
-      }
-    })
-
-    const latest = items.reduce<StudyItem | null>((latest, item) => {
-      if (!latest) return item
-      if ((item.year ?? 0) > (latest.year ?? 0)) return item
-      if ((item.year ?? 0) === (latest.year ?? 0) && (item.semester ?? 0) > (latest.semester ?? 0)) return item
-      return latest
-    }, null)
-
-    const latestItems = latest
-      ? items.filter((item) => item.year === latest.year && item.semester === latest.semester)
-      : items
-
-    setLatestLabel(latest?.year && latest?.semester ? `${latest.year}-${latest.semester}` : null)
-    setFiles(latestItems)
-    setCurrentPage(0)
-  } catch (err) {
-    setSupabaseError("데이터 로딩 중 오류가 발생했습니다.")
-  }
+  return rows.sort(compareStudyTerms)
 }
+function StudySkeleton(){
+ return <div role="status" data-study-skeleton><span className="sr-only"><LocalizedText ko="스터디 목록을 불러오는 중…" en="Loading studies…"/></span><div aria-hidden="true"><div className="mb-6 flex flex-wrap items-center gap-3"><Skeleton className="h-6 w-24"/><Skeleton className="h-11 w-44"/></div><div className={`mobile-study-grid ${recordGrid}`}>{Array.from({length:6},(_,i)=><div key={i} className="min-h-[300px] min-w-0 rounded-lg border bg-white p-6"><Skeleton className="mx-auto aspect-square w-4/5 max-w-[200px]"/><Skeleton className="mx-auto mt-4 h-6 w-3/4"/><Skeleton className="mx-auto mt-2 h-5 w-24"/></div>)}</div></div></div>
+}
+export default function StudyArchiveGrid(){
+ const uiText=useUIText();
 
-  useEffect(() => {
-    fetchList()
-  }, [])
-
-  const goPrev = () => setCurrentPage((p) => Math.max(0, p - 1))
-  const goNext = () => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))
-
-  useEffect(() => {
-    setExpandedIndex(null)
-  }, [currentPage])
-
-  return (
-    <div className="w-full px-10 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h2 className="text-3xl font-bold">{latestLabel ? `${latestLabel} 스터디 목록` : "스터디 목록"}</h2>
-      </div>
-
-      <div className="relative w-full max-w-5xl mx-auto">
-        {supabaseError ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="text-6xl mb-4">⚠️</div>
-            <h3 className="text-xl font-semibold mb-2 text-red-500">연결 오류</h3>
-            <p className="text-muted-foreground">{supabaseError}</p>
-          </div>
-        ) : files.length === 0 ? (
-          <div className="flex items-center justify-center py-20">
-            <p className="text-muted-foreground">스터디 목록을 불러오는 중...</p>
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-3 gap-6" style={{ minHeight: "600px" }}>
-              {visibleItems.map((item, idx) => {
-                const globalIdx = start + idx
-                const row = Math.floor(idx / 3)
-                const isInExpandedRows =
-                  expandedIndex !== null &&
-                  (Math.floor((expandedIndex - start) / 3) === row ||
-                    Math.floor((expandedIndex - start) / 3) === row - 1)
-
-                return (
-                  <div
-                    key={item.path}
-                    className={`relative rounded-lg shadow-md bg-white overflow-hidden transition-all duration-300 cursor-pointer hover:shadow-lg group ${
-                      expandedIndex !== null && isInExpandedRows ? "opacity-0" : "opacity-100"
-                    }`}
-                    onClick={() => handleCardClick(globalIdx)}
-                    style={{ height: "300px" }}
-                  >
-                    <div className="h-full p-6 flex flex-col items-center justify-center">
-                      <div className="w-4/5 aspect-square rounded-md overflow-hidden mb-4 transition-transform duration-300 group-hover:-translate-y-1">
-                        <Image
-                          src={item.signedUrl || "/placeholder.svg"}
-                          alt={item.studyName}
-                          width={200}
-                          height={200}
-                          className="w-full h-full object-cover"
-                          unoptimized
-                        />
-                      </div>
-                      <h3 className="text-base font-semibold text-center px-2 transition-all duration-300 group-hover:-translate-y-1 group-hover:text-gray-500">
-                        {item.studyName}
-                      </h3>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {expandedIndex !== null && files[expandedIndex] && (
-              <div
-                ref={expandedCardRef}
-                className="absolute bg-white rounded-lg shadow-xl transition-all duration-300 z-20"
-                style={{
-                  top: (() => {
-                    const cardRow = Math.floor((expandedIndex - start) / 3)
-                    const totalRows = Math.ceil(visibleItems.length / 3)
-                    if (cardRow === totalRows - 1 && totalRows > 1) {
-                      return `${(cardRow - 1) * 324}px`
-                    }
-                    return `${cardRow * 324}px`
-                  })(),
-                  left: "0",
-                  right: "0",
-                  height: "635px",
-                }}
-              >
-                <div className="h-full flex">
-                  <div className="w-1/2 p-8 flex items-center justify-center">
-                    <div className="w-full aspect-square rounded-lg overflow-hidden max-w-[320px]">
-                      <Image
-                        src={files[expandedIndex].signedUrl || "/placeholder.svg"}
-                        alt={files[expandedIndex].studyName}
-                        width={400}
-                        height={400}
-                        className="w-full h-full object-cover"
-                        unoptimized
-                      />
-                    </div>
-                  </div>
-                  <div className="w-1/2 p-8 flex flex-col justify-center">
-                    <h2 className="text-2xl font-bold mb-6">{files[expandedIndex].studyName}</h2>
-                    <div className="mb-4">
-                      <span className="text-lg font-semibold text-gray-700">스터디장: </span>
-                      <span className="text-lg text-gray-600">{files[expandedIndex].studyLeader}</span>
-                    </div>
-                    <div className="text-gray-600 leading-relaxed overflow-y-auto max-h-[400px]">
-                      {files[expandedIndex].studyDescription.split("\n").map((line, i) => (
-                        <p key={i} className="mb-2">
-                          {line}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {currentPage > 0 && (
-              <button
-                type="button"
-                onClick={goPrev}
-                className="absolute bottom-4 -left-14 -translate-x-[10px] h-11 w-11 rounded-full bg-black text-white shadow backdrop-blur flex items-center justify-center transform transition-all duration-300 ease-out hover:scale-110 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-white/40"
-                aria-label="Previous page"
-              >
-                <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 transition-transform duration-200 ease-out">
-                  <path
-                    d="M15 19l-7-7 7-7"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            )}
-
-            {currentPage < totalPages - 1 && (
-              <button
-                type="button"
-                onClick={goNext}
-                className="absolute bottom-4 -right-14 translate-x-[10px] h-11 w-11 rounded-full bg-black text-white shadow backdrop-blur flex items-center justify-center transform transition-all duration-300 ease-out hover:scale-110 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-white/40"
-                aria-label="Next page"
-              >
-                <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 transition-transform duration-200 ease-out">
-                  <path
-                    d="M9 5l7 7-7 7"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            )}
-
-            <div className="mt-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <span>{`${currentPage + 1} / ${totalPages} (총 ${totalCount}개 스터디)`}</span>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  )
+ const trigger=useRef<HTMLButtonElement>(null)
+ const {data:rows,loading,error,reload}=useAsyncQuery<Study[]>('study-archive',loadStudies,[],failureMessage)
+ const [selected,setSelected]=useState<Study|null>(null),[semester,setSemester]=useState('all'),[page,setPage]=useState(0)
+ const filtered=filterSemester(rows,semester),pages=Math.max(1,Math.ceil(filtered.length/6)),currentPage=Math.min(page,pages-1),initialLoading=loading&&rows.length===0
+ const image=(r:Study)=>r.filename?imageURL('study-images',r.filename,supabase.storage.from('study-images').getPublicUrl(r.filename).data.publicUrl):studyTopicCover(r.study_name??'')
+ return <section className="mx-auto w-full max-w-7xl py-8" aria-busy={loading}><h1 className="mb-6 text-3xl font-bold"><T text="스터디 목록"/></h1>
+ {initialLoading?<StudySkeleton/>:<SemesterFilter termsOnly rows={rows} value={semester} onChange={v=>{setSemester(v);setPage(0);setSelected(null)}}/>}
+ {loading&&!initialLoading&&<p role="status" className="mb-3 text-sm"><LocalizedText ko="스터디 목록을 갱신하는 중…" en="Refreshing studies…"/></p>}{error&&<p role="alert" className="mb-4"><T text={error}/> <button type="button" onClick={reload} className="min-h-11 px-2 underline"><LocalizedText ko="다시 시도" en="Try again"/></button></p>}{!loading&&!error&&!filtered.length&&<p className="rounded-xl border p-8"><T text="해당하는 스터디가 없습니다."/></p>}
+ <div className={`mobile-study-grid ${recordGrid}`}>{filtered.slice(currentPage*6,(currentPage+1)*6).map((r,index)=><button data-study-card={r.id} type="button" key={r.id} className={recordCard} onClick={event=>{trigger.current=event.currentTarget;setSelected(r)}} aria-haspopup="dialog" aria-expanded={selected?.id===r.id}><Image loading={index<3||!r.filename?"eager":"lazy"} src={image(r)} alt={uiText(r.study_name??'스터디 이미지')} width={400} height={240} unoptimized className={recordImage}/><h3 className={recordTitle}><ContentTitle table="editor_2_studies" id={r.id} title={r.study_name??"Study"}/></h3><span className="mt-2 block text-sm text-gray-500">{activityTermLabel(r,false)?<><LocalizedText ko={activityTermLabel(r,false)} en={activityTermLabel(r,true)}/><span className="sr-only"> · <T text="상세 보기 →"/></span></>:<T text="상세 보기 →"/>}</span></button>)}</div>
+ {selected&&<PublicDetailDialog returnFocusRef={trigger} title={<ContentTitle table="editor_2_studies" id={selected.id} title={selected.study_name??'Study'}/>} onClose={()=>setSelected(null)}>
+    <Image loading="eager" src={image(selected)} alt={uiText(selected.study_name??'스터디 이미지')} width={600} height={400} unoptimized className="mx-auto max-h-64 w-auto max-w-full rounded-lg object-contain"/>
+    <p className="my-4"><T text="스터디장:"/> {selected.leader||<T text="미정"/>}</p>
+    <TranslatedContent table="editor_2_studies" id={selected.id} title={selected.study_name??'Study'} sections={selected._sections} body={selected.outline??''} heading={false}/>
+    <Link className="mt-4 inline-block underline" href={`/studies/records/${selected.id}`}><T text="스터디 상세 보기"/></Link>
+ </PublicDetailDialog>}
+ {filtered.length>0&&<nav aria-label={uiText("스터디 페이지")} className="mt-6 flex flex-wrap items-center justify-center gap-4"><button aria-label="Previous page" className="min-h-11 rounded border px-4 disabled:opacity-40" disabled={currentPage===0} onClick={()=>{setPage(currentPage-1);setSelected(null)}}><T text="이전"/></button><span>{currentPage+1} / {pages}<T text="· 총"/>{filtered.length}<T text="개 스터디"/></span><button aria-label="Next page" className="min-h-11 rounded border px-4 disabled:opacity-40" disabled={currentPage+1>=pages} onClick={()=>{setPage(currentPage+1);setSelected(null)}}><T text="다음"/></button></nav>}
+ </section>
 }

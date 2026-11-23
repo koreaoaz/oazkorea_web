@@ -1,0 +1,53 @@
+{
+  "editor_1_projects/31": {
+    "sourceHash": "f1cc37e6ba7cf0ee61aee28b23ae2222f8da595b609102755728564aeff1bbc5",
+    "title": "OaZ Four-Cut Photo Booth"
+  },
+  "editor_1_projects/32": {
+    "sourceHash": "8af45746d94a4a18b779d8590ef6c9908d680d9c58a2011d5a24f0187d8bef8a",
+    "title": "OaZ Online Quiz Competition"
+  },
+  "editor_2_studies/17": {
+    "sourceHash": "f99857ee5fd906ddf872dacbce2847f7f72e5e41cd37b9a1fdbbab5e3f3fc148",
+    "title": "Front-End Fundamentals Study Group"
+  },
+  "editor_2_studies/19": {
+    "sourceHash": "d246f7bc20e441aecb87674c51615197c4a141b8bd2bbdef0e8398115c484c2a",
+    "title": "C Programming Fundamentals Study Group"
+  },
+  "editor_2_studies/20": {
+    "sourceHash": "0b6dc1cc505f3f05832c871fc6649e3005ebcf17dbf07bc8bdcffc594284c22a",
+    "title": "Python Fundamentals Seminar",
+    "body": "## 01\nBeginners work through Python syntax and data processing step by step. Short explanations are paired with coding exercises that put each idea to use in a practical problem.\n\n## 02\nEach week, students work with lecture materials and notebooks, run examples, and attempt a quiz. They compare their answers with the reference code to trace mistakes and understand the solution.\n\n## 03\nTopics include types and operators, conditionals and loops, functions, file input and output, pandas, classes, and modules. Examples range from handling user input and implementing an ordering program to summing a contiguous range.\n\n## 04\nWeekly reviews revisit key ideas and common errors. Students combine the syntax they have learned to build a program from input through processing to output."
+  },
+  "editor_2_studies/21": {
+    "sourceHash": "2023665e6bac2835f32ae778afa400574784e592bc08851685d7af2e988e9bdc",
+    "title": "Deep Learning Fundamentals Seminar",
+    "body": "## 01\nThis introductory study explores how neural networks work and how to implement a small model. Theory and coding exercises connect training on data with interpreting the results.\n\n## 02\nStudents run examples for each topic, share questions and experimental results, and compare model performance under different settings.\n\n## 03\nTopics include neural networks, activation and loss functions, gradient descent, and backpropagation. Exercises cover preprocessing, model construction, training, and evaluation, including the effects of learning rate and number of epochs.\n\n## 04\nStudents review the stages of training and why training and evaluation data are kept separate. Loss and performance metrics help them recognize problems such as overfitting and consider ways to address them."
+  },
+  "editor_2_studies/22": {
+    "sourceHash": "ee1fe1af3485f6730472e175ad63239c0df7131401286d7b4e9f4ae584d0a968",
+    "title": "VLSI Study Group",
+    "body": "## 01\nThis study introduces very-large-scale integration (VLSI) through the design of simple digital circuits. It follows the progression from transistors to logic gates and then to interconnected hardware.\n\n## 02\nAfter studying circuit operation, students design examples and simulate them. Comparing expected and observed outputs helps identify errors in wiring or circuit design.\n\n## 03\nUsing lectures from Inflearn, students study MOSFET switching and CMOS inverters and design NAND and NOR gates. They vary inputs, check outputs against truth tables, and trace signal propagation in waveforms.\n\n## 04\nStudents document their circuits and simulation results and explain why an input change alters the output. The exercises connect functional specification, design, and verification by simulation."
+  },
+  "editor_2_studies/23": {
+    "sourceHash": "492948679348887b4ebec21c03703f91e9593efd54c8306bf44f06b8f9dc6ab6",
+    "title": "Web Development Study Group",
+    "body": "## 01\nBeginners learn HTML and CSS by building a simple web page. HTML supplies the structure, while CSS controls how the page looks.\n\n## 02\nStudents write example code for a demo of the society website and run it in a browser. They review the resulting pages together and adjust type size, spacing, and layout.\n\n## 03\nExercises use headings, paragraphs, images, and links in HTML, alongside CSS fonts, colors, borders, and margins. Students use Flexbox to arrange a profile page or a list of cards.\n\n## 04\nThe review distinguishes document structure from styling and layout. Students inspect applied styles in browser developer tools and learn to correct unexpected rendering."
+  },
+  "editor_2_studies/24": {
+    "sourceHash": "7ee632638de78d2ecc84f65f3a4e9f8fcfba0cf5f68de1a55b84981758070481",
+    "title": "Python Fundamentals Seminar",
+    "body": "## 01\nThis study introduced beginners to programming by reading and writing short Python programs. The focus was on dividing a problem into small steps and expressing each step in code.\n\n## 02\nStudents predicted the output of weekly examples before running them. They varied inputs and conditions, compared the results, and reviewed the syntax through exercises.\n\n## 03\nThey combined variables, types, lists, dictionaries, conditionals, and loops to write small programs. After using functions to reduce repeated code, they practiced reading and processing files and tabular data.\n\n## 04\nThey traced common errors involving type conversion, indentation, and loop ranges. Explaining each program in input, processing, and output order helped clarify the purpose of each line."
+  },
+  "editor_2_studies/25": {
+    "sourceHash": "6c007db84894ab41ab7038a0ba482e20201bb6a665292a9863cd846554789ca5",
+    "title": "Deep Learning Fundamentals Seminar",
+    "body": "## 01\nThis study examined how a neural network makes predictions and learns by reducing prediction error. Implementing and training a small model connected the theory to its use in code.\n\n## 02\nStudents tracked loss and accuracy as an example model trained. They varied the learning rate and number of epochs one at a time and compared the results.\n\n## 03\nThey studied layers, activation and loss functions, and weight updates through backpropagation and gradient descent. They preprocessed data, split it into training and evaluation sets, and trained and evaluated a simple classifier.\n\n## 04\nThe review traced the roles of data preparation, model construction, training, and evaluation. Differences between training and evaluation performance helped identify signs of overfitting and basic ways to reduce it."
+  },
+  "editor_2_studies/26": {
+    "sourceHash": "b57181ea1b725e63988b66087dbc4a158a67d7e1c78318ef699cb5029f9e9376",
+    "title": "VLSI Electronic Design Automation Study Group",
+    "body": "## 01\nThis study explored VLSI design principles and circuit verification with electronic design automation (EDA) tools. Simple digital circuits illustrated the progression from schematics to simulation and layout.\n\n## 02\nStudents drew logic schematics, varied input signals, and inspected output waveforms. When simulated and expected results differed, they checked device connections and input conditions.\n\n## 03\nThey studied CMOS inverters and NAND and NOR gates in terms of MOSFET switching. They learned how schematic connections translate into layout and what design rule checking (DRC) and layout versus schematic (LVS) each verify.\n\n## 04\nThe review distinguished the roles of schematics, simulated waveforms, and physical layouts. Checking intended circuit behavior was considered separately from checking manufacturing rules and agreement with the schematic."
+  }
+}

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { EditorForm } from "../../components/common/EditorForm"
 import { insertPost } from "../../services/board.service"
 import { BOARD_TABLE_MAP } from "../../constants"
 import { FormField } from "../../components/common/FormField"
@@ -15,6 +16,7 @@ export function NoticeForm() {
     e.preventDefault()
     setLoading(true)
 
+    try {
     await insertPost(BOARD_TABLE_MAP["공지"], {
       text: title,
       description: body,
@@ -23,11 +25,11 @@ export function NoticeForm() {
 
     setTitle("")
     setBody("")
-    setLoading(false)
+    } finally { setLoading(false) }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <EditorForm onSubmit={handleSubmit} className="space-y-4">
       <FormField>
         <input
           value={title}
@@ -52,6 +54,6 @@ export function NoticeForm() {
       >
         등록
       </button>
-    </form>
+    </EditorForm>
   )
 }

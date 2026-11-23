@@ -5,18 +5,21 @@ export type DropPosition = "top" | "bottom" | null
 type Params<T> = {
   items: T[]
   onReorder: (items: T[]) => Promise<void> | void
+  enabled?: boolean
 }
 
-export function useDragAndDrop<T>({ items, onReorder }: Params<T>) {
+export function useDragAndDrop<T>({ items, onReorder, enabled = true }: Params<T>) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const [dropPosition, setDropPosition] = useState<DropPosition>(null)
 
   const handleDragStart = (_: React.DragEvent, index: number) => {
+    if (!enabled) return
     setDraggedIndex(index)
   }
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
+    if (!enabled) return
     e.preventDefault()
     const rect = e.currentTarget.getBoundingClientRect()
     const y = e.clientY - rect.top
@@ -25,6 +28,7 @@ export function useDragAndDrop<T>({ items, onReorder }: Params<T>) {
   }
 
   const handleDrop = async (_: React.DragEvent, index: number) => {
+    if (!enabled) return reset()
     if (draggedIndex === null) return
 
     let targetIndex = index

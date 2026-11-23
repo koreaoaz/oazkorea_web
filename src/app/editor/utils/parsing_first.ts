@@ -1,24 +1,21 @@
-type ImageItem = {
+export type EventImage = {
   order: number
   filename: string
 }
 
-export function getFirstImageFilename(
-  filenames: string | ImageItem[] | null
-): string | null {
-  if (!filenames) return null
-
-  // 이미 배열이면 그대로 사용
-  if (Array.isArray(filenames)) {
-    return filenames[0]?.filename ?? null
+// 표시 경계에서만 검증한다. 원본 JSONB와 배열 순서·order 값은 변경하지 않는다.
+export function getEventImages(filenames: unknown): EventImage[] {
+  let value: unknown = filenames
+  if (typeof value === "string") {
+    try { value = JSON.parse(value) } catch { return [] }
   }
+  if (!Array.isArray(value)) return []
+  return value.filter((item: unknown): item is EventImage =>
+    item !== null && typeof item === "object" &&
+    "filename" in item && typeof item.filename === "string" && item.filename.trim() !== "" &&
+    "order" in item && typeof item.order === "number" && Number.isFinite(item.order))
+}
 
-  // 문자열이면 JSON.parse
-  try {
-    const parsed = JSON.parse(filenames) as ImageItem[]
-    return parsed[0]?.filename ?? null
-  } catch (e) {
-    console.error("filenames 파싱 실패:", filenames)
-    return null
-  }
+export function getFirstImageFilename(filenames: unknown): string | null {
+  return getEventImages(filenames)[0]?.filename ?? null
 }

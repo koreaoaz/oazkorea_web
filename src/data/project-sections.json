@@ -1,0 +1,408 @@
+{
+  "34": {
+    "hash": "1e4030b8c24f2f59bc0768c9f296917ec181756246ec74a34e0ab57e9fac0edb",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "온라인 스토어의 방문 기록만으로는 구매 버튼이 눈에 띄는지, 브랜드가 신뢰를 주는지 파악하기 어렵습니다. 이 프로젝트는 구매 여정을 직접 따라가며 D2C 스토어의 사용자 경험을 진단합니다.",
+        "en": "Traffic logs alone cannot show whether a purchase button is easy to spot or a store feels trustworthy. This project examines the buying experience by navigating a direct-to-consumer store.",
+        "sourceHash": "d368b83e1a74a56ff4ca9ac892bb7f196a451229e40c3c006fe678c9960c18e5"
+      },
+      {
+        "kind": "activities",
+        "ko": "브라우저 에이전트가 홈페이지에서 상품 페이지로 이동합니다. 이어서 장바구니와 결제 흐름을 탐색하고 각 화면을 캡처합니다.",
+        "en": "A browser agent moves from the home page to a product page. It then explores the cart and checkout flow, capturing the screens along the way.",
+        "sourceHash": "60753378b30e852677b5a49d0c5e6000430a2710d93739150d6d4894b8b678b5"
+      },
+      {
+        "kind": "implementation",
+        "ko": "GPT-5 Vision으로 스크린샷의 UI, 보안 표시와 프로모션 요소를 분석합니다. 성능, 브랜드, 탐색, 프로모션, 신뢰 등을 포함한 열 개 축으로 점수를 산출합니다. 같은 페이지도 어느 구매 단계에서 만나는지에 따라 탐색을 돕거나 방해할 수 있습니다.",
+        "en": "GPT-5 Vision analyzes interface elements, security indicators and promotions in the screenshots. The system scores ten dimensions, including performance, branding, navigation, promotions and trust. The same page can help or hinder navigation depending on when a shopper encounters it.",
+        "sourceHash": "2349c3f27982511c54687517a3dc13c0a10b655b475503696ef739e6a876d86e"
+      },
+      {
+        "kind": "results",
+        "ko": "평가 결과를 개선 리포트로 모읍니다. 스토어 운영자는 구매 단계별 병목과 개선 후보를 리포트에서 확인할 수 있습니다.",
+        "en": "The results are collected in a diagnostic report. It identifies potential bottlenecks and opportunities for improvement along the purchase journey.",
+        "sourceHash": "00a33f9cddea8f937a1c059a6c9f5d026d9dfe8b6cbe83d91908dd3de6509e44"
+      }
+    ]
+  },
+  "6": {
+    "hash": "78903d6816aad7e5f43e29a90d8173086a3a7a78b2013fec86a3712d337999b9",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "1비트 6T SRAM의 트랜지스터 크기를 바꾸면 회로 특성도 달라집니다. 이 연구는 초기 설계 후보를 빠르게 선별하기 위해 그 관계를 예측했습니다.",
+        "en": "Changing transistor sizes alters the behavior of a one-bit 6T SRAM cell. The team modeled this relationship to screen candidate designs early.",
+        "sourceHash": "31f381db25059ff926da9871a9c284cf4a462787c25ea7677aefe43b80d7cc2a"
+      },
+      {
+        "kind": "activities",
+        "ko": "트랜지스터 사이징을 입력으로 삼아 회귀 모델과 그래디언트 부스팅 모델을 학습했습니다. 설계 후보마다 SPICE 시뮬레이션을 수행하는 작업을 줄이는 것이 목적이었습니다.",
+        "en": "Transistor sizes served as inputs to regression and gradient-boosting models. The aim was to reduce the need to run SPICE for every candidate.",
+        "sourceHash": "a826082176daffb97e0cbc0b84490ff7bf7223879e516d9bff1c1ff12b7ca8e0"
+      },
+      {
+        "kind": "implementation",
+        "ko": "읽기·쓰기·유지 특성과 N-curve를 예측했습니다. Butterfly curve도 평가에 포함했습니다. MAE, RMSE, MSLE를 함께 사용해 예측 오차를 비교했습니다.",
+        "en": "Predictions covered read, write and hold characteristics as well as the N-curve. Evaluation also included the butterfly curve. The team compared prediction errors using MAE, RMSE and MSLE.",
+        "sourceHash": "b6a0f37cf354fba1cea3c872e69ef51e830950fb976bc4a28cb8bfcfcff24f84"
+      },
+      {
+        "kind": "results",
+        "ko": "보고된 결정계수는 약 0.99였습니다. 전체적인 적합도는 높았지만 일부 쓰기 동작에서는 예외적으로 큰 오차가 남았습니다.",
+        "en": "The reported coefficient of determination was approximately 0.99. Some write operations still produced unusually large prediction errors.",
+        "sourceHash": "81f3e481ec6dd5824adb903d0ac9ac26d137dd18f7bc2a2ad1bbc1bedadb9d07"
+      }
+    ]
+  },
+  "10": {
+    "hash": "eca818551825f2be2e30581322f7cbe248e0d48fd465f7a48c2742aad39fd68b",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "라벨 스무딩과 소프트 지도를 활용해 ResNet의 CIFAR-100 이미지 분류 성능을 높이는 것이 목표입니다. 여러 범주가 닮아 있을 때 어떤 답을 학습 신호로 줄지가 출발점입니다.",
+        "en": "The project aims to improve ResNet classification on CIFAR-100 through label smoothing and soft supervision. The starting question is what learning signal to give when several classes look alike.",
+        "sourceHash": "2a0de4deb6cb2e26853912e0e1a893161145db51f095a709777609ee4a0d89d6"
+      },
+      {
+        "kind": "activities",
+        "ko": "정답 하나에만 가중치를 주는 경우와 여러 클래스에 확률을 나누는 경우를 비교할 수 있습니다. 상세 설명에는 학부생의 단일 GPU 환경에서 소형 언어모델(sLLM)의 훈련 성능을 분석하는 주제도 담겨 있습니다.",
+        "en": "One can compare assigning all the weight to a single answer with spreading probability across several classes. The detailed description also covers training performance for small language models (sLLMs) on a single GPU in an undergraduate setting.",
+        "sourceHash": "397e84a25f1727354708389ee1df1829b8563dc584e043178c3a5214464e8eb6"
+      },
+      {
+        "kind": "implementation",
+        "ko": "라벨 스무딩은 정답 클래스에 집중된 확률의 일부를 다른 클래스로 옮깁니다. 소프트 지도에서는 확률 분포 자체가 학습의 단서가 됩니다. 이렇게 하면 가장 높은 점수를 받은 클래스 외에도 모델이 어느 범주를 혼동하는지 살펴볼 수 있습니다.",
+        "en": "Label smoothing shifts part of the probability assigned to the correct class to other classes. Under soft supervision, the probability distribution itself provides a learning signal. Looking beyond the highest score reveals which classes the model tends to confuse.",
+        "sourceHash": "6e0d434bfeb6412e67a8a9d8b98f738d0cd93121326001d893e6a1d74ad60622"
+      },
+      {
+        "kind": "results",
+        "ko": "분류 정확도와 예측 확신도는 서로 다른 지표입니다. 두 지표를 함께 읽으면 틀린 예측에 과도한 확신을 부여하는 경우를 구별할 수 있습니다.",
+        "en": "Classification accuracy and prediction confidence measure different things. Reading them together can reveal incorrect predictions made with excessive confidence.",
+        "sourceHash": "681767b949c85d02baf9e66eb3b98b983502904f7b83225f94ed71314a1d3b22"
+      }
+    ]
+  },
+  "11": {
+    "hash": "b2b913123f4ad5132f39df3a682659800eced645ae7a64b319cf52bdcd973000",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "학부생이 사용할 수 있는 단일 GPU 환경을 대상으로 소형 언어모델(sLLM)의 훈련 성능을 분석하는 프로젝트입니다.",
+        "en": "This project examines small language model (sLLM) training performance on a single GPU in an undergraduate computing environment.",
+        "sourceHash": "96ed1d75e237920f2db4ef8af6df7d014a2160ac6b005328da8f90689d21a54b"
+      },
+      {
+        "kind": "activities",
+        "ko": "단일 GPU에서는 모델과 학습 데이터가 한정된 메모리를 나누어 씁니다. 같은 양의 텍스트를 처리하더라도 한 번에 묶는 예시 수에 따라 필요한 메모리가 달라집니다.",
+        "en": "On a single GPU, the model and the training examples share a limited memory budget. Even for the same amount of text, the number of examples in a batch affects how much memory is needed.",
+        "sourceHash": "5409bc4803ed029b47cd66f102a3b2abeefe238678b926e7e7015bed3f432f0b"
+      },
+      {
+        "kind": "implementation",
+        "ko": "소형 언어모델(sLLM)의 학습에서는 입력 길이와 배치 크기를 함께 살펴야 합니다. 긴 문장이 차지하는 공간과 한 단계에서 처리하는 토큰 수를 구분하는 것이 분석의 출발점입니다.",
+        "en": "Input length and batch size both matter when training an sLLM. Distinguishing the space needed for long sequences from the number of tokens processed per step provides a starting point for analysis.",
+        "sourceHash": "76547dbdeef4123492d103adab4ebdd739d0c96b1d69aba09629b39602938085"
+      },
+      {
+        "kind": "results",
+        "ko": "학습 속도는 처리한 토큰 수와 걸린 시간을 함께 놓고 해석할 수 있습니다. 모델 규모와 장치 조건을 명시하면 서로 다른 실험의 속도 차이를 비교하기 쉽습니다. 속도를 비교할 때 메모리 한도를 넘어 실행할 수 없는 조건은 별도로 구분해야 합니다. 빠른 한 단계가 전체 훈련 시간의 단축을 곧바로 뜻하지는 않습니다.",
+        "en": "Training speed can be interpreted using both the token count and elapsed time. Stating the model size and device conditions makes different runs easier to compare. Conditions that exceed the memory limit must be treated separately. A faster individual step does not necessarily mean a shorter training run.",
+        "sourceHash": "942b86c090df217fed4261586ecb0500aee8ccb31c85d2f814b56d110cb3935f"
+      }
+    ]
+  },
+  "35": {
+    "hash": "665523e7ea014f410a6ec5a07e390cebc8c2ae7331931c55e7b91e0a8ddba029",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "동시번역에서는 다음 단어를 기다릴수록 문맥은 늘지만 번역은 늦어집니다. 이 프로젝트는 읽기와 쓰기 간격이 고정된 Wait-K 방식의 한계를 다뤘습니다.",
+        "en": "Simultaneous translation trades context for speed: waiting for another word delays the translation. This project examined the limitations of the fixed read–write delay in Wait-K.",
+        "sourceHash": "6d779c41a75b5b0e83b64bd88abbf9503d6805ae7ca5cec839a096f3ac4fd5ad"
+      },
+      {
+        "kind": "activities",
+        "ko": "Llama2-7B와 mBART-50을 결합했습니다. 언어모델이 예측한 다음 토큰을 번역 시점 선택에 활용했습니다.",
+        "en": "The team combined Llama2-7B and mBART-50. It used predicted future tokens to inform translation timing.",
+        "sourceHash": "9c96ebd1fed9b5c40f8d1bf36d0b00538f0c454d37a531486a45c1b7c33b1dd4"
+      },
+      {
+        "kind": "implementation",
+        "ko": "PPO로 읽기·쓰기 제어기를 학습했습니다. 보상에는 BLEU, 지연 시간, 대체 경로를 사용했을 때의 페널티를 포함했습니다.",
+        "en": "A PPO controller learned when to read and when to write. Its reward combined BLEU, latency and a fallback penalty.",
+        "sourceHash": "5f8cdde562380bc9cdce5239601a8b810ae614e22a7f9ca76115928a068ddf53"
+      },
+      {
+        "kind": "results",
+        "ko": "영어에서 한국어로 동시번역한 실험에서 BLEU가 높아지고 지연이 줄었습니다. 번역 품질이 비슷하더라도 첫 출력을 기다리는 시간은 다를 수 있습니다. 이 때문에 문장 단위 점수와 지연을 함께 비교하는 것이 중요합니다.",
+        "en": "English-to-Korean experiments reported higher BLEU scores and lower latency. Two translations of similar quality may differ in how long a listener waits for the first words. That makes it important to consider sentence-level scores alongside delay.",
+        "sourceHash": "b2db9e4276e7982b3e4af7fd11c9e7bfc55a857930f0d313133b67dcbce9c895"
+      }
+    ]
+  },
+  "5": {
+    "hash": "06e1c0162bb4cb19e2b4d7cb0c845f6905f4e0439e4d5cfb468c1ab0edba2096",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "비조영 CT(NCCT)는 조직 간 명암 차이가 작아 경계를 구분하기 어렵습니다. 이 프로젝트는 분할 모델을 학습할 때 필요한 주석을 더 효과적으로 사용하는 두 가지 방법을 살펴봤습니다.",
+        "en": "Low contrast makes tissue boundaries difficult to distinguish on non-contrast CT (NCCT). The project explored two ways to make better use of the annotations available for segmentation.",
+        "sourceHash": "2b7eaa0922334d12008279511602cee2ece78a672f36da49882704a28e9059ba"
+      },
+      {
+        "kind": "activities",
+        "ko": "조영 CT(CECT)와 비조영 CT가 쌍을 이루는 데이터를 사용했습니다. 첫 번째 방법은 GAN을 이용해 분할에 유리한 비조영 영상을 합성하는 것입니다.",
+        "en": "The team worked with paired contrast-enhanced and non-contrast scans. In the first approach, a GAN synthesized non-contrast images for segmentation.",
+        "sourceHash": "3822082bea591aa19580957d37689c12e5beb12eea27c65ea0304c1edddf5d47"
+      },
+      {
+        "kind": "implementation",
+        "ko": "두 번째 방법은 레이블이 가리키는 위치를 기준으로 영상을 변형합니다. 이 공간 증강을 이용해 학습에 쓸 의사 레이블을 늘렸습니다.",
+        "en": "The second approach used label locations to guide spatial augmentation. This expanded the set of pseudo-labels available for training.",
+        "sourceHash": "e77908290a0fb245c0cec40d1e92f963e6d1d4f0ef6f4dec3e774804ee4da65c"
+      },
+      {
+        "kind": "results",
+        "ko": "분할 결과와 기준 영역의 일치를 나타내는 Dice 점수가 개선됐습니다. 합성 영상은 입력의 명암을 바꾸고 공간 증강은 주석을 활용할 수 있는 위치를 늘립니다. 같은 분할 문제를 입력과 레이블이라는 두 측면에서 바라보는 접근입니다.",
+        "en": "The project reported an improvement in the Dice score, a measure of overlap with the reference segmentation. Synthetic images change input contrast, while spatial augmentation extends the use of existing annotations to new locations. The two approaches address the same segmentation problem from the input and label sides.",
+        "sourceHash": "e2b4a3bfadde701070cea0e75a04dee01d54bb26d2e88895e5e3cb9323de934f"
+      }
+    ]
+  },
+  "36": {
+    "hash": "28da1f1782637bb7627a95bfaf3b35488b7282a3f61b32f121c0282bfd6ec0b7",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "CT 영상에서 가늘고 길게 이어지는 요관을 분할하는 연구입니다. 지연기(D-phase) 영상에서 미세 구조의 연속성을 살리는 데 초점을 맞췄습니다.",
+        "en": "This study segments the long, thin ureter in CT scans. It focuses on preserving fine structures in delayed-phase images.",
+        "sourceHash": "9ca1dd6a9caffe990319f072cbe507080e053a135e74fc873501215462aca12a"
+      },
+      {
+        "kind": "activities",
+        "ko": "서울성모병원 신장암 환자 CT 335건의 D-phase와 N-phase 자료 중 D-phase 레이블을 사용했습니다.",
+        "en": "The project used delayed-phase labels from a collection of 335 renal cancer CT cases at Seoul St. Mary's Hospital containing delayed- and nephrographic-phase images.",
+        "sourceHash": "a1c1238202d3bfaa5da8b5ebc1273e6856728a2c979212140a73b2c1e59b036b"
+      },
+      {
+        "kind": "implementation",
+        "ko": "nnU-Net을 바탕으로 CLAHE와 Unsharp Masking을 전처리에 적용했습니다. Skeleton Recall과 Tversky 기반 손실함수로 구조 보존을 유도했습니다. 모델에는 Attention Gate도 적용했습니다.",
+        "en": "The team applied CLAHE and unsharp masking before segmentation with nnU-Net. Skeleton Recall and Tversky-based losses encouraged structural preservation. An attention gate was also incorporated.",
+        "sourceHash": "8d21e453ce03162590af6c6ed2fd6744ec5337d3695074e873541de47b2aa4fc"
+      },
+      {
+        "kind": "results",
+        "ko": "보고된 분할 성능은 DSC 0.8448입니다. 길고 가는 구조에서는 예측한 전체 부피가 비슷해도 연결부가 끊길 수 있습니다. 영역의 겹침 정도와 구조의 연속성을 함께 읽는 이유입니다.",
+        "en": "The reported Dice similarity coefficient was 0.8448. Two predictions can have a similar total volume even if one breaks a thin connecting segment. This is why both overlap and continuity matter.",
+        "sourceHash": "daeeb7b46c7b63ea5353cbfed1b51a9bc1b4b9de9a29408e9f36d20218f8fdd8"
+      }
+    ]
+  },
+  "37": {
+    "hash": "9643590810daa5483aa4e892bfa64954b461ae7570fba4ff09d765aa4538c545",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "한국어 악성 댓글 탐지에 적합한 언어모델을 비교했습니다. 정확성과 함께 학습·검증 데이터 사이의 성능 차이를 줄이는 것도 목표였습니다.",
+        "en": "The project compared language models for detecting abusive Korean comments. Its goals included both predictive performance and a small gap between training and validation results.",
+        "sourceHash": "1bbe34b757542cca415a2df75db7722265126d471c934d5abb5c9409b26c8cf2"
+      },
+      {
+        "kind": "activities",
+        "ko": "HUMANE Lab의 K-HATERS 데이터 약 20만 개를 사용했습니다. KcELECTRA, KR-BERT, GPT2, BART, T5를 비교한 뒤 KcELECTRA를 선택했습니다.",
+        "en": "The team used approximately 200,000 examples from HUMANE Lab's K-HATERS dataset. It compared KcELECTRA, KR-BERT, GPT2, BART and T5 before selecting KcELECTRA.",
+        "sourceHash": "51a5ecf019f59b992b03c3cb5a9b75ec372f8194bfaa2ced1e41387c1e2dd3bd"
+      },
+      {
+        "kind": "implementation",
+        "ko": "Weighted Cross-Entropy로 클래스별 학습 가중치를 조절했습니다. R-Drop, Hard-Negative Mining, Cosine LR scheduling도 튜닝에 사용했습니다.",
+        "en": "Weighted cross-entropy adjusted the contribution of each class during training. Tuning also used R-Drop, hard-negative mining and cosine learning-rate scheduling.",
+        "sourceHash": "137ed89cc9920ceb3574b37348e0d4858c3d7efeefe43299a1e928649a7e69c2"
+      },
+      {
+        "kind": "results",
+        "ko": "최종 모델의 AUC는 0.9109였습니다. 테스트와 검증 정확도의 차이는 0.0001로 보고됐습니다. 클래스별 가중치를 쓰면 드문 범주의 오분류도 학습에서 더 큰 비중을 가질 수 있습니다.",
+        "en": "The final model achieved an AUC of 0.9109. The reported gap between test and validation accuracy was 0.0001. Class-specific weights can give errors in rare categories a greater influence on learning.",
+        "sourceHash": "495137fd9834842dde7de107d878748f1d4c55b8b7a6e39b55acc6c55732bb23"
+      }
+    ]
+  },
+  "28": {
+    "hash": "1d0478437bd6a07c581d4ed65628e113c1fa0676a26ec389badc510e25d88f1b",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "SR-Booster는 이미 학습된 초해상도 모델의 입력을 조정하는 작은 신경망입니다. 기존 모델의 파라미터는 고정합니다.",
+        "en": "SR-Booster is a small network that adjusts the input to a pretrained super-resolution model. The original model's parameters stay frozen.",
+        "sourceHash": "f82ac32ef02d7fd964e7695684f4f0c1845bee32f57b279e1e24b187ab843e29"
+      },
+      {
+        "kind": "activities",
+        "ko": "저해상도 영상이 초해상도 모델로 들어가기 전과 후를 나누어 생각합니다. 앞단에서 입력을 조금 바꾸었을 때 뒤쪽 특징 지도가 어떻게 반응하는지가 관심 대상입니다.",
+        "en": "Consider an image before and after it enters a super-resolution model. The question is how small changes at the input affect feature maps deeper in the network.",
+        "sourceHash": "61166ed92e7f586fbc2b03509bc984b28186bc60bb7e46de03d7d9db655feb1e"
+      },
+      {
+        "kind": "implementation",
+        "ko": "특정 층의 반응을 크게 만드는 입력을 찾는 Activation Maximization에서 아이디어를 얻었습니다. 기존 모델 앞에 CNN 세 층을 배치했습니다. 서로 다른 초해상도 모델 앞에서도 쓸 수 있는 구조를 목표로 했습니다.",
+        "en": "The design draws on activation maximization, which searches for inputs that elicit a strong response from a particular layer. A three-layer CNN sits ahead of the original model. The goal was to reuse this structure with different super-resolution models.",
+        "sourceHash": "e13bbfb3aca3d50afaeb74303d56b0ddf98801095dfc4b5fa17b5dc371a6730d"
+      },
+      {
+        "kind": "results",
+        "ko": "입력을 조절하는 앞단과 세부 묘사를 복원하는 뒷단의 역할을 분리한 설계입니다. 다른 모델에 연결했을 때도 같은 효과를 얻는지 평가하려면 같은 원본과 복원 조건에서 비교해야 합니다.",
+        "en": "The design separates input adjustment from detail reconstruction. Testing whether it transfers to another model calls for a comparison using the same source images and reconstruction conditions.",
+        "sourceHash": "4cb40d20549c626ea94a8315fca826d189abb3140d72cf508a16b5ab9807ef30"
+      }
+    ]
+  },
+  "29": {
+    "hash": "594af84adaf13f84046855dbc596f2ff71ddf044e1437b5221e871133576316c",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "로봇팔로 볼트를 자동 체결하는 제어 시스템 프로젝트입니다. 사용 기술에는 Python이 포함됩니다. 작업의 초점은 공구를 옮기는 동작과 볼트를 돌리는 동작을 연결하는 데 있습니다.",
+        "en": "This project concerns a robot-arm control system for automatic bolt fastening. Python is listed among its technologies. The focus is on connecting the motion that positions the tool with the motion that turns the bolt.",
+        "sourceHash": "154b152b5ec8d82bde8a2118914ef0aa7cb09f9466418bc9c24a7932e0c0eb81"
+      },
+      {
+        "kind": "activities",
+        "ko": "체결 작업은 볼트의 위치에 접근하는 단계와 축을 맞추어 회전하는 단계로 나누어 볼 수 있습니다. 접근 위치가 맞더라도 축이 기울면 나사산이 맞물리지 않을 수 있습니다.",
+        "en": "The task can be divided into approaching the bolt and aligning the tool axis for rotation. Even at the correct position, an angled tool can prevent the threads from engaging.",
+        "sourceHash": "75fb4b65db06e6394f1c3c135761ee1980a97dc9913be5c59ca5cebc53ce1712"
+      },
+      {
+        "kind": "implementation",
+        "ko": "로봇팔의 관절 각도와 공구 끝의 위치는 서로 다른 좌표로 표현됩니다. 두 표현의 관계를 이해하면 체결 지점을 향한 움직임을 설명할 수 있습니다.",
+        "en": "Joint angles and the position of the tool tip are expressed in different coordinates. Their relationship helps explain motion toward a fastening point.",
+        "sourceHash": "9455efa2b599daed40849597929dda794b0b8186ad1806ff87284037d2669096"
+      },
+      {
+        "kind": "results",
+        "ko": "체결의 품질을 판단할 때는 목표 지점 도달과 실제 맞물림을 구별해야 합니다. 정렬 오차와 체결 깊이는 각각 다른 단계에서 살펴볼 수 있는 기준입니다.",
+        "en": "Reaching the target and engaging the threads are separate criteria. Alignment error and fastening depth describe different stages of the operation.",
+        "sourceHash": "35849de2eae1a94f26cf8df476fdc866eb55d72fcff395fc55f74aef0e2172ae"
+      }
+    ]
+  },
+  "30": {
+    "hash": "77673cadcf0264869c4d54d9b2199ea18460da1a5bf428f06d182f8017ffdbc8",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "학회실 시설의 대여와 점유를 관리하는 시스템입니다. 개발 도구로 PlatformIO를 사용했습니다. 같은 공간이나 장비를 여러 사람이 공유할 때 누가 언제 이용할 수 있는지가 핵심 질문입니다.",
+        "en": "This system manages equipment loans and occupancy in the society room. PlatformIO is listed as a development tool. When several people share a room or a piece of equipment, the central question is who can use it and when.",
+        "sourceHash": "e7d6e45ab591c4c0ec84c31368c64a100389e1b23dfbe5ffebc15a2b70c636f0"
+      },
+      {
+        "kind": "activities",
+        "ko": "대여 신청과 실제 점유는 서로 다른 사건입니다. 신청 시각, 사용 시작, 반납의 관계를 따라가면 언제 다른 사람이 시설을 쓸 수 있는지 설명할 수 있습니다.",
+        "en": "Requesting a facility and actually occupying it are distinct events. Following the request, start of use and return explains when someone else can use it.",
+        "sourceHash": "7111c98078b5ed412dc21c21cac5eee1456a8c3fae31a6d2111f4297b7232892"
+      },
+      {
+        "kind": "implementation",
+        "ko": "시설 하나의 상태를 사용 가능·대여 중으로 나누면 반납 전 중복 대여가 발생하는 조건을 찾기 쉽습니다. 두 요청이 겹칠 때 어느 시점의 상태를 기준으로 볼지도 중요한 설계 문제입니다.",
+        "en": "Representing a facility as available or on loan helps identify the conditions for a second loan before return. Overlapping requests raise a further design question about when to read that state.",
+        "sourceHash": "4755f17c190e826164aaaae93caea8ea7b9b976b6531e31d1cadf6dac7c83e6d"
+      },
+      {
+        "kind": "results",
+        "ko": "시설별 사용 현황을 해석하려면 예약과 실제 사용을 구별해야 합니다. 반납 이후 다시 대여할 수 있는지까지가 한 이용 주기를 살펴보는 기준입니다.",
+        "en": "Reservations and actual use must be distinguished when interpreting occupancy. The point at which a returned facility becomes available again completes the cycle.",
+        "sourceHash": "ca0e67069851bea322df7afb2a3d5539d02b531a3ff0fb020f7809a4247c9d3e"
+      }
+    ]
+  },
+  "31": {
+    "hash": "bde5df53985f9395e24809c7705554d61a4e86c21211a591aed6421c403f6fd8",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "소라게가 움직이는 방식에서 착안한 보행 로봇입니다. 보조 팔과 바퀴를 조합해 몸체를 앞으로 이동시키는 구조를 탐구했습니다.",
+        "en": "This walking robot takes inspiration from the movement of hermit crabs. The design combines an auxiliary arm and wheels to propel the body forward.",
+        "sourceHash": "952459d66358662131e75810ea832106e3c51a2e20d8885ebcffe24b788b26c6"
+      },
+      {
+        "kind": "activities",
+        "ko": "보조 팔과 바퀴에 래칫을 결합하는 구조를 설계했습니다. 부품을 3D로 모델링하고 제작 과정을 기록했습니다. 여러 지면에서 이동할 때 필요한 추진력도 검토했습니다.",
+        "en": "The team designed a ratchet mechanism for the arm and wheels. It modeled the parts in 3D and documented fabrication. The design study also considered the thrust needed on different surfaces.",
+        "sourceHash": "4dd25c5ef7e62fcec0ab33b856da5b27686105079b3bc06c11362e9e9a0bbcd7"
+      },
+      {
+        "kind": "implementation",
+        "ko": "Arduino로 모터를 제어했습니다. 설계 개선에서는 무게를 줄이면서 추진력을 확보하는 문제를 다뤘습니다.",
+        "en": "An Arduino controlled the motors. Design revisions focused on reducing weight while retaining sufficient thrust.",
+        "sourceHash": "6d694dd8ee9b53b2380505f01f65b497fa978842283eb77c7d56c57d4c29ac51"
+      },
+      {
+        "kind": "results",
+        "ko": "발표 자료에는 구동 실험 과정이 담겨 있습니다. 포스터에서 제안한 구조의 실물 검증은 후속 과제로 남았습니다.",
+        "en": "The presentation documented the drive experiments. Physical validation of the design proposed in the poster remained a follow-up task.",
+        "sourceHash": "302dae0ca5ce9aae1efa2cb91998ef337e1caa7ae294976d14dbc4fa1961baea"
+      }
+    ]
+  },
+  "32": {
+    "hash": "3ed5fba16d08cdbd85a156e49a3ead40b4c49a88c058eced48ca03a453b829d1",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "Python으로 만든 텍스트 방탈출 게임입니다. 플레이어는 산소가 소진되기 전에 방을 이동하며 퍼즐을 풉니다.",
+        "en": "In this Python text adventure, the player moves between rooms and solves puzzles before the oxygen supply runs out.",
+        "sourceHash": "53dd8eb8e0d951689c364605009b91e6a63d4412ca868bb97df778daf66277e2"
+      },
+      {
+        "kind": "activities",
+        "ko": "아이템을 모아 인벤토리에 보관합니다. 퍼즐마다 필요한 아이템과 다음 구역으로 이동할 조건을 연결했습니다.",
+        "en": "Players collect items in an inventory. Each puzzle ties item requirements to the conditions for reaching the next area.",
+        "sourceHash": "40835586277efccb01fefe7c8850ffe67a3f6e3e3e3cbce1d6dae15d6768c7e3"
+      },
+      {
+        "kind": "implementation",
+        "ko": "Item, Room, Player 클래스로 상태와 역할을 나눴습니다. 실시간 산소 감소로 시간 제한을 구현했습니다. 난이도 조절과 재시작을 지원하며, 잘못된 입력이나 범위를 벗어난 선택도 처리합니다.",
+        "en": "Item, Room and Player classes keep track of different parts of the game. Oxygen depletion supplies the time limit. The game supports difficulty settings and restarts, and handles invalid or out-of-range input.",
+        "sourceHash": "47a3917970c598c30352352ab530381139d88f77916b3b99df3cfe4043a08e1c"
+      },
+      {
+        "kind": "results",
+        "ko": "팀은 2026년 1학기 결과 보고에서 퍼즐·인벤토리·구역 이동을 연결한 게임을 완성했다고 밝혔습니다. 한 방에서 모은 물건이 다음 방의 선택지를 바꾸므로, 인벤토리는 퍼즐 사이를 연결하는 역할도 합니다.",
+        "en": "In its spring 2026 report, the team described a working game that integrated puzzles, inventory and room transitions. An item found in one room can change the options in another, so the inventory also links puzzles together.",
+        "sourceHash": "590b9e4a347d7a18c3fa5aa87ba7c6959ef119ff5aefd759a6c8a340966a337e"
+      }
+    ]
+  },
+  "33": {
+    "hash": "7f45b8f50f6500b9d6bc2f6f89dec08068efc2b11582523d7a6d3725fde58e2c",
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "14일간의 대학 생활을 다루는 텍스트 시뮬레이션입니다. 매일 무엇을 할지 선택하면 지식·체력·대인관계·돈이 달라집니다.",
+        "en": "This text simulation follows fourteen days of college life. Daily choices change the player's knowledge, stamina, relationships and money.",
+        "sourceHash": "77932367ef02795ccaef8e7789ccdc7991a522ba5edef7ff3012d70a526725a9"
+      },
+      {
+        "kind": "activities",
+        "ko": "시험과 축제는 정해진 시점에 찾아옵니다. 여기에 확률 이벤트를 더해 같은 선택도 상황에 따라 다른 결과로 이어질 수 있게 했습니다.",
+        "en": "Exams and festivals occur at set times. Random events introduce variation into the consequences of the player's choices.",
+        "sourceHash": "a89fce30cadec281abf09cffea99dc13e6357deddf8bfcd175aac89a78eb9d88"
+      },
+      {
+        "kind": "implementation",
+        "ko": "Player, Action, Event, Ending 클래스로 역할을 나눴습니다. 게임 루프와 입력·행동·이벤트·엔딩을 다섯 모듈로 분리했습니다. 마지막 날의 상태를 기준으로 결말을 결정합니다.",
+        "en": "Four classes divide responsibility between Player, Action, Event and Ending. Five modules separate the game loop, input, actions, events and endings. The final day's state determines the outcome.",
+        "sourceHash": "001aa81e744ef02be101d990b88382c9038749c7309ca00a202495cac2330837"
+      },
+      {
+        "kind": "results",
+        "ko": "팀이 보고한 완성본은 열나흘의 선택을 반영한 여섯 가지 엔딩을 제공합니다. 하루의 선택이 이후 상태에 누적되므로 한 번의 사건과 장기적인 선택 경향을 구분해 볼 수 있습니다.",
+        "en": "The team reported six endings reflecting the player's choices over the fourteen days. Because the effect of each day’s decisions accumulates, a single event can be distinguished from a longer pattern of choices.",
+        "sourceHash": "353a2eeeb76de54d629701962f39e232cd5b749734fd9b1265415bc6670a6434"
+      }
+    ]
+  }
+}

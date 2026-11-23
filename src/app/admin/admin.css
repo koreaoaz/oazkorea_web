@@ -1,0 +1,110 @@
+/* 공개 홈페이지의 흰 바탕·검정 강조·둥근 카드에 맞춘 관리자 전용 스타일. */
+.oaz-admin{--admin-border:#e4e4e7;color:#18181b;min-width:0;padding:24px 0 48px;line-height:1.65}
+.oaz-admin .admin-shell{max-width:1180px;margin:auto;min-width:0}
+.oaz-admin .admin-header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:24px 0;border-bottom:1px solid var(--admin-border)}
+.oaz-admin .admin-brand{font-weight:750;font-size:24px;letter-spacing:-.06em;display:inline-flex;align-items:center;gap:12px}
+.oaz-admin .admin-brand>span:first-child{background:#18181b;color:white;padding:3px 10px;border-radius:8px;letter-spacing:-.04em}
+.oaz-admin .admin-brand>span:last-child{font-size:16px;color:#52525b;letter-spacing:0}
+.oaz-admin .admin-header p{margin-top:12px;color:#52525b}
+.oaz-admin .admin-badge{display:inline-block;border:1px solid var(--admin-border);border-radius:999px;padding:2px 10px;margin-left:8px;font-size:12px;background:#fafafa}
+.oaz-admin .admin-nav{display:flex;flex-wrap:wrap;gap:8px;padding:16px 0;border-bottom:1px solid var(--admin-border)}
+.oaz-admin .admin-nav a{padding:10px 14px;border-radius:8px;font-size:14px;font-weight:600}
+.oaz-admin .admin-nav a:hover{background:#f4f4f5}
+.oaz-admin .admin-nav a[aria-current=page]{background:#18181b;color:#fff}
+.oaz-admin .admin-nav{position:relative;padding-top:8px}
+.oaz-admin .admin-link-button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border:1px solid #d4d4d8;border-radius:9px;font-size:14px;font-weight:600;white-space:normal}
+.oaz-admin .admin-link-button.admin-primary{background:#18181b;color:#fff;border-color:#18181b}
+.oaz-admin .admin-breadcrumb{display:flex;flex-wrap:wrap;gap:10px;font-size:14px;color:#52525b}
+.oaz-admin .admin-breadcrumb a{text-decoration:underline;text-underline-offset:4px}
+.oaz-admin .admin-board-list{list-style:none;padding:0;border-top:1px solid #d4d4d8}
+.oaz-admin .admin-board-list li{display:grid;grid-template-columns:36px minmax(0,1fr) auto;align-items:center;gap:16px;padding:18px 4px;border-bottom:1px solid #e4e4e7}
+.oaz-admin .admin-board-list a{padding:8px 0}
+.oaz-admin .admin-board-list[data-pin-board=true] li{grid-template-columns:76px minmax(0,1fr) auto}
+.oaz-admin .admin-board-list button.admin-pin{display:inline-flex;align-items:center;justify-content:center;padding:6px;width:30px;height:30px;flex-shrink:0;background:transparent;border:1px solid #d4d4d8;color:#71717a}
+.oaz-admin .admin-board-list button.admin-pin[aria-pressed=true]{background:#18181b;border-color:#18181b;color:white}
+@media(max-width:720px){.oaz-admin .admin-board-list[data-pin-board=true] li{grid-template-columns:64px minmax(0,1fr)}}
+.oaz-admin .admin-stat-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+@media(max-width:1023px){.oaz-admin .admin-stat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.oaz-admin .admin-dashboard{display:grid;gap:16px}
+.oaz-admin .admin-stat-grid .admin-panel{padding:12px;border-radius:10px;display:flex;flex-direction:column;justify-content:space-between;gap:6px}
+.oaz-admin .admin-stat-grid p{font-size:12px;color:#71717a}
+.oaz-admin .admin-stat-grid strong{font-size:24px;line-height:1.3}
+.oaz-admin .admin-stat-grid .admin-stat-date{font-size:12px;overflow-wrap:anywhere}
+.oaz-admin .admin-ratio-filter{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.oaz-admin .admin-ratio-filter label{font-size:12px;display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:center;gap:8px;flex:0 1 230px;max-width:100%}
+.oaz-admin .admin-ratio-filter label>span{white-space:nowrap}
+.oaz-admin .admin-ratio-filter label input[type=date]{font-size:14px;width:100%;min-width:0;margin:0;padding:7px}
+.oaz-admin .admin-ratio-filter p{font-size:12px;color:#71717a}
+.oaz-admin .admin-donut.admin-panel,.oaz-admin .admin-recent.admin-panel{padding:16px}
+.oaz-admin .admin-donut h2,.oaz-admin .admin-recent h2{font-size:16px;margin-bottom:10px}
+.oaz-admin .admin-donut-body svg{width:110px;height:110px;flex-shrink:0;margin:auto}
+.oaz-admin .admin-donut-body ul{font-size:12px;display:grid;gap:4px}
+.oaz-admin .admin-donut-body li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px}
+.oaz-admin .admin-recent li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px;padding:6px 0;border-bottom:1px solid #f4f4f5;font-size:12px}
+@media(max-width:720px){.oaz-admin .admin-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.oaz-admin .admin-board-list li{grid-template-columns:24px minmax(0,1fr);gap:8px}.oaz-admin .admin-board-list li>span:last-child{grid-column:2}.oaz-admin .admin-nav{gap:4px}.oaz-admin .admin-nav a{flex:1;text-align:center;padding:12px 5px}}
+.oaz-admin .admin-main{padding:32px 0;min-width:0}
+.oaz-admin h1{font-size:clamp(24px,3vw,32px);font-weight:750;line-height:1.3;letter-spacing:-.035em}
+.oaz-admin h2{font-size:21px;font-weight:700;letter-spacing:-.025em}
+.oaz-admin h3{font-size:17px;font-weight:650}
+.oaz-admin p{overflow-wrap:anywhere}
+.oaz-admin label{font-size:14px;font-weight:600;min-width:0}
+.oaz-admin input:not([type=checkbox]):not([type=radio]),.oaz-admin textarea,.oaz-admin select{display:block;width:100%;min-width:0;max-width:100%;border:1px solid #d4d4d8;border-radius:9px;background:white;padding:11px 12px;margin-top:6px;font-size:16px;font-weight:400;line-height:1.5;color:#18181b;box-shadow:0 1px 2px #00000004}
+.oaz-admin textarea{min-height:130px;resize:vertical}
+.oaz-admin input[type=checkbox]{width:19px;height:19px;accent-color:#18181b;flex-shrink:0;margin-right:8px}
+.oaz-admin input[type=file]{font-size:13px}
+.oaz-admin input::file-selector-button{border:0;background:#f4f4f5;border-radius:6px;padding:8px;margin-right:8px;font-weight:600}
+.oaz-admin button{min-height:44px;max-width:100%;height:auto;white-space:normal;overflow-wrap:anywhere;border:1px solid #d4d4d8;border-radius:9px;padding:9px 15px;background:white;color:#18181b;font-size:14px;font-weight:600;line-height:1.5;cursor:pointer;transition:background .15s}
+.oaz-admin button:hover:not(:disabled){background:#f4f4f5}
+.oaz-admin button[role=tab][aria-selected=true]{background:#18181b;color:#fff;border-color:#18181b}
+.oaz-admin button[role=tab][aria-selected=true]:hover:not(:disabled){background:#3f3f46}
+.oaz-admin button[type=submit],.oaz-admin .admin-primary{background:#18181b;color:white;border-color:#18181b}
+.oaz-admin button[type=submit]:hover:not(:disabled),.oaz-admin .admin-primary:hover:not(:disabled){background:#3f3f46}
+.oaz-admin button.bg-primary{background:#18181b;color:white;border-color:#18181b}
+.oaz-admin button.bg-primary:hover:not(:disabled){background:#3f3f46}
+.oaz-admin button.bg-destructive{background:#fff1f2;color:#9f1239;border-color:#fecdd3}
+.oaz-admin button:disabled{opacity:.5;cursor:not-allowed}
+.oaz-admin :is(a,button,input,select,textarea):focus-visible{outline:2px solid #18181b;outline-offset:3px}
+.oaz-admin :is([role=alert],[role=status]){padding:14px 18px;border:1px solid var(--admin-border);border-radius:10px;background:#fafafa;font-size:14px}
+.oaz-admin [role=alert]{border-color:#fecdd3;background:#fff1f2;color:#9f1239}
+.oaz-admin .admin-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.oaz-admin .admin-actions>a{padding:10px 0;font-size:14px}
+.oaz-admin .admin-actions>a.admin-link-button{padding:10px 16px}
+.oaz-admin .admin-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.oaz-admin .admin-card{display:flex;flex-direction:column;align-items:flex-start;gap:10px;border:1px solid var(--admin-border);border-radius:16px;background:white;padding:24px;min-width:0;text-align:left}
+.oaz-admin .admin-card:hover{border-color:#a1a1aa}
+.oaz-admin .admin-card strong{font-size:18px;font-weight:700}
+.oaz-admin .admin-card p{font-size:14px;font-weight:400;color:#52525b}
+.oaz-admin .admin-card span:last-child{font-size:13px;margin-top:auto}
+.oaz-admin .admin-panel{border:1px solid var(--admin-border);border-radius:16px;background:white;padding:24px;min-width:0}
+.oaz-admin .admin-records{display:grid;gap:12px;padding:0;list-style:none}
+.oaz-admin .admin-record{display:flex;justify-content:space-between;align-items:center;gap:16px;border:1px solid var(--admin-border);border-radius:12px;padding:18px;background:white;min-width:0}
+.oaz-admin .admin-record>span{min-width:0;overflow-wrap:anywhere;flex:1;font-weight:600}
+.oaz-admin .admin-tabs{display:flex;flex-wrap:wrap;gap:8px}
+.oaz-admin .admin-tabs [aria-pressed=true]{background:#18181b;color:white;border-color:#18181b}
+.oaz-admin .admin-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.oaz-admin .admin-scope{display:flex;align-items:center;gap:4px;border:1px solid var(--admin-border);border-radius:8px;padding:12px;min-height:48px;background:#fafafa;font-size:14px}
+.oaz-admin .admin-footnote{border-top:1px solid var(--admin-border);padding-top:20px;font-size:12px;color:#71717a}
+.oaz-admin .admin-skip{position:absolute;left:-10000px}.oaz-admin .admin-skip:focus{position:static;display:block;padding:12px}
+.oaz-admin .admin-account-summary{scroll-margin-top:90px}
+.oaz-admin .admin-login{max-width:480px;margin:36px auto;padding:32px;background:white;border:1px solid var(--admin-border);border-radius:20px;box-shadow:0 12px 35px #00000005}
+.oaz-admin img{max-width:100%;height:auto}
+@media(max-width:850px){.oaz-admin .admin-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:540px){.oaz-admin{padding-top:0}.oaz-admin .admin-header{align-items:flex-start;flex-direction:column;gap:16px}.oaz-admin .admin-nav a{padding:10px;font-size:13px}.oaz-admin .admin-main{padding-top:24px}.oaz-admin .admin-grid,.oaz-admin .admin-form-grid{grid-template-columns:minmax(0,1fr)}.oaz-admin .admin-panel,.oaz-admin .admin-card,.oaz-admin .admin-login{padding:20px}.oaz-admin .admin-record{flex-wrap:wrap}.oaz-admin .admin-record>span{flex-basis:100%}.oaz-admin .admin-record button{flex:1}.oaz-admin .admin-login{margin:24px auto}.oaz-admin fieldset>div{gap:10px}.oaz-admin .admin-actions{gap:10px}}
+
+/* Honor controls must retain their compact shape under the shared admin reset. */
+.oaz-admin [data-honor-add] input:not([type=checkbox]){max-width:18rem;margin-top:0}
+.oaz-admin [data-honor-workflow] nav .admin-link-button{gap:.4rem}
+.oaz-admin [data-honor-workflow] nav .admin-link-button[aria-current=page]{background:#18181b;color:white}
+.oaz-admin [data-honor-workflow] nav span[aria-label]{display:inline-flex;align-items:center;justify-content:center;min-width:1.5rem;padding:0 .35rem;border-radius:999px;background:#e4e4e7;color:#18181b;font-size:12px}
+.oaz-admin [data-honor-workflow] button[role=switch]{position:relative;flex:0 0 48px;width:48px;height:44px;min-height:44px;padding:0;border:0;border-radius:999px;background:transparent}
+.oaz-admin [data-honor-workflow] button[role=switch]::before{content:"";position:absolute;inset:8px 0;border-radius:999px;background:#e2e8f0;transition:background .15s}
+.oaz-admin [data-honor-workflow] button[role=switch][aria-checked=true]::before{background:#0f172a}
+.oaz-admin [data-honor-workflow] button[role=switch]>span{top:12px;left:4px;width:20px;height:20px}
+.oaz-admin [data-honor-workflow] button[role=switch][aria-checked=true]>span{left:24px}
+.oaz-admin [data-honor-workflow] [data-request-id] strong{min-width:0;overflow-wrap:anywhere}
+
+.admin-shell .account-create-form { max-width: 40rem; align-items: start; gap: 1rem; }
+.account-create-form > label { display: grid; gap: .375rem; }
+.account-create-form > label input { min-height: 44px; width: 100%; }
+.account-create-form fieldset { grid-column: 1 / -1; }
+.account-create-form button[type=submit], .account-create-form > button { min-height: 44px; justify-self: start; align-self: start; width: auto; padding-inline: 1rem; }

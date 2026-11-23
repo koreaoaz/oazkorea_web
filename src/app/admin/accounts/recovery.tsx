@@ -1,0 +1,19 @@
+'use client'
+
+import {T,useUIText} from '@/components/LocaleProvider';
+import {useRef,useState} from 'react'
+import {supabase} from '@/lib/supabaseClient'
+import {finalCommand} from '@/lib/admin/final-client'
+type Account={slot:string;user_id:string;revision:number}
+export function AccountRecovery({accounts,onResume}:{accounts:Account[];onResume?:(operationId:string,slot:string)=>void}){
+ const uiText=useUIText();
+
+ const [slot,setSlot]=useState(''),[password,setPassword]=useState(''),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[tasks,setTasks]=useState<{provisioning?:{operationId:string;slot:string;status:string}[];passwordTasks?:{requestId:string;slot:string;status:string}[]}>();
+ const pending=useRef(false),attempt=useRef<{intent:string;id:string}|null>(null);
+ async function call(body:Record<string,unknown>){const {data}=await supabase.auth.getSession();if(!data.session)throw Error();const r=await fetch('/api/admin/account-recovery',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+data.session.access_token},body:JSON.stringify(body)});if(!r.ok)throw Error();return (await r.json()).result}
+ async function run(fn:()=>Promise<void>){if(pending.current)return;pending.current=true;setBusy(true);setMessage('');try{await fn()}catch{setMessage('처리를 확인하지 못했습니다. 중복 계정 생성이나 MFA 초기화를 하지 말고 보류 작업을 확인해 주세요.')}finally{pending.current=false;setBusy(false)}}
+ return <section className="admin-panel space-y-4"><h2><T text="세션 회수 · 로컬 계정 복구"/></h2><p><T text="현재 격리 환경의 가상 일반관리자만 비밀번호를 재설정할 수 있습니다. 운영 초대·메일 발송·최고관리자 MFA 복구는 실행하지 않습니다."/></p><label><T text="대상 관리자"/><select value={slot} disabled={busy} onChange={e=>{setSlot(e.target.value);setPassword('');attempt.current=null}}><option value=""><T text="선택"/></option>{accounts.filter(a=>a.slot!=='admin1').map(a=><option key={a.slot} value={a.slot}>{a.slot}</option>)}</select></label><label><T text="새 임시 비밀번호"/><input type="password" autoComplete="new-password" minLength={12} maxLength={128} value={password} disabled={busy} onChange={e=>setPassword(e.target.value)}/></label>
+ <div className="admin-actions"><button disabled={busy||!slot||password.length<12} onClick={()=>void run(async()=>{const target=accounts.find(a=>a.slot===slot);if(!target||!confirm(uiText('이 가상 계정의 비밀번호를 바꾸고 기존 세션을 회수할까요?')))return;const intent=JSON.stringify([slot,target.revision,password]);if(attempt.current?.intent!==intent)attempt.current={intent,id:crypto.randomUUID()};await call({action:'password.reset',requestId:attempt.current.id,slot,userId:target.user_id,revision:target.revision,password});setPassword('');attempt.current=null;setMessage('가상 계정 비밀번호 재설정 및 기존 세션 회수 완료.')})}><T text="가상 계정 비밀번호 재설정"/></button><button disabled={busy||!slot} onClick={()=>void run(async()=>{const target=accounts.find(a=>a.slot===slot);if(!target||!confirm(uiText('선택한 관리자의 기존 세션을 모두 회수할까요?')))return;await finalCommand({action:'sessions.revoke',userId:target.user_id});setMessage('기존 세션을 회수했습니다. 계정과 MFA는 유지됩니다.')})}><T text="선택 계정 세션 회수"/></button><button disabled={busy} onClick={()=>void run(async()=>setTasks(await call({action:'pending.list'})))}><T text="보류 작업 확인"/></button></div>
+ {message&&<p role="status"><T text={message}/></p>}{tasks&&<div><p><T text="계정 생성 보류"/>{tasks.provisioning?.length??0}<T text="건 · 비밀번호 작업 보류"/>{tasks.passwordTasks?.length??0}<T text="건"/></p>{tasks.provisioning?.map(t=><p key={t.operationId}>{t.slot} · {t.status}<T text="· 작업"/>{t.operationId} {onResume&&<button disabled={busy} onClick={()=>onResume(t.operationId,t.slot)}><T text="같은 작업 재시도"/></button>}</p>)}{tasks.passwordTasks?.map(t=><p key={t.requestId}>{t.slot} · {t.status}<T text="· 작업"/>{t.requestId}</p>)}<p className="text-sm"><T text="보류 작업은 인증 계정과 작업 ID를 대조한 뒤 복구해야 합니다. 새 계정을 중복 생성하지 마세요."/></p></div>}
+ </section>
+}

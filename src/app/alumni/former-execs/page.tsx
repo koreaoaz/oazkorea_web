@@ -1,7 +1,5 @@
-export default function Page() {
-  return (
-    <div>
-      역대 회장단
-    </div>
-  );
+import {redirect} from 'next/navigation'
+export default async function Page({searchParams}:{searchParams:Promise<{lang?:string|string[]}>}){
+ const {lang}=await searchParams
+ redirect('/alumni/network'+(lang==='en'?'?lang=en':lang==='ko'?'?lang=ko':''))
 }

@@ -1,9 +1,13 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import {T, useLocale} from '@/components/LocaleProvider';
+import { useAsyncQuery } from "@/hooks/useAsyncQuery";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { formatDistance } from "date-fns";
-import { ko } from "date-fns/locale";
+import { enUS, ko } from "date-fns/locale";
 
 /** ===== Types ===== */
 type FeedItem = {
@@ -15,7 +19,7 @@ type FeedItem = {
   link: string;
   image?: string | null;
 };
-type FeedResponse = { total: number; items: FeedItem[]; _debug?: any };
+type FeedResponse = { total: number; items: FeedItem[]; _debug?: unknown };
 
 /** ===== UI Const ===== */
 const PAGE_SIZE = 10;
@@ -25,10 +29,10 @@ const SEARCH_TYPES = ["제목", "내용", "작성자"] as const;
 const stripHtml = (html = "") =>
   html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 
-const fmtRelative = (iso: string) => {
+const fmtRelative = (iso: string, english: boolean) => {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return formatDistance(d, new Date(), { locale: ko, addSuffix: true });
+  return formatDistance(d, new Date(), { locale: english ? enUS : ko, addSuffix: true });
 };
 
 /** ===== Small UI Pieces ===== */
@@ -38,9 +42,7 @@ function Hero() {
       <div className="absolute inset-0 bg-black/50" />
       <div className="relative mx-auto max-w-5xl px-4 py-14 text-center text-white">
         <h1 className="text-2xl font-semibold sm:text-3xl">Members Tech Blog</h1>
-        <p className="mt-3 text-sm opacity-90">
-          이곳은 구성원들의 블로그 글을 한 곳에서 모아보는 피드입니다.
-        </p>
+        <p className="mt-3 text-sm opacity-90"><T text="이곳은 구성원들의 블로그 글을 한 곳에서 모아보는 피드입니다."/></p>
       </div>
     </div>
   );
@@ -59,17 +61,18 @@ function Toolbar({
   setQ: (v: string) => void;
   onSubmit: () => void;
 }) {
+  const english = useLocale() === "en";
   return (
     <div className="mx-auto mt-6 flex w-full max-w-5xl items-center gap-2 px-4">
       <select
         value={searchType}
         onChange={(e) => setSearchType(Number(e.target.value))}
         className="h-10 w-24 rounded-md border border-gray-200 bg-gray-100 px-2 text-sm outline-none"
-        aria-label="검색 타입"
+        aria-label={english ? "Search field" : "검색 타입"}
       >
         {SEARCH_TYPES.map((label, i) => (
           <option key={label} value={i}>
-            {label}
+            {english ? ["Title", "Content", "Author"][i] : label}
           </option>
         ))}
       </select>
@@ -80,13 +83,13 @@ function Toolbar({
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && onSubmit()}
           className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 pr-10 text-sm outline-none"
-          placeholder="검색어를 입력하세요"
-          aria-label="검색어"
+          placeholder={english ? "Enter a search term" : "검색어를 입력하세요"}
+          aria-label={english ? "Search term" : "검색어"}
         />
         <button
           onClick={onSubmit}
           className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md px-3 py-1 text-sm text-gray-600 hover:bg-gray-100"
-          aria-label="검색"
+          aria-label={english ? "Search" : "검색"}
         >
           🔍
         </button>
@@ -112,6 +115,7 @@ function SkeletonCard() {
 }
 
 function FeedCard({ item }: { item: FeedItem }) {
+  const english = useLocale() === "en";
   const decodeHtmlOnClient = (s = "") => {
     if (!s) return "";
     const el = document.createElement("textarea");
@@ -123,8 +127,7 @@ function FeedCard({ item }: { item: FeedItem }) {
     const decoded = decodeHtmlOnClient(item.description ?? "");
     return stripHtml(decoded);
   }, [item.description]);
-  const time = useMemo(() => fmtRelative(item.date), [item.date]);
-  const imgUrl = item.image?.startsWith("//") ? `https:${item.image}` : item.image ?? null;
+  const time = useMemo(() => fmtRelative(item.date, english), [item.date, english]);
 
   return (
     <Link
@@ -135,9 +138,13 @@ function FeedCard({ item }: { item: FeedItem }) {
     >
       <div className="relative h-24 w-full overflow-hidden rounded-lg bg-gray-100">
         {item.image ? (
-          <img
+          <Image
             src={item.image}
-            alt={`${item.title} 썸네일`}
+            alt={english ? `${item.title} thumbnail` : `${item.title} 썸네일`}
+            fill
+            unoptimized
+            loading="eager"
+            decoding="auto"
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
             onError={(e) => {
               (e.currentTarget as HTMLImageElement).src = "/images/placeholder.png";
@@ -206,9 +213,7 @@ function Pagination({
         onClick={() => go(page - 1)}
         className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-40"
         disabled={page === 0}
-      >
-        이전
-      </button>
+      ><T text="이전"/></button>
       {withEllipsis.map((x, i) =>
         x === "..." ? (
           <span key={`e-${i}`} className="px-2 text-sm text-gray-400">
@@ -230,110 +235,39 @@ function Pagination({
         onClick={() => go(page + 1)}
         className="rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-40"
         disabled={page === pageCount - 1}
-      >
-        다음
-      </button>
+      ><T text="다음"/></button>
     </div>
   );
 }
 
 /** ===== Page ===== */
+type FeedQuery = { page: number; searchType: number; q: string; revision: number };
+const EMPTY_FEED: FeedResponse = { total: 0, items: [] };
+async function fetchFeed(request: FeedQuery, signal: AbortSignal): Promise<FeedResponse> {
+  const params = new URLSearchParams({ page: String(request.page), limit: String(PAGE_SIZE), searchType: String(request.searchType) });
+  if (request.q.trim()) params.set("q", request.q.trim());
+  let url = `/api/feeds?${params.toString()}`;
+  if (typeof window !== "undefined" && window.location.search.includes("debug=1")) url += "&debug=1";
+  const response = await fetch(url, { cache: "no-store", signal });
+  const text = await response.text();
+  if (!response.ok) throw new Error("피드를 불러오지 못했습니다.");
+  try {
+    const data: FeedResponse = JSON.parse(text);
+    return { items: data.items ?? [], total: data.total ?? 0 };
+  } catch { throw new Error("피드 응답 파싱 실패"); }
+}
+
 export default function FeedPage() {
-  const [items, setItems] = useState<FeedItem[] | null>(null);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [errMsg, setErrMsg] = useState<string | null>(null);
-
-  const [page, setPage] = useState(0);
-  const [limit] = useState(PAGE_SIZE);
-
+  const english = useLocale() === "en";
   const [searchType, setSearchType] = useState(0);
   const [q, setQ] = useState("");
-
-  // 레이스 컨디션 방지
-  const abortRef = useRef<AbortController | null>(null);
-  const reqIdRef = useRef(0);
-
-  const load = useCallback(
-    async (opts?: { resetPage?: boolean }) => {
-      const resetPage = opts?.resetPage ?? false;
-      // 이전 요청 중지
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
-
-      const myReqId = ++reqIdRef.current;
-
-      try {
-        setLoading(true);
-        setErrMsg(null);
-
-        const nextPage = resetPage ? 0 : page;
-        const params = new URLSearchParams({
-          page: String(nextPage),
-          limit: String(limit),
-          searchType: String(searchType),
-        });
-        if (q.trim()) params.set("q", q.trim());
-
-        // ✅ 항상 상대경로 사용 (CORS/도메인 미스 방지)
-        let url = `/api/feeds?${params.toString()}`;
-
-        // URL에 debug=1이 붙어 있으면 그대로 전달(선택)
-        if (typeof window !== "undefined" && window.location.search.includes("debug=1")) {
-          url += "&debug=1";
-        }
-
-        const res = await fetch(url, { cache: "no-store", signal: controller.signal });
-        const text = await res.text();
-
-        if (!res.ok) {
-          // 실패 원문 로그
-          console.error("FEEDS_FETCH_FAIL", res.status, text);
-          throw new Error("피드를 불러오지 못했습니다.");
-        }
-
-        let data: FeedResponse;
-        try {
-          data = JSON.parse(text);
-        } catch (e) {
-          console.error("FEEDS_PARSE_FAIL", text);
-          throw new Error("피드 응답 파싱 실패");
-        }
-
-        // 최신 요청만 반영
-        if (reqIdRef.current !== myReqId) return;
-
-        setItems(data.items ?? []);
-        setTotal(data.total ?? 0);
-        if (resetPage) setPage(0);
-
-        if (data._debug) {
-          // 필요 시 개발자도구에서 확인
-          console.debug("FEEDS_DEBUG", data._debug);
-        }
-      } catch (err: any) {
-        if (err?.name === "AbortError") return; // 취소된 요청은 무시
-        setItems([]);
-        setTotal(0);
-        setErrMsg(err?.message || "알 수 없는 오류");
-      } finally {
-        if (reqIdRef.current === myReqId) setLoading(false);
-      }
-    },
-    [page, limit, searchType, q]
-  );
-
-  // 최초 & 페이지 이동 시
-  useEffect(() => {
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
-
-  // 언마운트 시 진행 중 요청 중단
-  useEffect(() => {
-    return () => abortRef.current?.abort();
-  }, []);
+  const [request, setRequest] = useState<FeedQuery>({ page: 0, searchType: 0, q: "", revision: 0 });
+  const query = useCallback((signal: AbortSignal) => fetchFeed(request, signal), [request]);
+  const { data: { items, total }, loading, error: errMsg } = useAsyncQuery(JSON.stringify(request), query, EMPTY_FEED, "피드를 불러오지 못했습니다. 다시 시도해 주세요.");
+  const page = request.page;
+  const limit = PAGE_SIZE;
+  const setPage = (page: number) => setRequest((previous) => ({ ...previous, page }));
+  const submitSearch = () => setRequest((previous) => ({ page: 0, searchType, q, revision: previous.revision + 1 }));
 
   return (
     <div className="min-h-screen bg-[#f5f5f5]">
@@ -344,14 +278,14 @@ export default function FeedPage() {
         setSearchType={setSearchType}
         q={q}
         setQ={setQ}
-        onSubmit={() => load({ resetPage: true })}
+        onSubmit={submitSearch}
       />
 
       {/* 에러 배너 */}
       {errMsg && (
         <div className="mx-auto mt-4 max-w-5xl px-4">
           <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {errMsg}
+            {english ? "Unable to load the feed. Please try again." : errMsg}
           </div>
         </div>
       )}
@@ -377,9 +311,7 @@ export default function FeedPage() {
 
         {/* 빈 상태 */}
         {!loading && items && items.length === 0 && !errMsg && (
-          <div className="rounded-xl bg-white p-8 text-center text-sm text-gray-500">
-            피드가 존재하지 않습니다.
-          </div>
+          <div className="rounded-xl bg-white p-8 text-center text-sm text-gray-500"><T text="피드가 존재하지 않습니다."/></div>
         )}
 
         {/* 페이지네이션 */}

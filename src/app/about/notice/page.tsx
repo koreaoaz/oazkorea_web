@@ -1,6 +1,10 @@
+
+import {ContentTitle} from '@/components/ContentTitle'
+import {T} from '@/components/LocaleProvider';
 // src/app/about/notice/page.tsx
-import Link from "next/link";
+import Link from "@/components/LocalizedLink";
 import { supabase } from "@/lib/supabaseClient";
+import {PUBLIC_NOTICE_FEED,noticeDate} from '@/lib/notice-publication'
 export const dynamic = "force-dynamic";
 
 export const revalidate = 60; // ISR
@@ -54,7 +58,7 @@ export default async function Page({ searchParams }: PageProps) {
     ? sp.page[0]
     : sp.page
 
-  const page = Math.max(1, Number(pageParam) || 1)
+  const page = Number.isSafeInteger(Number(pageParam))&&Number(pageParam)>0?Number(pageParam):1
 
   const typeParam = Array.isArray(sp.type) ? sp.type[0] : sp.type
   const type: "공지" | "홍보" = typeParam === "홍보" ? "홍보" : "공지"
@@ -65,18 +69,20 @@ export default async function Page({ searchParams }: PageProps) {
 
   // 데이터 + 전체 개수(count) 함께 조회
   const { data, error, count } = await supabase
-    .from("editor_0_noti")
-    .select("id, text, created_at", { count: "exact" })
+    .from(PUBLIC_NOTICE_FEED)
+    .select("id, text, publication_date, created_at, pinned_at", { count: "exact" })
     .eq("is_noti", type === "공지")
+    .order("pinned_at", { ascending: false, nullsFirst: false })
+    .order("publication_date", { ascending: false })
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .range(from, to);
 
   if (error) {
+    console.warn("공개 게시판 조회 실패");
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          오류: {error.message}
-        </div>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"><T text="게시물을 불러오지 못했습니다. 잠시 후 다시 확인해 주세요."/></div>
       </div>
     );
   }
@@ -87,7 +93,7 @@ export default async function Page({ searchParams }: PageProps) {
 
   // 페이지 버튼 범위 계산 (슬라이딩 윈도우)
   let start = Math.max(1, page - Math.floor(PAGE_WINDOW / 2));
-  let end = Math.min(totalPages, start + PAGE_WINDOW - 1);
+  const end = Math.min(totalPages, start + PAGE_WINDOW - 1);
   start = Math.max(1, end - PAGE_WINDOW + 1);
 
   return (
@@ -95,9 +101,8 @@ export default async function Page({ searchParams }: PageProps) {
       {/* 헤더 */}
       <div className="mb-6 flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">공지사항</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            총 {total}건 · 페이지 {page}/{totalPages}
+          <h1 className="text-2xl font-bold tracking-tight"><T text={type==='공지'?'공지사항':'홍보'}/></h1>
+          <p className="mt-1 text-sm text-muted-foreground"><T text="총"/>{total}<T text="건 · 페이지"/>{page}/{totalPages}
           </p>
         </div>
       </div>
@@ -112,9 +117,7 @@ export default async function Page({ searchParams }: PageProps) {
               ? "bg-primary text-primary-foreground"
               : "border text-gray-700 hover:bg-muted",
           ].join(" ")}
-        >
-          공지
-        </Link>
+        ><T text="공지"/></Link>
         <Link
           href="/about/notice?type=홍보"
           className={[
@@ -123,15 +126,13 @@ export default async function Page({ searchParams }: PageProps) {
               ? "bg-primary text-primary-foreground"
               : "border text-gray-700 hover:bg-muted",
           ].join(" ")}
-        >
-          홍보
-        </Link>
+        ><T text="홍보"/></Link>
       </div>
 
       {/* 비어있는 경우 */}
       {notices.length === 0 ? (
         <div className="rounded-lg border bg-card p-10 text-center text-sm text-muted-foreground">
-          등록된 공지가 없습니다.
+          <T text={type === "공지" ? "등록된 공지가 없습니다." : "등록된 홍보 게시물이 없습니다."}/>
         </div>
       ) : (
         <>
@@ -139,10 +140,8 @@ export default async function Page({ searchParams }: PageProps) {
             {/* 테이블 헤더 */}
             <div className="grid grid-cols-12 items-center border-b bg-muted/50 px-4 py-3 text-xs font-medium text-muted-foreground">
               <div className="col-span-2 sm:col-span-1">NO</div>
-              <div className="col-span-7 sm:col-span-8">제목</div>
-              <div className="col-span-3 sm:col-span-3 text-right sm:text-left">
-                게시일
-              </div>
+              <div className="col-span-7 sm:col-span-8"><T text="제목"/></div>
+              <div className="col-span-3 sm:col-span-3 text-right sm:text-left"><T text="게시일"/></div>
             </div>
 
             {/* 테이블 바디 */}
@@ -150,19 +149,15 @@ export default async function Page({ searchParams }: PageProps) {
               {notices.map((n, idx) => {
                 const globalIndex = from + idx;
                 const no = total - globalIndex;
-                const date = new Date(n.created_at as string).toLocaleDateString("ko-KR", {
-                  year: "numeric",
-                  month: "2-digit",
-                  day: "2-digit",
-                });
+                const date = noticeDate(n.publication_date);
 
                 return (
-                  <li key={n.id} className="relative">
+                  <li key={n.id} data-notice-id={n.id} data-pinned={!!n.pinned_at} className="relative">
                     {/* 행 전체 클릭 */}
                     <Link
                       href={`/about/notice/${n.id}`}
                       className="absolute inset-0"
-                      aria-label={`${n.text} 상세보기`}
+                      aria-labelledby={`notice-title-${n.id}`}
                     />
                     <div
                       className={[
@@ -174,10 +169,10 @@ export default async function Page({ searchParams }: PageProps) {
                         {no}
                       </div>
                       <div className="col-span-7 sm:col-span-8 pr-2">
-                        <div className="line-clamp-1 font-medium">{n.text}</div>
+                        <div id={`notice-title-${n.id}`} className="line-clamp-1 font-medium">{n.pinned_at&&<span className="mr-1 text-xs font-semibold"><T text="고정"/></span>}<ContentTitle table="editor_0_noti" id={n.id} title={n.text} isNotice={type==='공지'}/></div>
                       </div>
                       <div className="col-span-3 sm:col-span-3 text-right sm:text-left text-sm text-muted-foreground tabular-nums">
-                        {date}
+                        <time dateTime={n.publication_date}>{date}</time>
                       </div>
                     </div>
                   </li>
@@ -244,31 +239,5 @@ export default async function Page({ searchParams }: PageProps) {
         </>
       )}
     </div>
-  );
-}
-
-function PaginationLink({
-  href,
-  disabled,
-  children,
-}: {
-  href: string;
-  disabled?: boolean;
-  children: React.ReactNode;
-}) {
-  if (disabled) {
-    return (
-      <span className="inline-flex h-9 min-w-9 cursor-not-allowed items-center justify-center rounded-md border bg-muted px-3 text-sm text-muted-foreground">
-        {children}
-      </span>
-    );
-  }
-  return (
-    <Link
-      href={href}
-      className="inline-flex h-9 min-w-9 items-center justify-center rounded-md border px-3 text-sm hover:bg-muted"
-    >
-      {children}
-    </Link>
   );
 }

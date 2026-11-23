@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import { getPublicImageUrl } from "../services/storage.service"
 
@@ -11,20 +11,10 @@ type Props = {
 }
 
 export function ImageFromStorage({ filename, board, className }: Props) {
-  const [url, setUrl] = useState<string>("")
+  const [failedUrl, setFailedUrl] = useState("")
+  const bucket = board === "프로젝트" ? "project_img" : board === "스터디" ? "study-images" : board === "행사" ? "card_news" : ""
+  const url = bucket && filename ? getPublicImageUrl(bucket, filename) : ""
+  if (!url || failedUrl === url) return <div className={className} role="img" aria-label="이미지 없음">없음</div>
 
-  useEffect(() => {
-    let bucket = ""
-    if (board === "프로젝트") bucket = "project_img"
-    if (board === "스터디") bucket = "study-images"
-    if (board === "행사") bucket = "card_news"
-
-    if (bucket) {
-      setUrl(getPublicImageUrl(bucket, filename))
-    }
-  }, [filename, board])
-
-  if (!url) return null
-
-  return <Image src={url} alt="" width={64} height={64} className={className} />
+  return <Image src={url} alt="" width={64} height={64} className={className} onError={() => setFailedUrl(url)} />
 }

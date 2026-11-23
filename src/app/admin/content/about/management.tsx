@@ -1,0 +1,21 @@
+'use client'
+import {AdminSessionLoading} from '@/components/AdminSessionLoading'
+import Link from 'next/link'
+import {useEffect,useRef,useState} from 'react'
+import {ABOUT_FIELDS,type AboutContent} from '@/lib/admin/site-management'
+import {siteCommand} from '@/lib/admin/site-client'
+import {useUnsavedChanges} from '../../unsaved'
+type AboutState={content:AboutContent;revision:number;superAdmin:boolean;permissions:{slot:string;allowed:boolean}[];audit:{action:string;created_at:string;revision:number}[]}
+export default function AboutManagement(){
+ const [data,setData]=useState<AboutState|null>(null),[draft,setDraft]=useState<AboutContent|null>(null),[error,setError]=useState(''),[message,setMessage]=useState(''),[busy,setBusy]=useState(false),pending=useRef(false),retry=useRef<{intent:string;requestId:string}|null>(null)
+ useUnsavedChanges(!!data&&!!draft&&JSON.stringify(data.content)!==JSON.stringify(draft))
+ async function load(){const next=await siteCommand<AboutState>({action:'about.get'});setData(next);setDraft(next.content)}
+ useEffect(()=>{let live=true;void siteCommand<AboutState>({action:'about.get'}).then(next=>{if(live){setData(next);setDraft(next.content)}}).catch(e=>{if(live)setError(e.message)});return()=>{live=false}},[])
+ async function save(){
+  if(!data||!draft||pending.current)return;pending.current=true;setBusy(true);setError('');setMessage('')
+  const intent=JSON.stringify({revision:data.revision,content:draft});if(retry.current?.intent!==intent)retry.current={intent,requestId:crypto.randomUUID()}
+  try{await siteCommand({action:'about.save',revision:data.revision,content:draft,requestId:retry.current.requestId});await load();retry.current=null;setMessage('학회 소개가 저장되어 공개 화면에 반영되었습니다.')}catch(e){setError(e instanceof Error?e.message:'저장하지 못했습니다.')}finally{pending.current=false;setBusy(false)}
+ }
+ async function permission(slot:string,allowed:boolean){if(pending.current)return;pending.current=true;setBusy(true);setError('');try{await siteCommand({action:'permission.set',slot,allowed});const next=await siteCommand<AboutState>({action:'about.get'});setData(next);setMessage('학회 소개 편집 권한이 변경되었습니다.')}catch(e){setError(e instanceof Error?e.message:'권한을 변경하지 못했습니다.')}finally{pending.current=false;setBusy(false)}}
+ return <div className="space-y-6"><Link href="/admin/content" prefetch={false}>콘텐츠 관리로 돌아가기</Link><h1>학회 소개 관리</h1><p>현재 소개 문구와 대표 이미지를 수정합니다. 저장하면 공개 화면에 반영됩니다.</p>{error&&<p role="alert">{error}</p>}{message&&<p role="status">{message}</p>}{!data&&!error&&<AdminSessionLoading/>}{data&&draft&&<><form className="admin-panel space-y-5" onSubmit={e=>{e.preventDefault();void save()}}>{Object.entries(ABOUT_FIELDS).map(([key,label])=><label className="block space-y-2" key={key}><span>{label}</span>{key==='image'?<input aria-label={label} required maxLength={2000} value={draft.image} onChange={e=>setDraft({...draft,image:e.target.value})}/>:<textarea aria-label={label} required maxLength={2000} rows={key==='name'||key==='founded'?2:4} value={draft[key as keyof AboutContent]} onChange={e=>setDraft({...draft,[key]:e.target.value})}/>}</label>)}<p className="text-sm">대표 이미지는 기존 /campus.png 또는 게시판 편집 화면에서 공개 승인을 마친 이미지의 /api/images/… 경로를 사용합니다. 이미지 교체와 기본 이미지 복원이 가능하며 원본 파일은 삭제하지 않습니다.</p><div className="admin-actions"><button type="button" disabled={busy} onClick={()=>setDraft({...draft,image:'/campus.png'})}>기본 이미지 사용</button><Link href="/admin/content" prefetch={false}>게시판 이미지 관리</Link><Link href="/about/who-we-are" target="_blank" rel="noopener">공개 화면 확인</Link><button disabled={busy} type="submit">{busy?'저장 중…':'학회 소개 저장'}</button></div></form>{data.superAdmin&&<section className="admin-panel space-y-4"><h2>학회 소개 편집 권한</h2><p>일반 관리자는 이 권한을 명시적으로 받은 경우에만 편집할 수 있습니다.</p>{data.permissions.map(p=><div className="admin-actions" key={p.slot}><span>{p.slot} · {p.allowed?'편집 허용':'편집 불가'}</span><button type="button" disabled={busy} onClick={()=>void permission(p.slot,!p.allowed)}>{p.slot} {p.allowed?'권한 회수':'편집 허용'}</button></div>)}</section>}<section className="admin-panel"><h2>최근 소개 변경 이력</h2>{data.audit.length?<ul>{data.audit.map((a,i)=><li key={i}>{new Date(a.created_at).toLocaleString('ko-KR')} · {a.action} · 버전 {a.revision}</li>)}</ul>:<p>변경 이력이 없습니다.</p>}</section></>}</div>
+}

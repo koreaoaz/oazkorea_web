@@ -1,8 +1,8 @@
-
+import type { EditorRow, EditorTable } from "@/types/editor"
 
 export type BoardType = "공지" | "프로젝트" | "스터디" | "학회실 사용 시간표" | "명예의 전당" | "일정" | "행사" | "등록회원" | "승인email" | "관리자id"
 
-export const BOARD_TABLE_MAP: Record<BoardType, string> = {
+export const BOARD_TABLE_MAP = {
   "공지": "editor_0_noti",
   "프로젝트": "editor_1_projects",
   "스터디": "editor_2_studies",
@@ -13,7 +13,9 @@ export const BOARD_TABLE_MAP: Record<BoardType, string> = {
   "등록회원": "registered_member",
   "승인email" : "allowed_user",
   "관리자id" : "supervisor_id"
-}
+} as const satisfies Record<BoardType, EditorTable>
+
+export type BoardRow<B extends BoardType> = EditorRow<(typeof BOARD_TABLE_MAP)[B]>
 
 export const BOARD_LIST: BoardType[] = [
   "공지",

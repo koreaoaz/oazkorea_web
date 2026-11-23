@@ -1,10 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import { EditorForm } from "../../components/common/EditorForm"
 import { insertPost } from "../../services/board.service"
 import { BOARD_TABLE_MAP } from "../../constants"
-import { FormField } from "../../components/common/FormField"
-import { textareaBase } from "../../utils/inputformClasses"
 
 export function Registered_mem_Form() {
   const [name, setName] = useState("")
@@ -39,7 +38,7 @@ export function Registered_mem_Form() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-    </form>
+    <EditorForm onSubmit={handleSubmit} className="space-y-4">
+    </EditorForm>
   )
 }

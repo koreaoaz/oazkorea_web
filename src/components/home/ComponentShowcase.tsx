@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
-import React, { useState } from "react";
+
+import {T} from '@/components/LocaleProvider';
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -121,7 +122,7 @@ export default function ComponentShowcase() {
                       <div className="p-6 bg-gray-50 rounded-xl flex items-center justify-center min-h-[120px]">
                         {item.component}
                       </div>
-                      <p className="text-sm font-medium text-gray-600">{item.name}</p>
+                      <p className="text-sm font-medium text-gray-600"><T text={item.name}/></p>
                     </motion.div>
                   ))}
                 </div>

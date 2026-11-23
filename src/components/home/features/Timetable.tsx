@@ -1,277 +1,62 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { createClient } from "@supabase/supabase-js"
-import { Loader2, AlertCircle } from "lucide-react"
-import { supabase } from "@/lib/supabaseClient"
-
-interface Study {
-  id: string
-  name: string
-  leader: string
-  color: string
-  day: string
-  startTime: string
-  endTime: string
-  startSlot: number
-  endSlot: number
+import {T,useUIText,useLocale} from '@/components/LocaleProvider';
+import {RoomWeek} from './RoomWeek'
+import {ContentExcerpt} from '@/components/ContentExcerpt'
+import Link from 'next/link'
+import {useState} from "react"
+import {PublicDetailDialog} from "@/components/PublicDetailDialog"
+import {useAsyncQuery} from "@/hooks/useAsyncQuery"
+import {Loader2,AlertCircle} from "lucide-react"
+import {supabase} from "@/lib/supabaseClient"
+import {parseTimetableRows,type StudySlot} from "@/lib/timetable"
+import {withStudyLeaders,type StudySessionLink} from "@/lib/study-schedule"
+import {publicContentRpc} from '@/lib/public-content-rpc'
+const DAYS=["월요일","화요일","수요일","목요일","금요일","토요일"]
+const EMPTY_STUDIES:StudySlot[]=[]
+const loadStudies=async():Promise<StudySlot[]>=>{
+ const [times,studies,relations]=await Promise.all([
+  supabase.from("editor_3_study_timetable").select("id,leader,color,start_time,end_time,created_at,study_name").order("start_time"),
+  supabase.from("editor_2_studies").select("id,study_name,leader,outline,year,semester"),
+  publicContentRpc<StudySessionLink[]>("oaz_public_study_sessions_v1"),
+ ])
+ if(times.error||studies.error)throw new Error("시간표를 불러오지 못했습니다.")
+ const rows=(times.data??[]) as (NonNullable<typeof times.data>[number]&{_english?:{study_name?:string}})[]
+ const records=studies.data??[]
+ const verified=Array.isArray(relations.data)?relations.data:[]
+ return withStudyLeaders(parseTimetableRows(rows),records,verified).map(slot=>{
+  const study=records.find(row=>row.id===slot.studyId)
+  return {...slot,outline:study?.outline,englishName:rows.find(row=>String(row.id)===slot.id)?._english?.study_name}
+ })
 }
-
-// Utility functions
-const timeToSlot = (time: string): number => {
-  const [hours, minutes] = time.split(":").map(Number)
-  return (hours - 9) * 2 + (minutes >= 30 ? 1 : 0)
+function LoadedTimetable({wide=false,showHint=true}:{wide?:boolean;showHint?:boolean}){
+ const {data:studies,loading,error}=useAsyncQuery("timetable",loadStudies,EMPTY_STUDIES,"시간표를 불러오지 못했습니다. 다시 시도해 주세요.")
+ return <TimetableView studies={studies} isLoading={loading} error={error} wide={wide} showHint={showHint}/>
 }
+export function TimetableDemo({studies,wide=false,showHint=true}:{studies?:StudySlot[];wide?:boolean;showHint?:boolean}={}){return studies?<TimetableView studies={studies} wide={wide} showHint={showHint}/>:<LoadedTimetable wide={wide} showHint={showHint}/>}
+function TimetableView({studies,isLoading=false,error=null,wide=false,showHint=true}:{studies:StudySlot[];isLoading?:boolean;error?:string|null;wide?:boolean;showHint?:boolean}){
+ const uiText=useUIText(),locale=useLocale()
+ const slotName=(slot:StudySlot)=>locale==='en'&&slot.englishName?slot.englishName:slot.name
 
-export const TimetableDemo = () => {
-  const [studies, setStudies] = useState<Study[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    loadStudies()
-  }, [])
-
-  const loadStudies = async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      // console.log("[v0] Loading studies from time_table...")
-
-      const { data, error } = await supabase.from("editor_3_study_timetable").select("*").order("start_time")
-
-      // console.log("[v0] Database query result:", { data, error })
-
-      if (error) {
-        console.error("[v0] Database error:", error)
-        setError(`Database error: ${error.message}`)
-        setStudies([])
-        return
-      }
-
-      if (data && data.length > 0) {
-        // console.log("[v0] Raw data from database:", data)
-
-        const validStudies: Study[] = []
-        const seenStudies = new Set<string>()
-
-        data.forEach((item: any, index: number) => {
-          // console.log("[v0] Processing item:", item)
-
-          // Check for required fields
-          if (!item.start_time || !item.end_time || !item.study_name) {
-            console.warn("[v0] Missing required data for item:", item)
-            return
-          }
-
-          const startParts = item.start_time.split(" ")
-          const endParts = item.end_time.split(" ")
-
-          if (startParts.length < 2 || endParts.length < 2) {
-            console.warn("[v0] Invalid time format for item:", item)
-            return
-          }
-
-          const day = startParts[0]
-          const startTime = startParts[1]
-          const endTime = endParts[1]
-
-          // Create unique identifier to prevent duplicates
-          const studyKey = `${item.study_name}-${item.leader}-${day}-${startTime}-${endTime}`
-          if (seenStudies.has(studyKey)) {
-            console.warn("[v0] Duplicate study detected, skipping:", studyKey)
-            return
-          }
-          seenStudies.add(studyKey)
-
-          const converted = {
-            id: item.id?.toString() || `temp-${index}-${Date.now()}`,
-            name: item.study_name,
-            leader: item.leader || "Unknown",
-            color: item.color || "#6b7280",
-            day,
-            startTime,
-            endTime,
-            startSlot: timeToSlot(startTime),
-            endSlot: timeToSlot(endTime),
-          }
-
-          // console.log("[v0] Converted study:", converted)
-          validStudies.push(converted)
-        })
-
-        // console.log("[v0] Final converted studies:", validStudies)
-        setStudies(validStudies)
-        setError(null)
-      } else {
-        // console.log("[v0] No data in database")
-        setStudies([])
-      }
-    } catch (error) {
-      console.error("[v0] Error loading studies:", error)
-      setError(`Failed to load studies: ${error instanceof Error ? error.message : "Unknown error"}`)
-      setStudies([])
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // const generateTimeSlots = () => {
-  //   const slots = []
-  //   const occupiedHours = new Set<number>()
-
-  //   studies.forEach((study) => {
-  //     for (let slot = study.startSlot; slot < study.endSlot; slot++) {
-  //       occupiedHours.add(Math.floor(slot / 2))
-  //     }
-  //   })
-
-  //   const sortedHours = Array.from(occupiedHours).sort((a, b) => a - b)
-
-  //   if (sortedHours.length === 0) {
-  //     for (let hour = 0; hour <= 7; hour++) {
-  //       slots.push({ type: "hour", hour: hour + 9 })
-  //     }
-  //   } else {
-  //     for (let i = 0; i < sortedHours.length; i++) {
-  //       const currentHour = sortedHours[i]
-  //       const prevHour = i > 0 ? sortedHours[i - 1] : null
-
-  //       if (prevHour !== null && currentHour - prevHour > 1) {
-  //         slots.push({ type: "gap" })
-  //       }
-
-  //       slots.push({ type: "hour", hour: currentHour + 9 })
-  //     }
-  //   }
-
-  //   return slots
-  // }
-
-  const generateTimeSlots = () => {
-    const slots = []
-    for (let hour = 11; hour <= 22; hour++) {
-      slots.push({ type: "hour", hour })
-    }
-    return slots
-  }
-
-  const timeSlots = generateTimeSlots()
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="flex items-center gap-2">
-          <Loader2 className="w-5 h-5 animate-spin" />
-          <span className="text-sm">Loading...</span>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="w-full">
-      {error && (
-        <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-destructive" />
-          <span className="text-sm text-destructive">{error}</span>
-        </div>
-      )}
-
-      {studies.length === 0 && !isLoading && (
-        <div className="text-center p-8 text-muted-foreground">
-          <p>No studies found in the database.</p>
-        </div>
-      )}
-
-      {studies.length > 0 && (
-        <div className="w-full">
-          <div className="bg-card rounded-lg border overflow-hidden">
-            <div className="overflow-x-auto">
-              <div className="w-full min-w-[300px]">
-                {/* Header */}
-                <div className="grid grid-cols-[0.3fr_repeat(6,1fr)] border-b bg-white">
-                  <div className="p-2 text-center font-medium text-xs sm:text-sm"></div>
-                  {["월", "화", "수", "목", "금", "토"].map((day) => (
-                    <div key={day} className="p-0.3 text-center font-medium text-[10px] border-l">
-                      {day}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Time slots */}
-                {timeSlots.map((slot, index) => {
-                  if (slot.type === "gap") {
-                    return (
-                      <div key={`gap-${index}`} className="grid grid-cols-6 border-b">
-                        <div className="p-1 text-center text-xs text-muted-foreground">⋯</div>
-                        {Array.from({ length: 5 }, (_, i) => (
-                          <div key={i} className="border-l p-1 text-center text-xs text-muted-foreground">
-                            ⋯
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  }
-
-                  const hour = slot.hour!
-                  return (
-                    <div
-                      key={`hour-${hour}`}
-                      className="grid grid-cols-[0.3fr_repeat(6,1fr)] border-b relative "
-                      style={{ minHeight: "45px" }}
-                    >
-                      <div className="px-0.5 py-0.2 text-right text-[9px] font-medium bg-white">
-                        {hour % 12 === 0 ? 12 : hour % 12}
-                      </div>
-
-                      {["월요일","화요일","수요일","목요일","금요일","토요일"].map((day) => {
-                        const dayStudies = studies.filter(
-                          (study) =>
-                            study.day === day && study.startSlot < (hour - 9 + 1) * 2 && study.endSlot > (hour - 9) * 2,
-                        )
-
-                        return (
-                          <div key={day} className="border-l relative">
-                            {dayStudies.map((study) => {
-                              const startHour = Math.floor(study.startSlot / 2) + 9
-
-                              if (startHour === hour) {
-                                const height = (study.endSlot - study.startSlot) * 22
-                                return (
-                                  <div
-                                    key={study.id}
-                                    className="absolute inset-x-0 p-1 text-xs text-white rounded-sm overflow-hidden shadow-sm z-10"
-                                    style={{
-                                      backgroundColor: study.color,
-                                      height: `${height}px`,
-                                      top: `${(study.startSlot % 2) * 25}px`,
-                                    }}
-                                  >
-                                    <div className="font-medium text-[11px] leading-tight break-words">
-                                      {study.name}
-                                    </div>
-                                    <div className="opacity-90 text-[10px] leading-tight break-words">
-                                      {study.leader}
-                                    </div>
-                                  </div>
-                                )
-                              }
-                              return null
-                            })}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+ const [selected,setSelected]=useState<StudySlot|null>(null)
+ if(isLoading)return <div role="status" className="flex items-center justify-center gap-2 p-8"><Loader2 className="h-5 w-5 animate-spin"/><span className="text-sm"><T text="시간표를 불러오는 중입니다…"/></span></div>
+ return <div data-timetable-mode={wide?'schedule':'home'} className="flex min-h-0 w-full flex-1 flex-col">
+  {showHint&&<p className="mb-3 text-xs text-gray-500"><T text="스터디를 누르면 전체 이름과 담당자·시간을 확인할 수 있습니다."/></p>}
+  {selected&&<PublicDetailDialog title={slotName(selected)} onClose={()=>setSelected(null)}><p className="text-sm"><T text={selected.day}/> {selected.startTime} ~ {selected.endTime}</p><p className="mt-3 break-words text-sm"><T text="담당자:"/>{' '}<T text={selected.leader||"등록 정보 없음"}/></p>{selected.studyId!==undefined&&selected.outline&&<p className="mt-4 whitespace-pre-wrap break-words"><ContentExcerpt table="editor_2_studies" id={selected.studyId} body={selected.outline}/></p>}{selected.studyId!==undefined&&<Link className="mt-4 inline-flex min-h-11 items-center rounded-lg border px-4 text-sm underline" href={`/studies/records/${selected.studyId}`}><T text="스터디 상세 보기"/></Link>}</PublicDetailDialog>}
+  {error&&<p role="status" className="mb-4 flex gap-2 rounded-lg border p-3 text-sm"><AlertCircle className="h-4 w-4"/><T text={error}/></p>}
+  {!studies.length?<p className="p-8 text-center text-sm text-gray-500"><T text="아직 등록된 스터디 일정이 없습니다."/></p>:<>
+   {wide?<RoomWeek studies={studies} days={DAYS} onSelect={setSelected}/>:(<div data-timetable-frame className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border bg-white">
+    <div className="grid shrink-0 grid-cols-[0.3fr_repeat(6,minmax(0,1fr))] border-b"><span/><span className="sr-only"><T text="요일"/></span>{DAYS.map(day=><span key={day} className="border-l py-1 text-center text-[10px] font-semibold"><T text={day.slice(0,1)}/></span>)}</div>
+    <div data-timetable-grid className="grid flex-1" style={{gridTemplateColumns:'0.3fr repeat(6,minmax(0,1fr))',gridTemplateRows:'repeat(28,minmax(20px,1fr))',minHeight:560}}>
+     {Array.from({length:14},(_,i)=><span key={'hour-'+i} className="border-b pr-0.5 text-right text-[9px]" style={{gridColumn:1,gridRow:`${i*2+1} / span 2`}}>{(i+9)%12||12}</span>)}
+     {DAYS.flatMap((day,d)=>Array.from({length:14},(_,i)=><span aria-hidden="true" key={day+i} className="border-b border-l" style={{gridColumn:d+2,gridRow:`${i*2+1} / span 2`}}/>))}
+     {studies.map(s=><button key={s.id} data-timetable-study={s.id} type="button" onClick={()=>setSelected(s)} title={`${slotName(s)} · ${uiText('담당자:')} ${uiText(s.leader||'등록 정보 없음')} · ${uiText(s.day)} ${s.startTime}~${s.endTime}`} aria-label={uiText(`${slotName(s)} 시간표 상세`)} className={`z-10 min-h-0 min-w-0 overflow-hidden rounded-sm text-left text-white shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 p-1`} style={{gridColumn:DAYS.indexOf(s.day)+2,gridRow:`${s.startSlot+1} / span ${s.endSlot-s.startSlot}`,backgroundColor:s.color}}>
+      <span className={`break-words font-medium leading-tight line-clamp-2 text-[11px]`}>{slotName(s)}</span>
+      <span className={`block truncate leading-tight opacity-90 text-[10px]`}><T text={s.leader||'등록 정보 없음'}/></span>
+     </button>)}
     </div>
-  )
+   </div>)}
+  </>}
+ </div>
 }
-
 export default TimetableDemo

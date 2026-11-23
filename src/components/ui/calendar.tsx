@@ -203,14 +203,16 @@ function CalendarDayButton({
   day,
   modifiers,
   children, // ⬅️ 날짜 숫자
+  ...props
 }: React.ComponentProps<typeof DayButton>) {
   const defaultClassNames = getDefaultClassNames()
 
   return (
-    <div
-      role="presentation"
-      tabIndex={-1}
-      data-day={day.date.toISOString().split("T")[0]}
+    <DayButton
+      {...props}
+      day={day}
+      modifiers={modifiers}
+      data-day={`${day.date.getFullYear()}-${String(day.date.getMonth()+1).padStart(2,'0')}-${String(day.date.getDate()).padStart(2,'0')}`}
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&
@@ -233,7 +235,7 @@ function CalendarDayButton({
         // 기존 config
         // "aspect-square size-auto w-full min-w-(--cell-size) leading-none font-normal",
         "leading-none font-normal",
-        "pointer-events-none select-none",
+        "select-none",
         "data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground",
         "data-[range-middle=true]:bg-accent data-[range-middle=true]:text-accent-foreground",
         "data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground",
@@ -244,7 +246,7 @@ function CalendarDayButton({
       )}
     >
       {children} 
-    </div>
+    </DayButton>
   )
 }
 

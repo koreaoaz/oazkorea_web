@@ -1,0 +1,50 @@
+[
+  {
+    "file": "circuit.svg",
+    "topic": "VLSI / circuits",
+    "source": "https://github.com/lucide-icons/lucide/tree/0.525.0/icons",
+    "version": "0.525.0",
+    "license": "ISC; included Feather notice",
+    "sha256": "cbb6620f121a5bb715414c231a386e4e776fbb22b204bbdfca85ec5d2f438ef7"
+  },
+  {
+    "file": "neural.svg",
+    "topic": "Deep learning / machine learning",
+    "source": "https://github.com/lucide-icons/lucide/tree/0.525.0/icons",
+    "version": "0.525.0",
+    "license": "ISC; included Feather notice",
+    "sha256": "0753a4ee1105b8ec7701104392e4cd78e99ee33b71a8f98550d45378796087ad"
+  },
+  {
+    "file": "web.svg",
+    "topic": "Web development",
+    "source": "https://github.com/lucide-icons/lucide/tree/0.525.0/icons",
+    "version": "0.525.0",
+    "license": "ISC; included Feather notice",
+    "sha256": "65f3f7b5cabae30d1af03c4b377c7bfc5b8cbb391596a3152253cb428f719786"
+  },
+  {
+    "file": "code.svg",
+    "topic": "C programming",
+    "source": "https://github.com/lucide-icons/lucide/tree/0.525.0/icons",
+    "version": "0.525.0",
+    "license": "ISC; included Feather notice",
+    "sha256": "5a513cf6bbe4a8e88cf617c17af57f6cbc7ed70927f61e493c2f264f049f3f46"
+  },
+  {
+    "file": "study.svg",
+    "topic": "Unconfirmed topic",
+    "source": "https://github.com/lucide-icons/lucide/tree/0.525.0/icons",
+    "version": "0.525.0",
+    "license": "ISC; included Feather notice",
+    "sha256": "f05920cef46fd026b616632eb36a2e096066a90ad3ae8e0b82e612994e7c2ff9"
+  },
+  {
+    "file": "python.png",
+    "topic": "Python programming only",
+    "source": "https://s3.dualstack.us-east-2.amazonaws.com/pythondotorg-assets/media/community/logos/python-logo-only.png",
+    "policy": "https://www.python.org/psf/trademarks/",
+    "license": "PSF trademark policy; unaltered nominative use, no endorsement",
+    "sha256": "4008a934b415c152bfa513be3e9b05de4212ae41549a27f2c6c8d41b3a24a4da"
+  }
+]

@@ -1,0 +1,164 @@
+{
+  "project/31": {
+    "hash": "517119c97d4f81fd9834831b74d9d8bad70ed058ea31cb50f74ca06d961b6b0e",
+    "year": 2026,
+    "semester": 2,
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "홈커밍 세미나에서 선보인 OAZ LIFE4CUT은 웹 브라우저에서 네 컷 사진을 만드는 포토부스다.",
+        "en": "OAZ LIFE4CUT is a four-shot browser photo booth presented at the homecoming seminar."
+      },
+      {
+        "kind": "activities",
+        "ko": "촬영, 사진 선택, 프레임 꾸미기, QR 저장, 인쇄 순서로 참가자의 이용 흐름을 설계했다.",
+        "en": "The team designed a sequence for taking photos, choosing shots, adding a frame, saving by QR code and printing."
+      },
+      {
+        "kind": "implementation",
+        "ko": "브라우저 카메라로 촬영한 사진 중 네 장을 합성하고 학회 프레임과 촬영 날짜를 넣었다. 아이패드 터치 화면에 맞춰 조작 방식을 구성했다.",
+        "en": "The booth combines four camera shots with a society frame and the date. Its controls were arranged for an iPad touchscreen."
+      },
+      {
+        "kind": "results",
+        "ko": "완성된 사진을 휴대전화로 저장하는 과정과 블루투스 프린터로 출력하는 과정을 하나의 화면 흐름으로 연결했다.",
+        "en": "The final workflow connects saving the finished strip to a phone with printing it on a Bluetooth printer."
+      }
+    ]
+  },
+  "project/32": {
+    "hash": "a46959b4996b27f05ecfd98a3b057086ca79ced7d85fac252c7116027736295a",
+    "year": 2026,
+    "semester": 2,
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "홈커밍 세미나의 온라인 퀴즈 대회를 위해 여러 참가자가 브라우저로 접속하는 QuizLive를 제작했다.",
+        "en": "QuizLive was built for the homecoming seminar so multiple contestants could join a quiz from their browsers."
+      },
+      {
+        "kind": "activities",
+        "ko": "관리자가 퀴즈와 방을 준비하고, 참가자가 입장해 답을 제출한 뒤 순위를 확인하는 흐름을 설계했다.",
+        "en": "The flow takes a host from preparing a quiz and opening a room to accepting answers and displaying the rankings."
+      },
+      {
+        "kind": "implementation",
+        "ko": "Next.js와 TypeScript로 화면을 구성하고 Supabase PostgreSQL과 Realtime으로 진행 상태를 전달했다.",
+        "en": "The interface uses Next.js and TypeScript, with Supabase PostgreSQL and Realtime carrying updates as the quiz progresses."
+      },
+      {
+        "kind": "results",
+        "ko": "참가자의 응답이 점수와 순위에 어떻게 반영되는지가 진행자 화면과 참가자 화면을 연결하는 기준이다.",
+        "en": "How each answer affects the score and ranking links the host’s view of the competition to the contestant’s."
+      }
+    ]
+  },
+  "project/33": {
+    "hash": "e17d0183a9d51621c6267b0c1e169e1f66565bb457c21c039eab16fec41a5100",
+    "year": 2022,
+    "semester": 1,
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "고려대학교 CCP에 출품한 프로젝트로, 글로 묘사한 장면을 동화풍 이미지로 표현하는 것이 주제다.",
+        "en": "This Korea University CCP entry explores how a written scene can be rendered as a storybook illustration."
+      },
+      {
+        "kind": "activities",
+        "ko": "DALL·E 기반 텍스트 이미지 생성 모델을 살펴보고, 장면 설명과 생성된 이미지의 대응을 분석했다.",
+        "en": "The project examined a DALL·E-based text-to-image model and the relationship between scene descriptions and generated images."
+      },
+      {
+        "kind": "implementation",
+        "ko": "Transformer와 Attention이 텍스트의 특징을 표현하는 원리를 학습하고 VGG와 ResNet의 특징 추출 구조를 비교했다.",
+        "en": "The study explored how transformers and attention represent text and compared feature extraction in VGG and ResNet."
+      },
+      {
+        "kind": "results",
+        "ko": "장면의 대상이 설명대로 표현되는지와 화풍이 유지되는지를 나누어 살피면 생성 결과를 더 구체적으로 평가할 수 있다.",
+        "en": "Evaluating the depicted subjects separately from the illustration style gives a clearer account of how closely an output follows a prompt."
+      }
+    ]
+  },
+  "study/16": {
+    "hash": "90845290de89b4e9426f350910cd4ad26f70e5865f48dd9deabffbba9823c972",
+    "year": 2025,
+    "semester": 2,
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "컴퓨터 비전 모델을 직접 구현해 보고 싶은 학회원을 위한 스터디다.",
+        "en": "This study is for members who want hands-on experience implementing computer vision models."
+      },
+      {
+        "kind": "activities",
+        "ko": "안내된 모임은 화요일 19:00~20:30 하나와영 학회실에서 진행하는 일정이다.",
+        "en": "The listed meeting time is Tuesday, 19:00–20:30, in the society room."
+      },
+      {
+        "kind": "implementation",
+        "ko": "이미지를 모델 입력으로 바꾸는 전처리와 모델이 출력하는 예측의 의미를 연결해 살펴본다.",
+        "en": "A useful exercise is to trace an image through preprocessing and interpret the resulting model prediction."
+      },
+      {
+        "kind": "results",
+        "ko": "예측이 달라진 사례에서 입력 조건과 모델 구조의 영향을 구분하는 것이 학습의 초점이다.",
+        "en": "The learning goal is to distinguish the effect of input conditions from that of the model architecture when predictions change."
+      }
+    ]
+  },
+  "study/17": {
+    "hash": "4eccec158e25b25a33b844891e0d4c44c579c01d6e57f213cca1f2e16205eb1a",
+    "year": 2025,
+    "semester": 2,
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "HTML, CSS, JavaScript를 중심으로 웹페이지의 구조와 동작을 익히는 기초 스터디다.",
+        "en": "This introductory study examines the structure and behaviour of web pages through HTML, CSS and JavaScript."
+      },
+      {
+        "kind": "activities",
+        "ko": "페이지를 구성하는 요소와 사용자의 입력에 반응하는 화면을 함께 살펴본다.",
+        "en": "Activities connect the elements of a page with the interface that responds to user input."
+      },
+      {
+        "kind": "implementation",
+        "ko": "HTML로 내용을 구조화하고 CSS로 배치를 정한 뒤 JavaScript 이벤트로 화면 상태를 바꾸는 과정을 연습한다.",
+        "en": "Practice connects semantic HTML, CSS layout and JavaScript events that update interface state."
+      },
+      {
+        "kind": "results",
+        "ko": "화면 모양이 잘못된 경우와 동작이 잘못된 경우를 구분해 어느 부분을 점검할지 설명하는 것이 목표다.",
+        "en": "The goal is to identify whether a problem lies in presentation or behaviour and explain which layer to inspect."
+      }
+    ]
+  },
+  "study/19": {
+    "hash": "cf633c3920b57b5aab62a44cbc0e517cf908939ddfae633b8782e204c5fcf183",
+    "year": 2025,
+    "semester": 2,
+    "sections": [
+      {
+        "kind": "overview",
+        "ko": "변수와 자료형부터 배열과 포인터까지 C 언어의 기본 개념을 다루는 스터디다.",
+        "en": "This study introduces C, from variables and types to arrays and pointers."
+      },
+      {
+        "kind": "activities",
+        "ko": "예제를 작성하고 작은 문제를 조건문, 반복문, 함수로 나누어 해결하는 방식을 연습한다.",
+        "en": "Examples and short problems provide practice with decisions, loops and functions."
+      },
+      {
+        "kind": "implementation",
+        "ko": "배열 원소의 값과 주소를 구분하고, 포인터를 함수에 전달할 때 어떤 값이 바뀌는지 추적한다.",
+        "en": "Practice distinguishes an array element’s value from its address and traces changes when a pointer is passed to a function."
+      },
+      {
+        "kind": "results",
+        "ko": "코드의 실행 순서와 메모리 상태를 함께 설명할 수 있도록 기본 문법을 정리한다.",
+        "en": "The aim is to explain both the order in which statements execute and the corresponding changes in memory."
+      }
+    ]
+  }
+}

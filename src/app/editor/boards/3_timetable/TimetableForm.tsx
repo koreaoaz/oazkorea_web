@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { EditorForm } from "../../components/common/EditorForm"
 import { insertPost } from "../../services/board.service"
 import { BOARD_TABLE_MAP } from "../../constants"
 import { generateTimeOptions, isValidTimeRange } from "../../utils/time"
@@ -49,7 +50,7 @@ export function TimetableForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <EditorForm onSubmit={handleSubmit} className="space-y-4">
       {/* 요일 + 시간 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField>
@@ -155,6 +156,6 @@ export function TimetableForm() {
        <button className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors rounded">
         등록
       </button>
-    </form>
+    </EditorForm>
   )
 }
