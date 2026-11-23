@@ -1,7 +1,2 @@
-export default function Page() {
-  return (
-    <div>
-      경조사
-    </div>
-  );
-}
+import {redirect} from 'next/navigation'
+export default function Page(){redirect('/alumni/homecoming')}

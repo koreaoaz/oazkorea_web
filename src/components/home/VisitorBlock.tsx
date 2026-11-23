@@ -1,63 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
+import { createVisitorResource, getServerVisitorSnapshot } from "@/lib/visitorResource";
 
 export default function VisitorBlock() {
-  const [count, setCount] = useState<number | null>(null);
-  const [today, setToday] = useState("");
-
-  useEffect(() => {
-    // KST(Asia/Seoul) 기준 YYYY-MM-DD
-    const kstToday = new Date().toLocaleDateString("en-CA", {
-      timeZone: "Asia/Seoul",
-    });
-    setToday(kstToday);
-
-    const hit = async () => {
-      const lastVisited = localStorage.getItem("lastVisitDate");
-
-      const safeSet = (n: unknown) => {
-        if (typeof n === "number" && Number.isFinite(n)) {
-          setCount(n);
-          return true;
-        }
-        return false;
-      };
-
-      if (lastVisited !== kstToday) {
-        // 오늘 첫 방문 → POST
-        try {
-          const res = await fetch("/api/visitor", { method: "POST" });
-          if (!res.ok) throw new Error(`POST /api/visitor ${res.status}`);
-          const data = await res.json();
-          // 서버가 { count: number }로 응답한다고 가정
-          if (safeSet(data?.count)) {
-            localStorage.setItem("lastVisitDate", kstToday);
-            return;
-          }
-          // 응답 형태가 달라진 경우 방어
-          if (safeSet(data?.visitor)) {
-            localStorage.setItem("lastVisitDate", kstToday);
-            return;
-          }
-          throw new Error("Invalid POST payload");
-        } catch {
-          // POST 실패 시 localStorage 찍지 말고 GET으로 폴백
-        }
-      }
-
-      // 오늘 이미 방문 기록 있음 → GET (또는 POST 실패 폴백)
-      try {
-        const res = await fetch("/api/visitor");
-        if (!res.ok) throw new Error(`GET /api/visitor ${res.status}`);
-        const data = await res.json();
-        safeSet(data?.count) || safeSet(data?.visitor);
-      } catch {
-        setCount(0); // 마지막 안전망
-      }
-    };
-
-    hit();
-  }, []);
+  const [resource] = useState(createVisitorResource);
+  const { count, today } = useSyncExternalStore(resource.subscribe, resource.getSnapshot, getServerVisitorSnapshot);
 
   return (
     <div className="w-full max-w-sm mx-auto bg-white shadow-md rounded-xl p-6 text-center border border-gray-200 mt-10">

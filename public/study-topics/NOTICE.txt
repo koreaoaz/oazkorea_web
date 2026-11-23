@@ -1,0 +1,4 @@
+Study topic symbols, not photographs of OaZ activities.
+Lucide 0.525.0: https://lucide.dev/license — full notice: LUCIDE-LICENSE.txt. SVG presentation size/color adjusted.
+Python and the Python logo are trademarks of the Python Software Foundation. The unaltered logo identifies Python study content only; no PSF sponsorship is implied.
+Source and permitted use: https://www.python.org/community/logos/ and https://www.python.org/psf/trademarks/

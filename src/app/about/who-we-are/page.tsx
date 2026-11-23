@@ -1,6 +1,9 @@
 "use client";
 
-import { motion } from "framer-motion";
+
+import {T,useUIText,LocalizedText,useLocale} from '@/components/LocaleProvider';
+import {useEffect,useState} from 'react';
+import type {AboutContent} from '@/lib/admin/site-management';
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -14,14 +17,22 @@ import { ArrowUpRight, BookOpen, Github, Users } from "lucide-react";
  * - Tailwind + shadcn/ui + framer-motion. 다크 모드 친화적.
  */
 export default function WhoWeArePage() {
+ const uiText=useUIText(),locale=useLocale();
+ const [loadError,setLoadError]=useState(false);
+ const [about,setAbout]=useState<AboutContent|null>(null);
+ useEffect(()=>{const controller=new AbortController();void fetch('/api/public/about',{cache:'no-store',credentials:'omit',headers:{'x-oaz-public-language':locale},signal:controller.signal}).then(r=>{if(!r.ok)throw Error('unavailable');return r.json()}).then(r=>setAbout(r.content)).catch(()=>{if(!controller.signal.aborted)setLoadError(true)});return()=>controller.abort()},[locale]);
+
   return (
-    <main className="bg-[#2D2D2D] text-zinc-100">
+    <div className="bg-[#2D2D2D] text-zinc-100">
+      <h1 className="sr-only"><LocalizedText ko="학회 소개" en="Who We Are"/></h1>
+      {loadError&&<p role="status" className="container mx-auto px-4 py-3"><LocalizedText ko="소개 내용을 새로 불러오지 못했습니다. 잠시 후 새로고침해 주세요." en="The introduction could not be loaded. Please refresh the page."/></p>}
       {/* HERO */}
       <section className="relative isolate">
         {/* 배경 이미지 영역 (이미지 첨부) */}
         <div className="relative h-[44vh] min-h-[320px] w-full overflow-hidden">
           <Image
-            src="/campus.png"
+            src={about?.image??"/campus.png"}
+            unoptimized
             alt="Campus"
             fill
             className="object-cover object-center"
@@ -46,29 +57,14 @@ export default function WhoWeArePage() {
       <section className="container mx-auto px-4 py-14 sm:py-18 lg:py-22">
         <div className="mx-auto max-w-4xl">
           <header className="mb-8">
-            <h2 className="text-center text-2xl font-semibold tracking-tight sm:text-3xl">
-              인사말
-            </h2>
+            <h2 className="text-center text-2xl font-semibold tracking-tight sm:text-3xl"><T text="인사말"/></h2>
           </header>
 
           <div className="space-y-6 rounded-2xl border border-zinc-800/60 bg-[#2D2D2D] p-6 leading-relaxed text-zinc-300 sm:p-8">
             <p>
-              <b className="font-semibold text-zinc-100">
-                고려대학교 소프트웨어 학회 하나와영(One and Zero)
-              </b>
-              은 전기전자공학부 내 유일한 소프트웨어 중심 학회입니다.
-            </p>
-            <p>
-              코딩과 소프트웨어에 대한 열정을 가진 학우들이 모여 함께 성장하고
-              도전하는 공간을 만들어가고 있습니다. 학과, 학년의 제약 없이
-              소프트웨어에 관심을 가지고, 배우려는 열정이 있는 고려대학교
-              학생이라면 누구나 참여할 수 있습니다.
-            </p>
-            <p>
-              우리는 이진수의 0과 1을 우리만의 문장으로 풀어낸 이름처럼, 작은
-              차이로도 무한한 가능성을 창조할 수 있다는 믿음 아래 함께 나아가는
-              공동체입니다.
-            </p>
+              <b className="font-semibold text-zinc-100"><T text={about?.name??"고려대학교 소프트웨어 학회 하나와영(One and Zero)"}/></b><T text={about?.lead??"은 전기전자공학부 내 유일한 소프트웨어 중심 학회입니다."}/></p>
+            <p><T text={about?.greeting??"코딩과 소프트웨어에 대한 열정을 가진 학우들이 모여 함께 성장하고 도전하는 공간을 만들어가고 있습니다. 학과, 학년의 제약 없이 소프트웨어에 관심을 가지고, 배우려는 열정이 있는 고려대학교 학생이라면 누구나 참여할 수 있습니다."}/></p>
+            <p><T text={about?.belief??"우리는 이진수의 0과 1을 우리만의 문장으로 풀어낸 이름처럼, 작은 차이로도 무한한 가능성을 창조할 수 있다는 믿음 아래 함께 나아가는 공동체입니다."}/></p>
           </div>
         </div>
       </section>
@@ -77,21 +73,15 @@ export default function WhoWeArePage() {
       <section className="container mx-auto px-4 pb-6 sm:pb-10">
         <div className="mx-auto max-w-4xl">
           <header className="mb-8">
-            <h2 className="text-center text-2xl font-semibold tracking-tight sm:text-3xl">
-              방향성
-            </h2>
+            <h2 className="text-center text-2xl font-semibold tracking-tight sm:text-3xl"><T text="방향성"/></h2>
           </header>
 
 
           <div className="space-y-6 rounded-2xl border border-zinc-800/60 bg-[#2D2D2D] p-6 leading-relaxed text-zinc-300 sm:p-8">
-            <p className="text-center text-sm text-zinc-400">1992년 창립</p>
-            <p>하나와영은 단순한 스터디를 넘어, 자유롭고 진취적인 배움의 장을 지향합니다.</p>
-            <p>
-              학기 중에는 다채로운 스터디와 세미나가, 방학 중에는 팀 프로젝트와
-              대회 준비 등이 활발히 이뤄지며, 학회원들은 각자의 관심 분야에 맞춰
-              새로운 스터디를 직접 기획하고 이끌어갈 수 있습니다.
-            </p>
-            <p>책이나 강의 등 필요한 자원도 적극적으로 지원하고 있습니다.</p>
+            <p className="text-center text-sm text-zinc-400"><T text={about?.founded??"1992년 창립"}/></p>
+            <p><T text={about?.direction??"하나와영은 단순한 스터디를 넘어, 자유롭고 진취적인 배움의 장을 지향합니다."}/></p>
+            <p><T text={about?.activities??"학기 중에는 다채로운 스터디와 세미나가, 방학 중에는 팀 프로젝트와 대회 준비 등이 활발히 이뤄지며, 학회원들은 각자의 관심 분야에 맞춰 새로운 스터디를 직접 기획하고 이끌어갈 수 있습니다."}/></p>
+            <p><T text={about?.support??"책이나 강의 등 필요한 자원도 적극적으로 지원하고 있습니다."}/></p>
           </div>
         </div>
       </section>
@@ -102,9 +92,7 @@ export default function WhoWeArePage() {
       <section className="container mx-auto px-4 py-16">
         <div className="mx-auto max-w-6xl">
           <header className="mb-10 text-center">
-            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              학회의 활동
-            </h2>
+            <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl"><T text="학회의 활동"/></h2>
             {/* <p className="mt-3 text-sm text-zinc-400">
               스터디 기록과 프로젝트 기록으로 바로 이동할 수 있는 빠른 액션 영역
             </p> */}
@@ -115,16 +103,11 @@ export default function WhoWeArePage() {
             <Card className="border-zinc-800/60 bg-[#2D2D2D]">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-zinc-100">
-                  <BookOpen className="size-5" />
-                  학회 스터디 기록
-                </CardTitle>
+                  <BookOpen className="size-5" /><T text="학회 스터디 기록"/></CardTitle>
                 <ArrowUpRight className="size-5 text-zinc-400" />
               </CardHeader>
               <CardContent className="space-y-4 text-zinc-300">
-                <p>
-                  학회원들이 자율적으로 기획하고 운영한 스터디/세미나 기록을
-                  확인하세요. 학회원들의 모든 스터디가 기수별로 정리되어 있습니다.
-                </p>
+                <p><T text="학회원들이 자율적으로 기획하고 운영한 스터디/세미나 기록을 확인하세요. 학회원들의 모든 스터디가 기수별로 정리되어 있습니다."/></p>
                 <div className="flex flex-wrap gap-3">
                   {/* ✅ Navigation 기준: /studies/overview */}
                   <Button
@@ -133,7 +116,7 @@ export default function WhoWeArePage() {
                     variant="secondary"
                     className="border border-zinc-700/70 bg-zinc-800 text-zinc-100"
                   >
-                    <Link href="/studies/records">바로가기</Link>
+                    <Link href="/studies/records"><T text="바로가기"/></Link>
                   </Button>
                 </div>
               </CardContent>
@@ -143,17 +126,11 @@ export default function WhoWeArePage() {
             <Card className="border-zinc-800/60 bg-[#2D2D2D]">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-zinc-100">
-                  <Users className="size-5" />
-                  프로젝트 기록
-                </CardTitle>
+                  <Users className="size-5" /><T text="프로젝트 기록"/></CardTitle>
                 <ArrowUpRight className="size-5 text-zinc-400" />
               </CardHeader>
               <CardContent className="space-y-4 text-zinc-300">
-                <p>
-                  팀 프로젝트 결과물과 회고, 대회/해커톤 참여기 등을 모았습니다.
-                  기술 스택, 레포지토리, 데모 링크를 통해 활동을 한눈에 볼 수
-                  있습니다.
-                </p>
+                <p><T text="팀 프로젝트 결과물과 회고, 대회/해커톤 참여기 등을 모았습니다. 기술 스택, 레포지토리, 데모 링크를 통해 활동을 한눈에 볼 수 있습니다."/></p>
                 <div className="flex flex-wrap gap-3">
                   {/* ✅ Navigation 기준: /projects/overview */}
                   <Button
@@ -162,7 +139,7 @@ export default function WhoWeArePage() {
                     variant="secondary"
                     className="border border-zinc-700/70 bg-zinc-800 text-zinc-100"
                   >
-                    <Link href="/projects/archives">바로가기</Link>
+                    <Link href="/projects/archives"><T text="바로가기"/></Link>
                   </Button>
                 </div>
               </CardContent>
@@ -174,23 +151,18 @@ export default function WhoWeArePage() {
             <Link
               href="https://github.com/"
               className="inline-flex items-center gap-2 hover:text-zinc-200"
-              aria-label="학회 GitHub로 이동"
+              aria-label={uiText("학회 GitHub로 이동")}
             >
-              <Github className="size-4" /> 학회 GitHub
-            </Link>
+              <Github className="size-4" /><T text="학회 GitHub"/></Link>
             <span className="text-zinc-700">|</span>
             {/* ✅ Navigation 기준: /recruit/recruitment */}
-            <Link href="/recruit/recruitment" className="hover:text-zinc-200">
-              리크루팅 안내
-            </Link>
+            <Link href="/recruit/recruitment" className="hover:text-zinc-200"><T text="리크루팅 안내"/></Link>
             <span className="text-zinc-700">|</span>
             {/* ✅ Navigation 기준: /events/archive */}
-            <Link href="/events/archive" className="hover:text-zinc-200">
-              행사 / 세미나
-            </Link>
+            <Link href="/news" className="inline-flex min-h-11 items-center hover:text-zinc-200"><LocalizedText ko="학회 소식" en="News"/></Link>
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

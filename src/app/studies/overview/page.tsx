@@ -1,7 +1,2 @@
-export default function Page() {
-  return (
-    <div>
-      스터디 활동 소개
-    </div>
-  );
-}
+import {ActivityOverview} from '@/components/ActivityOverview'
+export default function Page(){return <ActivityOverview kind="studies"/>}

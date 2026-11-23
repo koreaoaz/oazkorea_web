@@ -1,0 +1,56 @@
+{
+  "31": {
+    "titleKo": "[공지] 학회실 출입 권한 관련 안내",
+    "title": "OaZ Clubroom Access Guide",
+    "sourceHash": "2d357ae0ece7eed5dbb09d554e3c60ea28fe28f2ddabda1f7438f5043e21f7f3",
+    "body": "Hello from the OaZ officers.\n\nThe access system can register only a limited number of student IDs. As previously announced, only full members will be granted clubroom access with their student IDs.\n\nAssociate members who need to use the clubroom can contact an officer if the door is locked. We will open it for you. We appreciate your understanding and cooperation.\n\nThank you."
+  },
+  "33": {
+    "titleKo": "[공지] 2026-1 겹강러 찾기 프로그램 안내",
+    "title": "Find Classmates Taking the Same Courses",
+    "sourceHash": "9ad03c1fca6ee2e228ca50d3bc5c7136098822b15af522e6a827c49f8c781ca6",
+    "body": "Hello from the OaZ officers.\n\nFor the first time, OaZ is connecting members who are taking the same courses. We’ll set up a KakaoTalk group for each course so you can share assignment and exam information or find partners for a project or study group. We hope this helps members get to know one another and support each other at university.\n\nHow to participate\nEnter your current courses in the Google Form. We’ll match members by course and invite them to a group chat.\n\nSign up: https://forms.gle/Bu4u8RrXCTbAWaREA\n\nWho can participate: All OaZ members\nSign-up period: Monday, March 9 through Saturday, March 14, 2026\nGroup chats open: Sunday, March 15, 2026\n\nA chat will be created only if two or more members are taking the same course.\n\nWe look forward to your participation. Thank you."
+  },
+  "30": {
+    "titleKo": "[공지] 학회실 출입제한 안내 (~3/6(금))",
+    "title": "Restricted Access to the OaZ Clubroom Through Friday, March 6",
+    "sourceHash": "5c1ffd2ba71ea725fd0bcc0f5cfa1627f6b3af48737d9082e7171611e18067c7",
+    "body": "Hello from the OaZ officers.\n\nInterviews for new OaZ members will take place from 14:00 to 19:00 each day from Tuesday, March 3 through Friday, March 6, 2026.\n\nDuring those hours, please leave the clubroom to interviewees and the interview team so that the interviews can run smoothly. Other members should refrain from using the room during the interview period.\n\nThank you for your understanding and cooperation."
+  },
+  "37": {
+    "titleKo": "[공지] 딥러닝 기초 스터디원 모집",
+    "title": "Join the Introductory Deep Learning Study Group",
+    "sourceHash": "15ddd84a862085ad61e5714a172560f726ee1436484c8b7743f3d1f16d257cea",
+    "body": "Hello from the OaZ officers.\n\nWe are recruiting members for the introductory deep learning study group.\n\nTime: We will agree on a time using the responses to the Google Form.\nLocation: The OaZ clubroom or a study room in the New Engineering Building.\nWho can join: Beginners in deep learning who can read Python code and roughly follow what it does.\n\nApply using the Google Form: https://forms.gle/fa7r6KgDQAbvgQeQ9\nApplication deadline: Friday, March 20, 2026 at 23:59.\n\nPlease contact us if you have any questions. Thank you."
+  },
+  "38": {
+    "titleKo": "[공지] 웹개발 실습 기초 스터디원 모집",
+    "title": "Join the Introductory Web Development Study Group",
+    "sourceHash": "7bca0913c3e3ab7213640d277855fdca62172f3f39a2f7a19adfcf8a372b0cff",
+    "body": "Hello from the OaZ officers.\n\nWe are recruiting members for the introductory hands-on web development study group for the first semester of 2026.\n\nWhen: Fridays, 16:00–18:00.\nWhere: OaZ clubroom, Room 106B on the first floor of the New Engineering Building.\nWho can join: Students interested in websites who can read basic code in any language. We will use GPT to help write code. You do not need strong coding skills, but you should be able to follow the structure of the code and make changes.\n\nApplication form: https://forms.gle/LSmY4eFE9QiLQvkM7\nApplication period: Tuesday, March 17 through Friday, March 20, 2026 at 23:59.\n\nStudy schedule\nWeek 1: Orientation, Ubuntu installation and virtual environment setup\nWeek 2: Review the OaZ website code\nWeek 3: Learn to use GitHub Desktop or Fork\nWeek 4: Classes and Tailwind\nWeek 5: HTML and CSS\nWeek 6: userstate and def\nWeeks 7–8: Hands-on web development\n\nPlease feel free to apply or contact us with questions. Thank you."
+  },
+  "35": {
+    "titleKo": "[공지] 파이썬 기초 스터디원 모집",
+    "title": "Python Basics Study Group Recruitment",
+    "sourceHash": "b8d4afaa9f568e051739b18b218c572448f0bfa5afed7db35f8e7d9a5ea5396b",
+    "body": "Hello from the OaZ officers.\n\nAs announced at the semester opening meeting, the introductory Python study group is recruiting. If you were provisionally assigned to the group and would like to take part, please fill out the Google Form again. You can also apply if you were not assigned to the group.\n\nTime: The group will agree on a meeting time.\nLocation: The OaZ clubroom or a study room in the New Engineering Building.\nWho can join: New programmers, students looking to strengthen their Python fundamentals, and anyone who has written Python but would like to understand their code better.\n\nApplication form: https://forms.gle/qbX7xv7Jq47hD2xa9\nDeadline: Thursday, March 19, 2026 at 23:55.\n\nThank you."
+  },
+  "36": {
+    "titleKo": "[공지] VLSI & EDA 스터디원 모집",
+    "title": "Join the VLSI & EDA Study Group",
+    "sourceHash": "4fbfae36e11b0b2d5d4433d7749dc777ff69474a8e380237e7904a5e14845523",
+    "body": "Hello from the OaZ officers.\n\nWe are recruiting for the VLSI & EDA study group. If you are interested in semiconductor design and electronic design automation and are looking for a place to start, this group may suit you.\n\nTime: We will agree on a time using the responses to the Google Form.\nLocation: OaZ clubroom, Room 106B in the New Engineering Building.\nWho can join:\n- Students who know basic Python syntax and can write simple scripts.\n- Students who understand basic digital circuits and have encountered combinational circuits, sequential circuits and finite-state machines.\n- Students with some experience of Verilog or SystemVerilog.\n- Students interested in understanding and analyzing data structures.\n- Students who can commit to the project during the vacation.\n\nRead the study description and apply here: https://forms.gle/CgxSYn5MYUgWjNALA\nDeadline: Friday, March 20, 2026 at 23:59.\n\nPlease contact us if you have any questions. Thank you."
+  },
+  "48": {
+    "titleKo": "[홍보] 대학생 서포터즈 컴투스 플레이어 16기 모집 (~8/18(화))",
+    "title": "Com2uS Player Student Supporters: Applications for the 16th Cohort (Through August 18)",
+    "sourceHash": "a7e40dc9aa791e67f2587618bdeebecdb05aea3a2ed524a94915b36d0b2ff35c",
+    "body": "Com2uS Player is recruiting its 16th cohort of student supporters.\n\nApplication period: Monday, August 3 through Tuesday, August 18 at 10:00.\nActivity period: Six months, September 2026 through February 2027. Attendance is required at the kickoff, scheduled for the afternoon of Friday, September 4.\nRoles: Content producer or content editor.\nEligibility: University students living in Korea who are currently enrolled or on a leave of absence. Students who have completed their degree requirements or deferred graduation are ineligible.\n\nDetails: https://com2usplayer.com/?utm_source=school&utm_medium=club&utm_campaign=2608_player"
+  },
+  "52": {
+    "titleKo": "[홍보] SK쉴더스 루키즈 지능형 애플리케이션 개발자 양성과정 6기 모집 (~5/10)",
+    "title": "SK Shieldus Rookies: Intelligent Application Developer Training, Cohort 6 (Through May 10)",
+    "sourceHash": "d8df01fcb9250d0ff4e2390ae9ab3ed0de649765fd249fc967de7cb5bfcff49e",
+    "body": "Application deadline: Sunday, May 10, 2026.\n\nEligibility: Unemployed applicants in their third year of university or above, in Korea or abroad, who are eligible for a National Tomorrow Learning Card.\n\nApply at ssra.kr or use the QR code in the announcement.\nTraining period: Friday, May 22 through Tuesday, November 24, 2026. Classes run Monday through Friday, 09:00–18:00 (8 hours a day, 960 hours in total).\n\nLocations: Regular classes take place online in a metaverse classroom. In-person practical training takes place at SK Shieldus headquarters, and the final project at Dongguk University's Seoul campus.\n\nThere are 50 places. Early applicants receive priority. Final selection follows document screening and an online interview.\n\nBenefits include an opportunity to interview with SK Shieldus on completion, practical classes and mentoring by its staff, a training allowance of up to KRW 300,000 per month, and an additional accommodation subsidy for trainees living outside the area. The participant contribution is KRW 500,000 toward a course valued at KRW 17 million. Laptop loans and access to AWS, metaverse and AI services are provided."
+  }
+}

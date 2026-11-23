@@ -1,184 +1,29 @@
-"use client"
+'use client'
 
-import * as React from "react"
-import { Calendar } from "@/components/ui/calendar"
-import { supabase } from "@/lib/supabaseClient"
+import {ContentExcerpt} from '@/components/ContentExcerpt'
+import {ko,enUS} from 'date-fns/locale'
+import {T,LocalizedText,useUIText,useLocale} from '@/components/LocaleProvider';
+import {useEffect,useMemo,useState} from 'react'
+import {Calendar} from '@/components/ui/calendar'
+import {TZDate} from 'react-day-picker'
+import {KoreanCalendarDay} from '@/components/KoreanCalendarDay'
+import {holidayNames,HOLIDAY_YEAR_RANGE} from '@/lib/korean-holidays'
+import {supabase} from '@/lib/supabaseClient'
+import {PublicDetailDialog} from '@/components/PublicDetailDialog'
+import {dateKey,schedulesInRange,schedulePreview,validSchedule,type PublicSchedule} from '@/lib/public-schedules'
+export default function Calendar01({initialEventId,expandedList=false}:{initialEventId?:number;expandedList?:boolean}={}){
+ const uiText=useUIText(),locale=useLocale();
 
-interface Schedule {
-  id: number
-  description: string
-  start_date: string // "YYYY-MM-DD"
-  end_date: string   // "YYYY-MM-DD"
-}
-
-function toDateOnly(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate())
-}
-
-function parseYMD(s: string) {
-  const [y, m, d] = s.split("-").map(Number)
-  return new Date(y, m - 1, d)
-}
-
-function expandDates(start: Date, end: Date): Date[] {
-  const out: Date[] = []
-  const cur = new Date(start)
-  while (cur <= end) {
-    out.push(new Date(cur))
-    cur.setDate(cur.getDate() + 1)
-  }
-  return out
-}
-
-function startOfMonth(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), 1)
-}
-function endOfMonth(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0)
-}
-
-export default function Calendar01() {
-  // 출력용이므로 '보여줄 기준 월'만 관리 (기본: 오늘의 달)
-  const [currentMonth, setCurrentMonth] = React.useState<Date>(startOfMonth(new Date()))
-  // Supabase 이벤트
-  const [schedules, setSchedules] = React.useState<Schedule[]>([])
-  const [loading, setLoading] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
-
-  React.useEffect(() => {
-    const fetchSchedules = async () => {
-      setLoading(true)
-      setError(null)
-      const { data, error } = await supabase
-        .from("editor_4_schedules")
-        .select("id, description, start_date, end_date")
-        .order("start_date", { ascending: true })
-      if (error) setError(error.message)
-      setSchedules(data || [])
-      setLoading(false)
-    }
-    fetchSchedules()
-  }, [])
-
-  // --- 이벤트를 달력에 칠하기 위한 modifier용 날짜 집합 생성 ---
-  const { evStart, evMiddle, evEnd } = React.useMemo(() => {
-    const starts: Date[] = []
-    const middles: Date[] = []
-    const ends: Date[] = []
-
-    for (const s of schedules) {
-      const sd = toDateOnly(parseYMD(s.start_date))
-      const ed = toDateOnly(parseYMD(s.end_date))
-      const days = expandDates(sd, ed)
-
-      if (days.length === 1) {
-        starts.push(days[0])
-        ends.push(days[0])
-      } else {
-        starts.push(days[0])
-        ends.push(days[days.length - 1])
-        if (days.length > 2) {
-          middles.push(...days.slice(1, -1))
-        }
-      }
-    }
-    const uniq = (arr: Date[]) =>
-      Array.from(new Set(arr.map(d => +toDateOnly(d)))).map(t => new Date(t))
-
-    return {
-      evStart: uniq(starts),
-      evMiddle: uniq(middles),
-      evEnd: uniq(ends),
-    }
-  }, [schedules])
-
-  // --- 오른쪽 리스트: "현재 보이는 달"의 모든 이벤트 ---
-  const eventsForMonth = React.useMemo(() => {
-    const mStart = +startOfMonth(currentMonth)
-    const mEnd = +endOfMonth(currentMonth)
-    // (이벤트가 월 범위와 '겹치면' 포함: sd <= mEnd && ed >= mStart)
-    return schedules
-      .filter(s => {
-        const sd = +toDateOnly(parseYMD(s.start_date))
-        const ed = +toDateOnly(parseYMD(s.end_date))
-        return sd <= mEnd && ed >= mStart
-      })
-      // 보기 좋게 시작일 → 종료일 → 설명 순서로 정렬
-      .sort((a, b) => {
-        const as = a.start_date.localeCompare(b.start_date)
-        if (as !== 0) return as
-        const ae = a.end_date.localeCompare(b.end_date)
-        if (ae !== 0) return ae
-        return a.description.localeCompare(b.description)
-      })
-  }, [schedules, currentMonth])
-
-  function DateBadge({ date }: { date: string }) {
-    const d = new Date(date)
-    const day = d.getDate()
-    const ym = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}`
-
-    return (
-      <div className="flex flex-col items-center justify-center leading-none">
-        <span className="text-2xl font-bold">{day}</span>
-        <span className="text-xs text-muted-foreground">{ym}</span>
-      </div>
-    )
-  }
-
-  return (
-    // ✅ 공통 래퍼로 감싸기 (좌/우 2칼럼)
-    <div className="w-full h-auto grid grid-cols-1 md:grid-cols-[1fr_1.2fr] gap-6 px-2 py-2">
-      {/* 왼쪽: 달력 */}
-      <div className="min-w-0 flex justify-center items-center">
-        <Calendar
-          mode="single"
-          numberOfMonths={1}
-          month={currentMonth}
-          onMonthChange={setCurrentMonth}
-          modifiers={{ evStart, evMiddle, evEnd }}
-          className="w-full max-w-full md:max-w-md lg:max-w-lg [--cell-size:28px]"
-        />
-      </div>
-
-      {/* 오른쪽: 투명 박스 + 세로 중앙 정렬 */}
-      <div className="min-w-0 flex justify-center items-center">
-        <div className="w-full h-full bg-transparent rounded-xl flex items-center justify-center">
-          <div className="w-full max-w-full">
-            {!loading && !error && eventsForMonth.length > 0 && (
-              <ul className="space-y-1">
-                {eventsForMonth.map((ev) => {
-                  const sameDay = ev.start_date === ev.end_date
-                  return (
-                    <li key={ev.id} className="flex items-center p-1 rounded-xl">
-                      <div className="flex items-center gap-4 w-full">
-                        {/* 왼쪽: 날짜 */}
-                        <div className="flex items-center gap-2 shrink-0">
-                          {sameDay ? (
-                            <DateBadge date={ev.start_date} />
-                          ) : (
-                            <>
-                              <DateBadge date={ev.start_date} />
-                              <span className="text-muted-foreground" aria-hidden>
-                                ~
-                              </span>
-                              <DateBadge date={ev.end_date} />
-                            </>
-                          )}
-                        </div>
-                        {/* 오른쪽: 행사명 */}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold truncate">{ev.description}</p>
-                        </div>
-                      </div>
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+ const [month,setMonth]=useState(()=>new TZDate(new Date(),'Asia/Seoul')),[selected,setSelected]=useState<Date>(),[rows,setRows]=useState<PublicSchedule[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(false),[detail,setDetail]=useState<PublicSchedule|null>(null)
+ const [showAll,setShowAll]=useState(false)
+ useEffect(()=>{const c=new AbortController(),timer=setTimeout(()=>{void supabase.from('editor_4_schedules').select('id,description,start_date,end_date').order('start_date',{ascending:true}).abortSignal(c.signal).then(({data,error})=>{if(!c.signal.aborted){setRows(data??[]);setError(!!error);setLoading(false);if(error)console.warn('공개 일정 조회 실패');const initial=initialEventId?(data??[]).find(row=>row.id===initialEventId):undefined;if(initial){const [y,m,d]=initial.start_date.split('-').map(Number);const day=new TZDate(y,m-1,d,'Asia/Seoul');setMonth(day);setSelected(day);setDetail(initial)}}},()=>{if(!c.signal.aborted){setError(true);setLoading(false)}})},0);return()=>{clearTimeout(timer);c.abort()}},[initialEventId])
+ const focusedDay=selected&&!expandedList&&!showAll
+ const from=focusedDay?dateKey(selected):dateKey(new Date(month.getFullYear(),month.getMonth(),1)),to=focusedDay?from:dateKey(new Date(month.getFullYear(),month.getMonth()+1,0))
+ const visible=useMemo(()=>showAll?rows.filter(validSchedule).sort((a,b)=>b.start_date.localeCompare(a.start_date)||b.id-a.id):schedulesInRange(rows,from,to),[rows,from,to,showAll])
+ return <div data-calendar-card className="min-w-0 space-y-3"><Calendar locale={locale==='en'?enUS:ko} timeZone="Asia/Seoul" components={{DayButton:KoreanCalendarDay}} labels={{labelDayButton:(day,modifiers)=>`${day.toLocaleDateString(locale==='en'?'en-US':'ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'long',day:'numeric',weekday:'long'})}${holidayNames(day).length?' · '+holidayNames(day).map(uiText).join(', '):''}${modifiers.today?uiText(' · 오늘'):''}${modifiers.selected?uiText(' · 선택됨'):''}`}} mode="single" month={month} selected={selected} onSelect={day=>{setSelected(day);setShowAll(false)}} onMonthChange={value=>{setMonth(new TZDate(value,'Asia/Seoul'));setSelected(undefined);setShowAll(false)}} modifiers={{hasSchedule:day=>schedulesInRange(rows,dateKey(day),dateKey(day)).length>0}} modifiersClassNames={{hasSchedule:'bg-blue-50 font-semibold'}} className="w-full max-w-full p-0 [--cell-size:28px]"/>
+ {(month.getFullYear()<HOLIDAY_YEAR_RANGE[0]||month.getFullYear()>HOLIDAY_YEAR_RANGE[1])&&<p role="status" className="text-xs text-gray-500"><T text="공휴일 자료 지원은2018~2027년입니다. 이 연도는 요일 색상만 표시합니다."/></p>}
+ <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500"><span>{showAll?<LocalizedText ko="전체 일정" en="All schedules"/>:<T text={focusedDay?`${from} 일정`:'이번 달 일정'}/>} · {visible.length}<T text="개"/></span>{focusedDay&&<button type="button" onClick={()=>setSelected(undefined)} className="rounded border px-2 py-1 text-gray-700"><T text="이번 달 전체"/></button>}{!loading&&!error&&rows.length>0&&<button type="button" aria-pressed={showAll} onClick={()=>{setShowAll(value=>!value);setSelected(undefined)}} className="rounded border px-2 py-1 text-gray-700 focus-visible:outline-2">{showAll?<LocalizedText ko="선택한 달 보기" en="View selected month"/>:<LocalizedText ko="전체 일정 보기" en="View all schedules"/>}</button>}</div>
+ <div data-schedule-list data-expanded={expandedList} tabIndex={0} role="region" aria-label={uiText("일정 목록")} className={`${expandedList?'':'max-h-40 overflow-y-auto overscroll-contain'} rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2`}>
+ {loading?<p role="status" className="py-3 text-sm text-gray-500"><T text="일정을 불러오는 중…"/></p>:error?<p role="status" className="py-3 text-sm text-gray-500"><T text="일정을 불러오지 못했습니다. 잠시 후 다시 확인해 주세요."/></p>:!visible.length?<p className="py-3 text-sm text-gray-500"><T text={focusedDay?'선택한 날짜의 일정이 없습니다.':'이번 달 등록된 일정이 없습니다.'}/></p>:<ul className="divide-y divide-gray-100">{visible.map(row=>{const text=schedulePreview(row.description);return <li key={row.id}><button data-schedule-id={row.id} type="button" onClick={()=>setDetail(row)} className="block w-full min-w-0 rounded-lg px-2 py-2.5 text-left hover:bg-gray-50 focus-visible:outline-2"><span className="block text-xs text-gray-500">{row.start_date}{row.end_date!==row.start_date?` ~ ${row.end_date}`:''}</span><span className="mt-1 line-clamp-2 break-words text-sm font-semibold"><ContentExcerpt table="editor_4_schedules" id={row.id} body={row.description} part="title"/></span>{text.preview&&<span className="mt-1 line-clamp-1 break-words text-xs text-gray-500"><ContentExcerpt table="editor_4_schedules" id={row.id} body={row.description} part="preview"/></span>}</button></li>})}</ul>}
+ </div>{detail&&<PublicDetailDialog title={<ContentExcerpt table="editor_4_schedules" id={detail.id} body={detail.description} part="title"/>} onClose={()=>setDetail(null)}><p className="mb-4 text-sm text-gray-500">{detail.start_date} ~ {detail.end_date}</p><p className="whitespace-pre-wrap break-words text-sm leading-relaxed"><ContentExcerpt table="editor_4_schedules" id={detail.id} body={detail.description} part="full"/></p></PublicDetailDialog>}</div>
 }

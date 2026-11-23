@@ -39,3 +39,33 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local Python development helpers
+__pycache__/
+*.pyc
+
+# Local credentials, backup payloads and generated release/test evidence.
+# Keep reviewed SQL, tests, tools and Markdown reports versionable.
+*.private.*
+*.dump
+*.sql.gz
+*.bundle
+/test-results/
+/playwright-report/
+/.next-*/
+/server-data/public-english/
+server-data/reviewed-news/
+/private/pc-restore-kit/
+
+# Private operator material and local environments
+/private/
+/reports/
+/docs/handoff/
+*.oazbak
+*.dpapi
+*.docx
+*.zip
+!.env.example
+
+# Private event photograph supplied separately by the association.
+/public/oaz_homecomming.jpg

@@ -1,17 +1,20 @@
 "use client";
 
-import { BoardType, BOARD_LIST } from "../constants"
+import { BoardType, BOARD_LIST, BOARD_TABLE_MAP } from "../constants"
 import { cx } from "../utils/cx"
+import {adminEditorEnabled} from '@/lib/admin/protocol'
+import {CONTENT_TABLES} from '@/lib/admin/policy'
 
 type Props = {
   board: BoardType
   onChange: (b: BoardType) => void
+  allowed?: readonly BoardType[]
 }
 
-export function BoardTabs({ board, onChange }: Props) {
+export function BoardTabs({ board, onChange, allowed=BOARD_LIST }: Props) {
   return (
     <div className="flex flex-wrap gap-2 mb-6">
-      {BOARD_LIST.map((b) => (
+      {allowed.filter(b=>!adminEditorEnabled()||CONTENT_TABLES.some(t=>t===BOARD_TABLE_MAP[b])).map((b) => (
         <button
           key={b}
           onClick={() => onChange(b)}

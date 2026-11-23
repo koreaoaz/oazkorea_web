@@ -1,0 +1,95 @@
+/* 모바일 레이아웃. 공통 소식 행·스켈레톤은 파일 하단에 정의한다. */
+.mobile-logo { display: grid; position: relative; width: 100%; max-width: 420px; aspect-ratio: 1920 / 730; margin-inline: auto; padding: 0; border: 0; background: white; }
+  .mobile-logo > * { grid-area: 1 / 1; width: 100%; height: 100%; object-fit: contain; }
+  .mobile-logo video { visibility: hidden; }
+  .mobile-logo[data-playing="true"] video { visibility: visible; }
+
+  .mobile-logo:focus-visible { outline: 2px solid #1d4ed8; outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) { .mobile-logo video { display: none; } }
+@media (max-width: 767px) {
+  .mobile-home-hero video { aspect-ratio: 1920 / 730; }
+
+
+  [data-home-grid] > [data-home-block] { order: 3; }
+  [data-home-grid] > [data-home-block="news"] { order: 1; }
+  [data-home-grid] > [data-home-block="timetable"] { order: 2; }
+  [data-news-lists] { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 12px; }
+  .mobile-news-tabs { grid-area: 1 / 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 10px; background: #f1f5f9; }
+  .mobile-news-tabs button { min-height: 44px; padding: 8px; border-radius: 8px; font-size: 14px; font-weight: 700; }
+  .mobile-news-tabs [aria-selected="true"] { background: #0f172a; color: white; }
+  .mobile-news-tabs button:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+  [data-news-lists] > section { grid-area: 2 / 1; min-width: 0; }
+  [data-news-lists] > section[data-selected="false"] { visibility: hidden; pointer-events: none; }
+  [data-news-lists] > section > h2 { display: none; }
+  [data-news-lists] li > a { min-height: 44px; padding-block: 10px; align-items: flex-start; }
+  [data-news-lists] li > a > span { white-space: normal; overflow: visible; text-overflow: clip; word-break: keep-all; overflow-wrap: anywhere; line-height: 1.5; }
+  [data-news-lists] li time { padding-top: 2px; }
+  [data-news-lists] > section > a { min-height: 44px; align-self: stretch; }
+  .mobile-news-skeleton { flex: 1; }
+
+  .mobile-drawer-overlay { position: fixed; inset: 0; z-index: 60; background: rgb(15 23 42 / 45%); }
+  .mobile-drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 61; width: min(90vw, 22rem); max-height: 100dvh; display: flex; flex-direction: column; min-width: 0; background: white; box-shadow: -12px 0 40px rgb(15 23 42 / 18%); }
+  .mobile-drawer[data-state="open"] { animation: mobile-drawer-in 220ms ease-out; }
+  .mobile-drawer[data-state="closed"] { animation: mobile-drawer-out 180ms ease-in; }
+  .mobile-drawer-overlay[data-state="open"] { animation: mobile-overlay-in 220ms ease-out; }
+  .mobile-drawer-overlay[data-state="closed"] { animation: mobile-overlay-out 180ms ease-in; }
+  .mobile-drawer-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #e2e8f0; }
+  .mobile-drawer-heading button { display: grid; place-items: center; min-height: 44px; min-width: 44px; border-radius: 8px; }
+  .mobile-drawer-scroll { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px max(16px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) 16px; }
+  .mobile-drawer nav { margin: 0 0 16px; }
+  .mobile-drawer a, .mobile-drawer-group > button, .mobile-drawer-auth button { display: flex; align-items: center; justify-content: space-between; min-height: 48px; width: 100%; gap: 8px; padding: 10px 12px; text-align: left; white-space: normal; word-break: keep-all; overflow-wrap: anywhere; border-radius: 8px; }
+  .mobile-drawer a:hover, .mobile-drawer-group > button:hover { background: #f1f5f9; }
+  .mobile-drawer [data-active="true"], .mobile-drawer [aria-current="page"] { background: #f1f5f9; color: #0f172a; font-weight: 700; }
+  .mobile-drawer a:focus-visible, .mobile-drawer button:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
+  .mobile-drawer-group { border-bottom: 1px solid #f1f5f9; }
+  .mobile-drawer-group > button { font-weight: 600; }
+  .mobile-drawer-group svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .mobile-drawer-submenu { margin-left: 12px; font-size: 14px; color: #475569; }
+  .mobile-drawer-auth { border-top: 1px solid #e2e8f0; padding-top: 12px; }
+
+  .mobile-archive-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .mobile-archive-grid > * { min-width: 0; }
+  .mobile-study-grid > * { min-height: 0; padding: 6px; }
+  .mobile-study-grid img, .mobile-study-grid > div > [data-slot="skeleton"] { width: 100%; max-width: 100%; }
+  .mobile-study-grid h3 { margin-top: 8px; font-size: 12px; line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }
+  .mobile-study-grid button > span { font-size: 11px; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
+  .mobile-project-grid > * { min-height: 0; padding: 6px; }
+  .mobile-project-grid .record-image { width: 100%; max-width: 100%; }
+  .mobile-project-grid h3 { margin-top: 8px; font-size: 12px; line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }
+  .mobile-archive-title { font-size: clamp(24px, 6vw, 34px); line-height: 1.35; word-break: keep-all; overflow-wrap: normal; text-wrap: balance; }
+  .mobile-project-archives [role="group"] > button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+
+  [data-recruit-schedule] > .relative { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; isolation: isolate; }
+  [data-recruit-schedule] > .relative > .absolute { display: block; top: 58px; left: 16.67%; width: 66.66%; z-index: -1; }
+  [data-recruit-schedule] .mobile-timeline-step { width: 100%; min-width: 0; text-align: center; gap: 12px; }
+  .mobile-timeline-step > * { margin: 0; }
+  .mobile-timeline-step > span:first-child { min-height: 30px; display: flex; align-items: center; justify-content: center; font-size: 13px; line-height: 1.4; white-space: normal; }
+  .mobile-timeline-step > div { width: 32px; height: 32px; }
+  .mobile-timeline-step > span:last-child { width: 100%; min-height: 44px; display: grid; place-items: center; padding: 6px 3px; font-size: 12px; line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }
+
+  @keyframes mobile-drawer-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  @keyframes mobile-drawer-out { from { transform: translateX(0); } to { transform: translateX(100%); } }
+  @keyframes mobile-overlay-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes mobile-overlay-out { from { opacity: 1; } to { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-home-hero > div > div, .mobile-home-hero > div > div > div { opacity: 1 !important; transform: none !important; }
+    .mobile-drawer, .mobile-drawer-overlay { animation-duration: 1ms; }
+    .mobile-logo video { visibility: hidden; }
+    .mobile-logo .mobile-logo-poster { visibility: visible; }
+  }
+}
+
+/* 로딩·실제 목록이 같은 행/날짜/여백을 쓴다. 긴 제목은 최소 높이보다 확장된다. */
+.home-news-row { min-height: 28px; }
+.home-news-rows { min-height: 164px; }
+.home-news-date { width: 3.5rem; flex-shrink: 0; }
+.home-news-placeholder { position: relative; overflow: hidden; display: block; height: 20px; border-radius: 4px; background: #e5e7eb; }
+.home-news-placeholder::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgb(255 255 255 / 32%), transparent); animation: home-news-shimmer 2s linear infinite; }
+@keyframes home-news-shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@media (max-width: 767px) {
+ [data-news-lists] .home-news-row { min-height: 62px; padding-block: 10px; align-items: flex-start; }
+ .home-news-placeholder:first-child { height: 42px; }
+}
+@media (max-width: 375px) { [data-news-lists] .home-news-row { min-height: 83px; } .home-news-placeholder:first-child { height: 63px; } }
+@media (prefers-reduced-motion: reduce) { .home-news-placeholder::after { animation: none; display: none; } }
+

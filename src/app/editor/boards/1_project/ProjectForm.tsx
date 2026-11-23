@@ -1,6 +1,10 @@
 "use client"
 
+import {RecordSectionEditor} from '@/components/RecordSectionEditor'
+import {TechPicker} from '@/components/projects/TechPicker'
 import { useState } from "react"
+import { EditorForm } from "../../components/common/EditorForm"
+import Image from "next/image"
 import { insertPost } from "../../services/board.service"
 import { uploadImage } from "../../services/storage.service"
 import { useImageUpload } from "../../hooks/useImageUpload"
@@ -8,8 +12,9 @@ import { BOARD_TABLE_MAP, CategoryKey } from "../../constants"
 import { CategorySelect } from "../../components/common/CategorySelect"
 import { FormField } from "../../components/common/FormField"
 import { textareaBase } from "../../utils/inputformClasses"
+import type { RawProjectRow } from "@/types/project"
 
-export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
+export function ProjectForm({onSuccess,}: {onSuccess?: (post: RawProjectRow) => void}) {
   // 기존 폼에서 받던 것들 전부 복원
   const [title, setTitle] = useState("") // 프로젝트명
   const [duration, setDuration] = useState("") // 기간
@@ -22,7 +27,7 @@ export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
   const [members, setMembers] = useState("") // 팀원(쉼표)
   const [body, setBody] = useState("") // 간단 설명
   const [detailedDescription, setDetailedDescription] = useState("") // 상세 설명
-  const [techStack, setTechStack] = useState("") // 기술스택(쉼표)
+  const [techStack, setTechStack] = useState<Record<string,unknown>>({}) // 기술스택(쉼표)
 
   const image = useImageUpload()
 
@@ -35,19 +40,7 @@ export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
     }
 
 
-    // members/techStack는 문자열로 저장하거나, 서버에서 split 하도록 둘 수 있음
-    // 여기서는 "입력 그대로(문자열)" 저장 + 필요하면 파싱해서 함께 저장하는 예시를 포함
-    const membersList =
-      members
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean) || []
 
-    const techStackList =
-      techStack
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean) || []
 
     const newPost = await insertPost(BOARD_TABLE_MAP["프로젝트"], {
       // PostList에서 우선순위로 표시하는 project_name을 채움
@@ -65,10 +58,7 @@ export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
       team_size: teamSize, // 혹시 컬럼명이 teamSize면 teamSize로 바꿔줘
       members: members, // 문자열로 저장하려면 members 그대로 넣기
       detailed_description: detailedDescription,
-      // tech_stack: techStackList, // 문자열 저장이면 techStack 그대로
-      tech_stack: {
-        stack: techStackList,
-      },
+      tech_stack: techStack,
       filename,
 
       created_at: new Date().toISOString(),
@@ -84,13 +74,13 @@ export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
     setMembers("")
     setBody("")
     setDetailedDescription("")
-    setTechStack("")
+    setTechStack({})
     image.reset()
     onSuccess?.(newPost)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <EditorForm onSubmit={handleSubmit} className="space-y-4">
       <FormField>
         <input
           type="text"
@@ -177,22 +167,11 @@ export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
       </FormField>
 
       <FormField>
-        <textarea
-          placeholder="상세 설명"
-          value={detailedDescription}
-          onChange={(e) => setDetailedDescription(e.target.value)}
-          className={`w-full ${textareaBase}`}
-        />
+        <RecordSectionEditor kind="project" value={detailedDescription} onChange={setDetailedDescription}/>
       </FormField>
 
       <FormField>
-        <input
-          type="text"
-          placeholder="기술스택 (쉼표로 구분)"
-          value={techStack}
-          onChange={(e) => setTechStack(e.target.value)}
-          className={`w-full ${textareaBase}`}
-        />
+        <TechPicker value={techStack} onChange={setTechStack}/>
       </FormField>
 
       <FormField>
@@ -233,9 +212,14 @@ export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
           {image.preview && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">미리보기:</span>
-              <img
+              <Image
                 src={image.preview || "/placeholder.svg"}
                 alt="미리보기"
+                width={80}
+                height={80}
+                unoptimized
+                loading="eager"
+                decoding="auto"
                 className="w-20 h-20 object-cover rounded-md border"
               />
               <button
@@ -253,6 +237,6 @@ export function ProjectForm({onSuccess,}: {onSuccess?: (post: any) => void}) {
       <button className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors rounded">
         등록
       </button>
-    </form>
+    </EditorForm>
   )
 }

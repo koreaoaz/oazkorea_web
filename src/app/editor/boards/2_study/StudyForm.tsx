@@ -1,6 +1,9 @@
 "use client"
 
+import {RecordSectionEditor} from '@/components/RecordSectionEditor'
 import { useState } from "react"
+import { EditorForm } from "../../components/common/EditorForm"
+import Image from "next/image"
 import { insertPost } from "../../services/board.service"
 import { uploadImage } from "../../services/storage.service"
 import { useImageUpload } from "../../hooks/useImageUpload"
@@ -45,7 +48,7 @@ export function StudyForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <EditorForm onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <FormField>
           <input
@@ -94,12 +97,7 @@ export function StudyForm() {
       </div>
 
       <FormField>
-        <textarea
-          value={outline}
-          placeholder="스터디 설명"
-          onChange={(e) => setOutline(e.target.value)}
-          className={`w-full ${textareaBase}`}
-        />
+        <RecordSectionEditor kind="study" value={outline} onChange={setOutline}/>
       </FormField>
 
       <FormField>
@@ -140,9 +138,14 @@ export function StudyForm() {
           {image.preview && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-600">미리보기:</span>
-              <img
+              <Image
                 src={image.preview || "/placeholder.svg"}
                 alt="미리보기"
+                width={80}
+                height={80}
+                unoptimized
+                loading="eager"
+                decoding="auto"
                 className="w-20 h-20 object-cover rounded-md border"
               />
               <button
@@ -160,6 +163,6 @@ export function StudyForm() {
       <button className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 transition-colors rounded">
         등록
       </button>
-    </form>
+    </EditorForm>
   )
 }

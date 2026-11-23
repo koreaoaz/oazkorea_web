@@ -1,0 +1,64 @@
+[
+  {
+    "topic": "python",
+    "file": "python-mark.svg",
+    "studies": [
+      19,
+      22
+    ],
+    "author": "OaZ local website artwork",
+    "license": "Original SVG artwork created for this repository; no external image or brand logo included.",
+    "page": "repository:/public/study-covers/python-mark.svg",
+    "createdAt": "2026-11-08",
+    "sha256": "89d06637408cfa61fd84bfd81ea09dc3e3a65cae3b755d8d1c2e893ce2b2cb1e"
+  },
+  {
+    "topic": "c",
+    "file": "c-mark.svg",
+    "studies": [
+      21
+    ],
+    "author": "OaZ local website artwork",
+    "license": "Original SVG artwork created for this repository; no external image or brand logo included.",
+    "page": "repository:/public/study-covers/c-mark.svg",
+    "createdAt": "2026-11-08",
+    "sha256": "e3f665619c21a83c37a96b04519389de1529b10f6f8a851775d9c4ac4821b23e"
+  },
+  {
+    "topic": "web",
+    "file": "web-mark.svg",
+    "studies": [
+      23,
+      25
+    ],
+    "author": "OaZ local website artwork",
+    "license": "Original SVG artwork created for this repository; no external image or brand logo included.",
+    "page": "repository:/public/study-covers/web-mark.svg",
+    "createdAt": "2026-11-08",
+    "sha256": "8d6042ba543e84bb7848872db81d3b503508ce33fd37260b4a01a991fd1f7ead"
+  },
+  {
+    "topic": "neural",
+    "file": "neural-mark.svg",
+    "studies": [
+      24
+    ],
+    "author": "OaZ local website artwork",
+    "license": "Original SVG artwork created for this repository; no external image or brand logo included.",
+    "page": "repository:/public/study-covers/neural-mark.svg",
+    "createdAt": "2026-11-08",
+    "sha256": "6f241ddbc5f1df0f8f93bfe0db4fb99ce25148b55da6a27a140faacb905d7293"
+  },
+  {
+    "topic": "chip",
+    "file": "chip-mark.svg",
+    "studies": [
+      20
+    ],
+    "author": "OaZ local website artwork",
+    "license": "Original SVG artwork created for this repository; no external image or brand logo included.",
+    "page": "repository:/public/study-covers/chip-mark.svg",
+    "createdAt": "2026-11-08",
+    "sha256": "3c97c31cf8af4c238397026f43f65e588335124e990acee5d7884107ccaabd49"
+  }
+]

@@ -1,3 +1,6 @@
+
+import {ContentTitle} from '@/components/ContentTitle'
+import {T} from '@/components/LocaleProvider';
 import Link from "next/link"
 import { supabase } from "@/lib/supabaseClient"
 import { ImageFromStorage } from "./components/ImageFromStorage"
@@ -67,7 +70,7 @@ export default async function EventsArchivePage({ searchParams }: PageProps) {
     .range(from, to)
 
   if (error) {
-    return <div className="p-6 text-red-500">데이터를 불러오지 못했습니다.</div>
+    return <div className="p-6 text-red-500"><T text="데이터를 불러오지 못했습니다."/></div>
   }
 
   const events = data ?? []
@@ -76,7 +79,7 @@ export default async function EventsArchivePage({ searchParams }: PageProps) {
 
   /* 페이지 버튼 범위 */
   let start = Math.max(1, page - Math.floor(PAGE_WINDOW / 2))
-  let end = Math.min(totalPages, start + PAGE_WINDOW - 1)
+  const end = Math.min(totalPages, start + PAGE_WINDOW - 1)
   start = Math.max(1, end - PAGE_WINDOW + 1)
 
   return (
@@ -118,16 +121,14 @@ export default async function EventsArchivePage({ searchParams }: PageProps) {
                       className="w-full h-full object-cover rounded-md border"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gray-100 rounded-md flex items-center justify-center text-xs text-gray-400">
-                      이미지 없음
-                    </div>
+                    <div className="w-full h-full bg-gray-100 rounded-md flex items-center justify-center text-xs text-gray-400"><T text="이미지 없음"/></div>
                   )}
                 </div>
 
                 {/* 텍스트 */}
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold line-clamp-1">
-                    {event.title}
+                    <ContentTitle table="editor_6_events" id={event.id} title={event.title}/>
                   </div>
                   {event.description && (
                     <p className="text-sm text-muted-foreground line-clamp-2">

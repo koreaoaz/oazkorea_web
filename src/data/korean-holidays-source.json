@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/hyunbinseo/holidays-kr",
+  "commit": "6479b938f3c1249be7d845926b300ffc33ffcb69",
+  "packageVersion": "5.2027.2",
+  "years": [
+    2018,
+    2027
+  ],
+  "retrieved": "2026-11-05",
+  "sha256": "af93a1e1b928959c5e9b75cfecd4c3c3f86a2aa6e7c5d1d64a5ab89fd9bb380d",
+  "officialCrossCheck": "https://www.kasa.go.kr/prog/plcyBrf/brief/kor/sub01_01_04/view.do?plcyBrfNo=431"
+}

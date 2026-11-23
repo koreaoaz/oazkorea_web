@@ -1,7 +1,5 @@
 "use client";
-import React from "react";
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import Image from "next/image";
 
 const mockProjects = Array(2).fill({ title: "Text", price: "$0" });
 
@@ -15,7 +13,7 @@ export default function ProjectList() {
                 >
                 {/* 이미지 영역 */}
                 <div className="w-full h-[150px] bg-gray-200 rounded-md flex items-center justify-center">
-                    <img src="/placeholder.svg" alt="project" className="w-16 h-16 opacity-40" />
+                    <Image src="/placeholder.svg" alt="project" width={64} height={64} unoptimized loading="eager" decoding="auto" className="w-16 h-16 opacity-40" />
                 </div>
 
                 {/* 텍스트 영역 */}
